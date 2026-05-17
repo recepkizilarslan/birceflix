@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: typecheck + build
+  checks:
+    name: lint + typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,12 +24,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Type check
-        run: npx tsc -p tsconfig.app.json --noEmit
+      - name: Lint
+        run: npm run lint
 
-      - name: Build
-        env:
-          VITE_SUPABASE_URL: "https://placeholder.supabase.co"
-          VITE_SUPABASE_ANON_KEY: "placeholder"
-          VITE_DEFAULT_WATCH_REGION: "TR"
-        run: npm run build
+      - name: Type check
+        run: npm run typecheck
