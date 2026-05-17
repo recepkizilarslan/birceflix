@@ -16,6 +16,7 @@ export interface FilterState {
   sort_by: string
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_FILTERS: FilterState = {
   min_rating: 0,
   original_language: '',
@@ -201,6 +202,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function countActiveFilters(f: FilterState): number {
   let n = 0
   if (f.min_rating > 0) n++
