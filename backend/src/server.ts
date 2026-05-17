@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
+import multipart from '@fastify/multipart'
 import sensible from '@fastify/sensible'
 import rateLimit from '@fastify/rate-limit'
 
@@ -16,6 +17,7 @@ import { watchedRoutes } from './routes/watched.js'
 import { watchlistRoutes } from './routes/watchlist.js'
 import { historyRoutes } from './routes/history.js'
 import { statsRoutes } from './routes/stats.js'
+import { importRoutes } from './routes/import.js'
 
 async function build() {
   const app = Fastify({
@@ -36,6 +38,9 @@ async function build() {
     max: 300,
     timeWindow: '1 minute',
   })
+  await app.register(multipart, {
+    limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  })
 
   await app.register(authGuard)
 
@@ -49,6 +54,7 @@ async function build() {
   await app.register(watchlistRoutes)
   await app.register(historyRoutes)
   await app.register(statsRoutes)
+  await app.register(importRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
 
