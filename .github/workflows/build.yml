@@ -10,30 +10,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: production build
+  frontend:
+    name: frontend (vite build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        env:
-          VITE_SUPABASE_URL: "https://placeholder.supabase.co"
-          VITE_SUPABASE_ANON_KEY: "placeholder"
-          VITE_DEFAULT_WATCH_REGION: "TR"
-        run: npm run build
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - run: npm ci
+      - run: npm run -w frontend build
+      - uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: frontend-dist
+          path: frontend/dist
           retention-days: 7
+
+  backend:
+    name: backend (tsc build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run -w backend build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend/dist
+          retention-days: 7
+
+  docker:
+    name: docker compose build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build images (no push)
+        run: |
+          docker buildx build -f frontend/Dockerfile -t birceflix/frontend:ci --load .
+          docker buildx build -f backend/Dockerfile  -t birceflix/backend:ci  --load .

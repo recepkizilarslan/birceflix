@@ -1,0 +1,62 @@
+import Fastify from 'fastify'
+import cookie from '@fastify/cookie'
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+import sensible from '@fastify/sensible'
+import rateLimit from '@fastify/rate-limit'
+
+import { env } from './env.js'
+import authGuard from './plugins/authGuard.js'
+import { authRoutes } from './auth/routes.js'
+import { discoverRoutes } from './routes/discover.js'
+import { searchRoutes } from './routes/search.js'
+import { movieRoutes } from './routes/movie.js'
+import { metaRoutes } from './routes/meta.js'
+import { watchedRoutes } from './routes/watched.js'
+
+async function build() {
+  const app = Fastify({
+    logger: env.NODE_ENV === 'development'
+      ? { transport: { target: 'pino-pretty' } }
+      : true,
+    trustProxy: true,
+  })
+
+  await app.register(helmet, { contentSecurityPolicy: false })
+  await app.register(sensible)
+  await app.register(cookie, { secret: env.SESSION_SECRET })
+  await app.register(cors, {
+    origin: env.NODE_ENV === 'development' ? env.FRONTEND_ORIGIN : true,
+    credentials: true,
+  })
+  await app.register(rateLimit, {
+    max: 300,
+    timeWindow: '1 minute',
+  })
+
+  await app.register(authGuard)
+
+  // Routes
+  await app.register(authRoutes)
+  await app.register(discoverRoutes)
+  await app.register(searchRoutes)
+  await app.register(movieRoutes)
+  await app.register(metaRoutes)
+  await app.register(watchedRoutes)
+
+  app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
+
+  return app
+}
+
+async function main() {
+  const app = await build()
+  try {
+    await app.listen({ host: env.HOST, port: env.PORT })
+  } catch (err) {
+    app.log.error(err)
+    process.exit(1)
+  }
+}
+
+main()

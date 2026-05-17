@@ -17,43 +17,62 @@ You will get an acknowledgement within a few days. Birceflix is a small personal
 ## Scope
 
 In scope:
-- The application code in this repository.
-- The Cloudflare Pages Functions under `functions/api/*` (server-side API proxy).
-- The Supabase schema in `supabase/schema.sql` (RLS, table definitions).
+- Application code in this repository (frontend, backend, shared).
+- Database schema and migrations in `backend/src/db/`.
+- Container and reverse-proxy configuration (`docker-compose.yml`, `Caddyfile`, Dockerfiles).
+- Authentication & session handling (`backend/src/auth/`).
 
 Out of scope:
-- Vulnerabilities in upstream dependencies (TMDB, OMDb, Supabase, Cloudflare). Please report those upstream.
+- Vulnerabilities in upstream dependencies (Fastify, Drizzle, Postgres, Caddy, TMDB, OMDb). Please report those upstream.
 - Issues that require a compromised user device or browser extension.
 - Rate-limit / denial-of-service findings without a clear bypass of intended limits.
+- Misconfigurations of a self-hosted instance (e.g. user deploys without setting `SESSION_SECRET`).
 
 ## Secret handling
 
 The repo is designed so that no secret is ever committed. The following are git-ignored:
 
-- `.env.local` — frontend env vars (Supabase URL / anon key / default region).
-- `.dev.vars` — server-side env vars used by Wrangler (`TMDB_API_KEY`, `OMDB_API_KEY`).
-- `.wrangler/` — local Wrangler state.
+- `.env` — root, used by `docker compose`.
+- `backend/.env` — backend dev environment (Google OAuth, TMDB/OMDb, DB URL, session secret).
 
 Only the `*.example` files (placeholders, no values) live in the repo.
 
 ### Server-side API keys
-- `TMDB_API_KEY` and `OMDB_API_KEY` are called only from `functions/api/*` (Cloudflare Pages Functions). They are **never** included in the frontend bundle.
+- `TMDB_API_KEY` and `OMDB_API_KEY` are read from env on the backend only. They are **never** included in the frontend bundle or sent to the browser.
 - If you suspect a key has leaked, rotate it from the provider dashboard immediately:
   - TMDB → https://www.themoviedb.org/settings/api
   - OMDb → https://www.omdbapi.com/apikey.aspx
-- Then update the value in:
-  - Cloudflare Pages → Project → Settings → Environment variables, **and**
-  - your local `.dev.vars`.
+- Then update `backend/.env` and the corresponding env vars in your `.env`/`docker compose` setup, and restart: `docker compose up -d --force-recreate api`.
 
-### Supabase anon key
-- The Supabase anon key is intentionally public (it ships in the frontend bundle, like any Supabase web app).
-- Security is enforced by **Row Level Security**: see `supabase/schema.sql` — every row in `watched_movies` is owned by a `user_id`, and the RLS policies restrict reads/writes to the authenticated user's own rows.
-- If you change the schema, double-check that RLS is still enabled and the policies still match the access model.
+### Sessions
+- Sessions are server-side rows in the `sessions` table. The cookie carries an opaque id, HMAC-signed with `SESSION_SECRET` (32+ characters, randomly generated: `openssl rand -base64 48`).
+- The cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
+- Logout deletes the session row immediately — no JWT revocation problem.
+- If `SESSION_SECRET` is leaked, rotate it. All existing sessions become invalid (cookies fail HMAC verification), and every user will be signed out.
 
-### OAuth redirect whitelist
-- In **Supabase → Authentication → URL Configuration**, only list domains you control (e.g. `http://localhost:5173` for dev, your Cloudflare Pages domain for prod). Never add wildcards or third-party domains.
+### Google OAuth
+- The `state` and PKCE `code_verifier` are stored in short-lived cookies and verified on the callback.
+- Only emails with `email_verified: true` from Google are accepted.
+- Make sure the **Authorized redirect URI** in Google Cloud Console matches `GOOGLE_REDIRECT_URI` exactly — a mismatched/lax whitelist is the most common foot-gun.
 
-## Dependencies
+### Database
+- The app uses a single Postgres role (`birceflix`). On a public-facing deployment, ensure Postgres is **not** reachable from outside the Docker network (the compose file already keeps it on a private network).
+- All user-scoped queries filter by `req.userId` from the session. There is no separate RLS — authorization lives in the backend code.
 
-- Run `npm audit` periodically and update vulnerable packages.
-- Major version bumps for `react`, `@supabase/supabase-js`, `vite` should be reviewed before merging.
+### Dependencies
+- Run `npm audit` periodically across all workspaces.
+- Dependabot is enabled (`.github/dependabot.yml`) for npm, GitHub Actions, and Docker base images.
+- Major version bumps for `fastify`, `drizzle-orm`, `react`, `vite` should be reviewed before merging.
+
+### TLS / reverse proxy
+- TLS termination is at Caddy. Make sure ports 80/443 are reachable from the public Internet so Let's Encrypt validation can complete.
+- HSTS is enabled in the Caddyfile (`Strict-Transport-Security`). Only enable this once you are sure HTTPS works end-to-end.
+
+## If you suspect compromise
+
+1. Rotate `SESSION_SECRET` → all users are logged out, attacker session cookies become invalid.
+2. Rotate TMDB / OMDb keys from their respective dashboards.
+3. Rotate the Google OAuth client secret from Google Cloud Console.
+4. Rotate `DB_PASSWORD` and update the Postgres role.
+5. Restart all containers: `docker compose down && docker compose up -d --build`.
+6. Audit the `sessions` and `users` tables for unexpected rows.

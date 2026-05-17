@@ -1,4 +1,3 @@
-import { supabase } from './supabase'
 import type { TmdbMovie } from './api'
 
 export interface WatchedRow {
@@ -13,34 +12,34 @@ export interface WatchedRow {
   notes: string | null
 }
 
+async function json<T>(res: Response): Promise<T> {
+  if (!res.ok) throw new Error(`${res.url} -> ${res.status}`)
+  return res.json() as Promise<T>
+}
+
 export async function listWatched(): Promise<WatchedRow[]> {
-  const { data, error } = await supabase
-    .from('watched_movies')
-    .select('*')
-    .order('watched_at', { ascending: false })
-  if (error) throw error
-  return data ?? []
+  return json<WatchedRow[]>(await fetch('/api/watched', { credentials: 'include' }))
 }
 
 export async function markWatched(m: Pick<TmdbMovie, 'id' | 'title' | 'poster_path'> & { imdb_id?: string | null }) {
-  const { data: session } = await supabase.auth.getUser()
-  if (!session.user) throw new Error('not signed in')
-  const { error } = await supabase.from('watched_movies').upsert(
-    {
-      user_id: session.user.id,
+  await json<{ ok: true }>(await fetch('/api/watched', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
       tmdb_id: m.id,
       imdb_id: m.imdb_id ?? null,
       title: m.title,
       poster_path: m.poster_path,
-    },
-    { onConflict: 'user_id,tmdb_id' },
-  )
-  if (error) throw error
+    }),
+  }))
 }
 
 export async function unmarkWatched(tmdb_id: number) {
-  const { error } = await supabase.from('watched_movies').delete().eq('tmdb_id', tmdb_id)
-  if (error) throw error
+  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  }))
 }
 
 export async function getWatchedIdSet(): Promise<Set<number>> {

@@ -6,13 +6,76 @@
 
 Discover movies, filter them (language, country, genre, platform, rating, year, runtime), sign in with Google, and track what you've watched.
 
-Fully static — deployable to Cloudflare Pages. Third-party API keys are kept server-side behind Cloudflare Pages Functions.
+**Self-hosted** — runs on your own server with Docker Compose. No third-party BaaS.
 
 ## Stack
-- Vite + React 19 + TypeScript + Tailwind v4
-- Cloudflare Pages + Pages Functions (`/functions/api/*`)
-- Supabase (Auth + Postgres)
-- TMDB (search, discover, watch providers, reviews) + OMDb (awards, IMDB rating)
+- **Frontend** — Vite + React 19 + TypeScript + Tailwind v4 → served by nginx.
+- **Backend** — Node.js + Fastify + TypeScript (REST API on `/api/*`).
+- **Database** — PostgreSQL 16.
+- **Auth** — Google OAuth via [Arctic](https://github.com/pilcrowonpaper/arctic) + server-side sessions (HMAC-signed cookies, sessions in Postgres).
+- **Reverse proxy** — Caddy (auto TLS via Let's Encrypt).
+- **External APIs** — TMDB (search/discover/providers/reviews) + OMDb (awards/IMDB rating). Keys stay server-side, never shipped to the browser.
+
+## Architecture
+
+```
+[Browser]
+    │
+    ▼
+[Caddy]  (TLS, reverse proxy)
+    ├── /api/*   → backend  (Fastify)
+    └── /        → frontend (nginx serving Vite dist)
+                       │
+                       ▼
+                  [Postgres]
+```
+
+Two app containers + Postgres + Caddy. One `docker-compose up -d` brings up the stack.
+
+## Quick start (local dev)
+
+```bash
+# 1. Get the code & install
+git clone https://github.com/recepkizilarslan/birceflix.git
+cd birceflix
+npm install
+
+# 2. Configure
+cp .env.example .env                  # for docker-compose
+cp backend/.env.example backend/.env  # for `npm run dev:backend`
+
+# Fill in: DB_PASSWORD, SESSION_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+#         TMDB_API_KEY, OMDB_API_KEY.
+# See CONTRIBUTING.md for how to obtain each one.
+
+# 3. Local development
+npm run dev      # runs frontend (5173) + backend (3000) together
+                 # — backend expects a Postgres reachable via DATABASE_URL.
+
+# Easiest local Postgres:
+docker run -d --name birceflix-db -p 5432:5432 \
+  -e POSTGRES_PASSWORD=birceflix -e POSTGRES_USER=birceflix -e POSTGRES_DB=birceflix \
+  postgres:16-alpine
+npm run -w backend db:migrate
+```
+
+The full dev walkthrough (Google OAuth setup, env vars, troubleshooting) lives in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Deploy (on-prem)
+
+```bash
+# On your server:
+git clone https://github.com/recepkizilarslan/birceflix.git
+cd birceflix
+cp .env.example .env
+$EDITOR .env                      # fill in real secrets + DOMAIN=birceflix.example.com
+docker compose up -d --build
+docker compose logs -f api        # watch the boot
+```
+
+The `migrate` service runs once and exits — it applies any pending SQL migrations before the `api` service starts.
+
+For HTTPS, just set `DOMAIN` to a real public hostname pointing at the server. Caddy provisions the cert automatically (ports 80/443 must reach the box).
 
 ## Features
 - 🔍 Search + filters: original language, production country, genre, year range, min. rating, runtime, sorting
@@ -20,47 +83,38 @@ Fully static — deployable to Cloudflare Pages. Third-party API keys are kept s
 - 🎬 Detail page: synopsis, cast, available streaming platforms
 - 🏆 Awards summary (OMDb) + link to IMDB for the full list
 - ★ Both TMDB and IMDB ratings
-- ✅ "Watched" mark — stored in Supabase, syncs across devices
+- ✅ "Watched" mark — stored in Postgres, syncs across devices for the same Google account
 - 📱 Mobile-first responsive UI, dark theme
 
-## Quick start
+## Layout
 
-```bash
-npm install
-cp .env.example .env.local      # then fill in Supabase keys
-cp .dev.vars.example .dev.vars  # then fill in TMDB + OMDb keys
-npm run dev:cf                  # Vite + Wrangler (so /api/* works)
 ```
-
-Full setup walkthrough (API keys, Supabase project, OAuth, env vars) is in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Deploy to Cloudflare Pages
-
-### One-shot CLI deploy
-```bash
-npm run deploy
+birceflix/
+├── frontend/         # Vite + React + Tailwind
+│   ├── src/
+│   ├── nginx.conf
+│   └── Dockerfile
+├── backend/          # Fastify + Drizzle + Arctic
+│   ├── src/
+│   │   ├── server.ts
+│   │   ├── env.ts          # zod-validated environment
+│   │   ├── auth/           # Google OAuth + sessions
+│   │   ├── routes/         # /api/discover, /search, /movie/:id, /watched, ...
+│   │   ├── lib/            # TMDB/OMDb clients
+│   │   ├── plugins/        # Fastify plugins (authGuard)
+│   │   └── db/             # Drizzle schema, client, migrations, migrate.ts
+│   └── Dockerfile
+├── shared/           # API contract types shared by both packages
+├── docker-compose.yml
+├── Caddyfile
+├── .env.example
+└── package.json      # npm workspaces root
 ```
-
-### Recommended: connect via Git
-Push to GitHub, then in the Cloudflare dashboard go to `Pages → Create → Connect to Git`:
-- Framework preset: `Vite`
-- Build command: `npm run build`
-- Build output: `dist`
-- Functions directory (auto-detected): `functions`
-
-**Environment variables** (Pages → Project → Settings → Environment variables):
-- `TMDB_API_KEY` (encrypted)
-- `OMDB_API_KEY` (encrypted)
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_DEFAULT_WATCH_REGION` (e.g. `TR`)
-
-> `VITE_`-prefixed env vars are baked into the bundle at build time (frontend). The others are provided to Functions at runtime (server-side, never shipped to the browser).
 
 ## Documentation
 
-- [**CONTRIBUTING.md**](CONTRIBUTING.md) — local dev setup, project layout, code style, PR process, architecture notes.
-- [**SECURITY.md**](SECURITY.md) — security policy, how to report a vulnerability, secret-handling rules.
+- [**CONTRIBUTING.md**](CONTRIBUTING.md) — local dev setup, Google OAuth, project layout, code style, PR process.
+- [**SECURITY.md**](SECURITY.md) — security policy, how to report a vulnerability, secret handling.
 - [**LICENSE**](LICENSE) — MIT.
 
 ## Attribution

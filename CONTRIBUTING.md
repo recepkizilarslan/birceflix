@@ -10,99 +10,166 @@ Thanks for your interest! Birceflix is a small personal project, but contributio
 
 You will need:
 - Node.js 20+
+- Docker (for running Postgres locally — optional, see below)
 - A free [TMDB](https://www.themoviedb.org/settings/api) API key
 - A free [OMDb](https://www.omdbapi.com/apikey.aspx) API key
-- A [Supabase](https://supabase.com) project (free tier is fine)
+- A Google Cloud OAuth 2.0 Client ID (web app)
 
 ### 1. Get API keys
+
 - **TMDB** → https://www.themoviedb.org/settings/api → request a "Developer" key, approved instantly.
 - **OMDb** → https://www.omdbapi.com/apikey.aspx → free key via email.
 
-### 2. Set up Supabase
-1. Create a new project at https://supabase.com.
-2. **SQL Editor** → paste and run the contents of `supabase/schema.sql`.
-3. **Authentication → Providers → Google** → enable it. Create an OAuth client ID in Google Cloud Console (web app, redirect URI = `https://<project>.supabase.co/auth/v1/callback`).
-4. **Authentication → URL Configuration → Site URL** → `http://localhost:5173` for dev.
-5. **Project Settings → API** → copy the `Project URL` and the `anon public` key.
+### 2. Set up Google OAuth
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → create a new project.
+2. APIs & Services → **OAuth consent screen** → set up (External, Test users = your email).
+3. APIs & Services → **Credentials** → Create OAuth client ID:
+   - Application type: **Web application**
+   - Authorized JavaScript origins:
+     - `http://localhost:5173` (dev)
+     - Your production domain
+   - Authorized redirect URIs:
+     - `http://localhost:3000/api/auth/google/callback` (dev — backend port)
+     - `https://your-domain.com/api/auth/google/callback` (prod)
+4. Copy the **Client ID** and **Client secret** into `backend/.env`.
 
 ### 3. Local env files
 
 ```bash
-cp .env.example .env.local
-cp .dev.vars.example .dev.vars
+cp .env.example .env                  # root — for docker-compose
+cp backend/.env.example backend/.env  # backend — for `npm run dev`
 ```
 
 Fill in:
-- `.env.local` → `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEFAULT_WATCH_REGION` (default `TR`)
-- `.dev.vars` → `TMDB_API_KEY`, `OMDB_API_KEY` (server-side, for Pages Functions)
+- `backend/.env` → `DATABASE_URL`, `SESSION_SECRET` (32+ chars, use `openssl rand -base64 48`), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TMDB_API_KEY`, `OMDB_API_KEY`.
+- Root `.env` → only needed when you `docker compose up`.
 
-Both files are git-ignored — never commit them.
+Both env files are git-ignored — never commit them.
 
-### 4. Install and run
+### 4. Start a local Postgres
+
+The simplest path is Docker:
 
 ```bash
-npm install
+docker run -d --name birceflix-db -p 5432:5432 \
+  -e POSTGRES_PASSWORD=birceflix \
+  -e POSTGRES_USER=birceflix \
+  -e POSTGRES_DB=birceflix \
+  postgres:16-alpine
 ```
 
-Two dev options:
+If you have a Postgres already, set `DATABASE_URL` in `backend/.env` to point at it.
 
-**A) Vite alone** — fast, but `/api/*` calls won't work (TMDB/OMDb fail):
+### 5. Install + migrate + run
+
 ```bash
-npm run dev
+npm install                    # installs all workspaces
+npm run -w backend db:migrate  # creates tables
+npm run dev                    # starts frontend (5173) + backend (3000)
 ```
 
-**B) With Wrangler** — real Cloudflare environment, APIs work:
-```bash
-npm run dev:cf
-```
-
-Recommended: use `npm run dev:cf` for end-to-end testing.
+Open http://localhost:5173 and click "Google ile giriş" to sign in.
 
 ## Project layout
 
 ```
-functions/api/   # Cloudflare Pages Functions (server-side API proxy)
-src/lib/         # API client, supabase, watched-list CRUD, constants
-src/components/  # presentational components
-src/pages/       # Discover, Watched, MovieDetailPage
-src/Layout.tsx   # header + nav + watched state
-supabase/        # schema.sql (run once in Supabase SQL Editor)
+frontend/        # Vite + React + Tailwind
+  src/
+    lib/         # API client, auth, watched-list helpers, constants
+    hooks/       # React hooks
+    components/  # presentational components
+    pages/       # Discover, Watched, MovieDetailPage
+    Layout.tsx   # header + nav + watched state
+  nginx.conf
+  Dockerfile
+
+backend/         # Fastify + Drizzle + Postgres
+  src/
+    server.ts          # Fastify bootstrap
+    env.ts             # zod-validated env
+    auth/
+      google.ts        # Arctic OAuth provider
+      session.ts       # server-side session table + HMAC cookie
+      routes.ts        # /api/auth/google, /callback, /logout, /me
+    plugins/
+      authGuard.ts     # req.userId + app.requireAuth(req)
+    routes/
+      discover.ts      # GET /api/discover
+      search.ts        # GET /api/search?q=
+      movie.ts         # GET /api/movie/:id
+      meta.ts          # GET /api/genres, /api/providers
+      watched.ts       # GET/POST/DELETE /api/watched
+    lib/
+      tmdb.ts          # TMDB fetch helper
+      omdb.ts          # OMDb fetch helper
+    db/
+      schema.ts        # Drizzle schema
+      client.ts        # pg.Pool + drizzle()
+      migrate.ts       # runs raw SQL files from migrations/
+      migrations/
+        0000_initial.sql
+
+shared/          # API contract types (pure types, no runtime)
+docker-compose.yml
+Caddyfile
 ```
 
 ## Code style
 
 - TypeScript everywhere, strict mode on.
 - React 19 with hooks (no class components).
-- Tailwind v4 for styling — keep classes in JSX, avoid CSS files unless needed for tokens (see `src/index.css`).
-- No comments unless the *why* is non-obvious. Identifiers carry the *what*.
-- Avoid premature abstraction: three similar lines beat a half-baked helper.
+- Tailwind v4 for styling — keep classes in JSX, avoid CSS files unless needed for tokens.
+- Backend uses ESM (`"type": "module"`); imports use `.js` extensions even for `.ts` files (TS+ESM convention).
+- Routes validate input with `zod`. Bad input → 400 automatically.
+- DB access only through Drizzle. Never `pool.query` directly from a route.
+- No comments unless the *why* is non-obvious.
 - Prefer editing existing files over adding new ones.
 
 ### Before opening a PR
 
 ```bash
-npx tsc -p tsconfig.app.json --noEmit   # type check
-npm run build                            # full build
+npm run -w frontend lint
+npm run typecheck       # both workspaces
+npm run -w frontend build
+npm run -w backend build
 ```
 
-Both should pass.
+All four should pass.
 
 ## Pull request process
 
 1. Fork and create a topic branch (`fix/...`, `feat/...`, `docs/...`).
 2. Keep the diff focused — one logical change per PR.
-3. Update the README / docs if behavior or setup changes.
-4. Don't commit secrets or `.env*` files (they are gitignored — please don't disable that).
+3. Update docs if behavior or setup changes.
+4. Don't commit secrets or `.env*` files (gitignored — please don't disable that).
 5. Open a PR with a short description of *what* changed and *why*.
+
+## Database migrations
+
+Schema lives in `backend/src/db/schema.ts` (Drizzle).
+
+For now we hand-write migration SQL into `backend/src/db/migrations/NNNN_description.sql`. The custom migrator (`db/migrate.ts`):
+
+- Reads `*.sql` files in lexical order.
+- Splits on `--> statement-breakpoint`.
+- Runs each migration in a single transaction.
+- Records applied filenames in `_migrations`.
+
+To add a migration:
+
+1. Create `backend/src/db/migrations/000N_short_name.sql` with `CREATE`/`ALTER` statements separated by `--> statement-breakpoint`.
+2. Update `schema.ts` to match.
+3. Run `npm run -w backend db:migrate` locally to verify.
 
 ## Architecture notes
 
-- **TMDB → primary source.** Search, filtering, detail, reviews, watch providers.
-- **OMDb → enrichment.** Called only on the detail page (1000/day limit), using the `imdb_id` returned by TMDB → adds `Awards` + `imdbRating`.
+- **TMDB → primary source.** Search, filtering, detail, reviews, watch providers — all proxied through `/api/*` so the TMDB key never reaches the browser.
+- **OMDb → enrichment, only on detail page** (1000/day limit).
+- **Sessions, not JWTs.** The session id lives in an HMAC-signed HTTP-only cookie; the user record is in `sessions`. Revocation is a single DELETE.
+- **No RLS.** Authorization is enforced in the backend — every authenticated route calls `app.requireAuth(req)` and scopes queries by `req.userId`.
 - **Min. rating filter is TMDB rating.** IMDB rating is shown but not filterable.
-- **Reviews are TMDB-only.** There's no public API for IMDB reviews.
-- **RLS protects user data.** Every `watched_movies` row belongs to a `user_id`; policies restrict access to that user. The frontend uses the public anon key — RLS is the actual gatekeeper.
 
 ## Deploy
 
-See the "Deploy" section in the [README](README.md) for Cloudflare Pages setup. CI is not configured yet; pushes to `main` can be auto-deployed via the Cloudflare Pages GitHub integration.
+See the "Deploy" section in the [README](README.md). CI is configured to type-check and build both packages on every PR; deploy is manual via `docker compose` on your server.

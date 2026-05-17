@@ -1,0 +1,33 @@
+node_modules
+**/node_modules
+.git
+.github
+.claude
+.cursor
+.vscode
+.idea
+.DS_Store
+
+# Local env files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Build outputs
+dist
+**/dist
+.wrangler
+.cloudflare
+
+# Logs
+*.log
+logs
+
+# Docs / assets (the runtime images don't need these)
+assets
+docs
+*.md
+!README.md

@@ -1,0 +1,33 @@
+# For prod, replace {$DOMAIN:localhost} with your real domain.
+# Caddy will provision a Let's Encrypt cert automatically if a public
+# domain + port 80/443 are reachable. For localhost dev, it serves over
+# http(s) with a self-signed cert.
+
+{$DOMAIN:localhost} {
+  encode zstd gzip
+
+  # API → backend
+  handle /api/* {
+    reverse_proxy api:3000
+  }
+
+  # Everything else → frontend (nginx serving Vite build)
+  handle {
+    reverse_proxy frontend:80
+  }
+
+  # Security headers (CSP is intentionally NOT set here — set it tightly
+  # in the frontend nginx config once the site stabilises).
+  header {
+    -Server
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "interest-cohort=()"
+  }
+
+  log {
+    output stdout
+    format console
+  }
+}

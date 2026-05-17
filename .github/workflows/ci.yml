@@ -10,22 +10,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checks:
-    name: lint + typecheck
+  frontend:
+    name: frontend (lint + typecheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
+      - run: npm ci
+      - run: npm run -w frontend lint
+      - run: npm run -w frontend typecheck
 
-      - name: Install
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run typecheck
+  backend:
+    name: backend (typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run -w backend typecheck
