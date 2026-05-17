@@ -3,6 +3,7 @@ import { Layout } from './Layout'
 import { Discover } from './pages/Discover'
 import { Watched } from './pages/Watched'
 import { Watchlist } from './pages/Watchlist'
+import { StatsPage } from './pages/Stats'
 import { MovieDetailPage } from './pages/MovieDetailPage'
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <Route index element={<Discover />} />
           <Route path="watched" element={<Watched />} />
           <Route path="watchlist" element={<Watchlist />} />
+          <Route path="stats" element={<StatsPage />} />
           <Route path="movie/:id" element={<MovieDetailPage />} />
         </Route>
       </Routes>
