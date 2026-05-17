@@ -21,12 +21,15 @@ FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy only what we need to run
+# Copy only what we need to run. With npm workspaces, all dependencies are
+# hoisted to the root /app/node_modules — there's no backend/node_modules.
+# Node's module resolution walks upward from /app/backend, so this works.
 COPY --from=build /app/backend/dist ./backend/dist
-COPY --from=build /app/backend/src/db/migrations ./backend/src/db/migrations
+# migrate.js reads ./migrations relative to its own dir (dist/db); put SQL there
+COPY --from=build /app/backend/src/db/migrations ./backend/dist/db/migrations
 COPY --from=build /app/backend/package.json ./backend/
-COPY --from=build /app/backend/node_modules ./backend/node_modules
 COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
 
 WORKDIR /app/backend
 EXPOSE 3000
