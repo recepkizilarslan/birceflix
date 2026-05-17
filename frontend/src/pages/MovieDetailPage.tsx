@@ -3,6 +3,7 @@ import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom
 import type { LayoutContext } from '../Layout'
 import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
 import { DEFAULT_WATCH_REGION } from '../lib/constants'
+import { PersonalNote } from '../components/PersonalNote'
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -146,6 +147,12 @@ export function MovieDetailPage() {
         </div>
 
         <aside className="space-y-8">
+          {user && (
+            <Section title="✎ Senin notların">
+              <PersonalNote tmdbId={d.id} watched={watched} />
+            </Section>
+          )}
+
           {d.awards && (
             <Section title="🏆 Ödüller">
               <p className="text-sm leading-relaxed">{d.awards}</p>
