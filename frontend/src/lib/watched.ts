@@ -42,6 +42,24 @@ export async function unmarkWatched(tmdb_id: number) {
   }))
 }
 
+export async function getWatched(tmdb_id: number): Promise<WatchedRow | null> {
+  const res = await fetch(`/api/watched/${tmdb_id}`, { credentials: 'include' })
+  if (res.status === 404) return null
+  return json<WatchedRow>(res)
+}
+
+export async function updateWatchedMeta(
+  tmdb_id: number,
+  patch: { my_rating?: number | null; notes?: string | null },
+) {
+  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  }))
+}
+
 export async function getWatchedIdSet(): Promise<Set<number>> {
   try {
     const rows = await listWatched()

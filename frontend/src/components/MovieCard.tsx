@@ -6,14 +6,16 @@ interface Props {
   onToggleWatched: (m: TmdbMovie) => void
   onOpen: (m: TmdbMovie) => void
   canMark: boolean
+  /** When set, shown as a corner badge — used on the Watched page. */
+  myRating?: number | null
 }
 
-export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark }: Props) {
+export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, myRating }: Props) {
   const year = movie.release_date?.slice(0, 4) ?? ''
   return (
     <div className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition">
       <button onClick={() => onOpen(movie)} className="block w-full text-left">
-        <div className="aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
+        <div className="relative aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
           {poster(movie.poster_path) ? (
             <img
               src={poster(movie.poster_path)!}
@@ -24,6 +26,11 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark }: 
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
               Poster yok
+            </div>
+          )}
+          {myRating != null && (
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-[var(--color-accent)] text-black text-xs font-semibold shadow">
+              ★ {myRating}
             </div>
           )}
         </div>
