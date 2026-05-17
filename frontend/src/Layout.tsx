@@ -3,13 +3,20 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { AuthButton } from './components/AuthButton'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedIdSet, listWatched, markWatched, unmarkWatched, type WatchedRow } from './lib/watched'
+import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
+
+type MovieRef = { id: number; title: string; poster_path: string | null; imdb_id?: string | null }
 
 export interface LayoutContext {
   user: ReturnType<typeof useAuth>['user']
   watchedIds: Set<number>
   watchedRows: WatchedRow[]
   refreshWatched: () => Promise<void>
-  toggleWatched: (m: { id: number; title: string; poster_path: string | null; imdb_id?: string | null }) => Promise<void>
+  toggleWatched: (m: MovieRef) => Promise<void>
+  watchlistIds: Set<number>
+  watchlistRows: WatchlistRow[]
+  refreshWatchlist: () => Promise<void>
+  toggleWatchlist: (m: MovieRef) => Promise<void>
 }
 
 export function Layout() {
@@ -17,6 +24,8 @@ export function Layout() {
   const navigate = useNavigate()
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set())
   const [watchedRows, setWatchedRows] = useState<WatchedRow[]>([])
+  const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set())
+  const [watchlistRows, setWatchlistRows] = useState<WatchlistRow[]>([])
 
   const refreshWatched = useCallback(async () => {
     if (!user) { setWatchedIds(new Set()); setWatchedRows([]); return }
@@ -29,9 +38,22 @@ export function Layout() {
     }
   }, [user])
 
-  useEffect(() => { refreshWatched() }, [refreshWatched])
+  const refreshWatchlist = useCallback(async () => {
+    if (!user) { setWatchlistIds(new Set()); setWatchlistRows([]); return }
+    try {
+      const rows = await listWatchlist()
+      setWatchlistRows(rows)
+      setWatchlistIds(new Set(rows.map((r) => r.tmdb_id)))
+    } catch {
+      setWatchlistIds(new Set())
+      setWatchlistRows([])
+    }
+  }, [user])
 
-  const toggleWatched = useCallback(async (m: { id: number; title: string; poster_path: string | null; imdb_id?: string | null }) => {
+  useEffect(() => { refreshWatched() }, [refreshWatched])
+  useEffect(() => { refreshWatchlist() }, [refreshWatchlist])
+
+  const toggleWatched = useCallback(async (m: MovieRef) => {
     if (!user) { navigate('/'); return }
     try {
       if (watchedIds.has(m.id)) await unmarkWatched(m.id)
@@ -40,7 +62,20 @@ export function Layout() {
     } catch (e: any) { alert(e.message) }
   }, [user, watchedIds, refreshWatched, navigate])
 
-  const ctx: LayoutContext = { user, watchedIds, watchedRows, refreshWatched, toggleWatched }
+  const toggleWatchlist = useCallback(async (m: MovieRef) => {
+    if (!user) { navigate('/'); return }
+    try {
+      if (watchlistIds.has(m.id)) await removeFromWatchlist(m.id)
+      else await addToWatchlist(m)
+      await refreshWatchlist()
+    } catch (e: any) { alert(e.message) }
+  }, [user, watchlistIds, refreshWatchlist, navigate])
+
+  const ctx: LayoutContext = {
+    user,
+    watchedIds, watchedRows, refreshWatched, toggleWatched,
+    watchlistIds, watchlistRows, refreshWatchlist, toggleWatchlist,
+  }
 
   return (
     <div className="min-h-full">
@@ -62,6 +97,7 @@ export function Layout() {
           </Link>
           <nav className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
             <TabLink to="/">Keşfet</TabLink>
+            <TabLink to="/watchlist">Listem {user && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</TabLink>
             <TabLink to="/watched">İzlediklerim {user && watchedIds.size > 0 ? `(${watchedIds.size})` : ''}</TabLink>
           </nav>
           <AuthButton />

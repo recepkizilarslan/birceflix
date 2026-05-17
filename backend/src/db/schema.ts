@@ -68,11 +68,14 @@ export const watchlist = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     tmdbId: integer('tmdb_id').notNull(),
+    title: text('title').notNull(),
+    posterPath: text('poster_path'),
     addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
     priority: smallint('priority').default(0).notNull(),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.tmdbId] }),
+    userAddedIdx: index('watchlist_user_added_idx').on(t.userId, t.addedAt),
   }),
 )
 
