@@ -4,6 +4,7 @@ import type { LayoutContext } from '../Layout'
 import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
 import { DEFAULT_WATCH_REGION } from '../lib/constants'
 import { PersonalNote } from '../components/PersonalNote'
+import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -124,6 +125,12 @@ export function MovieDetailPage() {
           {d.overview && (
             <Section title="Özet">
               <p className="leading-relaxed">{d.overview}</p>
+            </Section>
+          )}
+
+          {user && (
+            <Section title="🎞 İzleme geçmişim">
+              <WatchHistoryTimeline tmdbId={d.id} />
             </Section>
           )}
 
