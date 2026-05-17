@@ -100,6 +100,7 @@ export function Layout() {
             <TabLink to="/watchlist">Listem {user && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</TabLink>
             <TabLink to="/watched">İzlediklerim {user && watchedIds.size > 0 ? `(${watchedIds.size})` : ''}</TabLink>
             {user && <TabLink to="/stats">İstatistik</TabLink>}
+            {user && <TabLink to="/import">İçe aktar</TabLink>}
           </nav>
           <AuthButton />
         </div>
