@@ -34,6 +34,15 @@ export interface MarkWatchedRequest {
 export interface WatchlistItem {
   user_id: string
   tmdb_id: number
+  title: string
+  poster_path: string | null
   added_at: string
   priority: number
+}
+
+export interface AddWatchlistRequest {
+  tmdb_id: number
+  title: string
+  poster_path?: string | null
+  priority?: number
 }

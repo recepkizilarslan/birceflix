@@ -8,7 +8,7 @@ import { PersonalNote } from '../components/PersonalNote'
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
+  const { user, watchedIds, toggleWatched, watchlistIds, toggleWatchlist } = useOutletContext<LayoutContext>()
   const [d, setD] = useState<MovieDetail | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
@@ -22,6 +22,7 @@ export function MovieDetailPage() {
   if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">Yükleniyor…</div></Wrap>
 
   const watched = watchedIds.has(d.id)
+  const inWatchlist = watchlistIds.has(d.id)
   const year = d.release_date?.slice(0, 4) ?? ''
 
   return (
@@ -85,20 +86,36 @@ export function MovieDetailPage() {
               </a>
             </div>
           )}
-          <button
-            disabled={!user}
-            onClick={() => toggleWatched({ id: d.id, title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
-            className={`mt-2 px-5 py-2.5 rounded-lg text-sm font-medium transition ${
-              !user
-                ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
-                : watched
-                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
-                : 'bg-[var(--color-accent)] text-black hover:opacity-90'
-            }`}
-            title={user ? '' : 'Giriş yapınca işaretleyebilirsin'}
-          >
-            {watched ? '✓ İzledim — kaldır' : 'İzledim olarak işaretle'}
-          </button>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <button
+              disabled={!user}
+              onClick={() => toggleWatched({ id: d.id, title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition ${
+                !user
+                  ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
+                  : watched
+                  ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                  : 'bg-[var(--color-accent)] text-black hover:opacity-90'
+              }`}
+              title={user ? '' : 'Giriş yapınca işaretleyebilirsin'}
+            >
+              {watched ? '✓ İzledim — kaldır' : 'İzledim olarak işaretle'}
+            </button>
+            <button
+              disabled={!user}
+              onClick={() => toggleWatchlist({ id: d.id, title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition border ${
+                !user
+                  ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'
+                  : inWatchlist
+                  ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/25'
+                  : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
+              }`}
+              title={user ? '' : 'Giriş yapınca listene ekleyebilirsin'}
+            >
+              {inWatchlist ? '✓ Listemde — çıkar' : '+ Listeme ekle'}
+            </button>
+          </div>
         </div>
       </div>
 
