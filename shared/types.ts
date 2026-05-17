@@ -46,3 +46,21 @@ export interface AddWatchlistRequest {
   poster_path?: string | null
   priority?: number
 }
+
+export interface WatchHistoryEntry {
+  id: string
+  user_id: string
+  tmdb_id: number
+  watched_at: string
+  my_rating: number | null
+  location: string | null
+  notes: string | null
+}
+
+export interface AddHistoryRequest {
+  tmdb_id: number
+  watched_at?: string
+  my_rating?: number | null
+  location?: string | null
+  notes?: string | null
+}
