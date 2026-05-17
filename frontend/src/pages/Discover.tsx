@@ -139,12 +139,14 @@ export function Discover() {
           <div className="flex items-center justify-center gap-3 py-6">
             <PageBtn disabled={page <= 1} onClick={() => {
               const p = page - 1
-              searchQuery ? runSearch(searchQuery, p) : runDiscover(filters, p)
+              if (searchQuery) runSearch(searchQuery, p)
+              else runDiscover(filters, p)
             }}>← Önceki</PageBtn>
             <div className="text-sm text-[var(--color-text-dim)]">Sayfa {page} / {totalPages}</div>
             <PageBtn disabled={page >= totalPages} onClick={() => {
               const p = page + 1
-              searchQuery ? runSearch(searchQuery, p) : runDiscover(filters, p)
+              if (searchQuery) runSearch(searchQuery, p)
+              else runDiscover(filters, p)
             }}>Sonraki →</PageBtn>
           </div>
         )}
