@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Birceflix" width="520">
+</p>
+
 # Birceflix
 
 Discover movies, filter them (language, country, genre, platform, rating, year, runtime), sign in with Google, and track what you've watched.
