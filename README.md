@@ -2,8 +2,6 @@
   <img src="assets/logo.svg" alt="Birceflix" width="520">
 </p>
 
-# Birceflix
-
 Discover movies, filter them (language, country, genre, platform, rating, year, runtime), sign in with Google, and track what you've watched.
 
 **Self-hosted** — runs on your own server with Docker Compose. No third-party BaaS.
