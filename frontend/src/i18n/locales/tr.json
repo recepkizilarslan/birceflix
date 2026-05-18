@@ -49,16 +49,17 @@
     "loading": "Yükleniyor…",
     "filters": "Filtreler",
     "openFilters": "Filtreler",
-    "clearFilters": "Filtreleri temizle",
-    "mediaToggle": {
-      "movies": "Filmler",
-      "tv": "Diziler",
-      "mini": "Mini dizi"
-    }
+    "clearFilters": "Filtreleri temizle"
   },
   "filters": {
     "title": "Filtreler",
     "clear": "Temizle",
+    "mediaType": "Tür",
+    "mediaTypes": {
+      "movie": "Film",
+      "tv": "Dizi",
+      "doc": "Belgesel"
+    },
     "sort": "Sıralama",
     "minRating": "Min. Puan",
     "minRatingHint": "TMDB tabanlı. IMDB rating'i kartta ve detayda görünür.",

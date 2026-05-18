@@ -67,8 +67,6 @@ export function Discover() {
           seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
           episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
           episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
-          // Mini-series category forces TMDB with_type=2.
-          with_type: mediaType === 'mini' ? 2 : undefined,
           sort_by: f.sort_by,
           page: p,
         })
@@ -76,11 +74,15 @@ export function Discover() {
         setPage(data.page)
         setTotalPages(Math.min(data.total_pages, 500))
       } else {
+        // Documentary category forces genre=99 and ignores the user's
+        // genre chip selections — the FilterPanel hides the genre
+        // section in this mode so that's not confusing.
+        const genres = mediaType === 'doc' ? [99] : (f.with_genres.length ? f.with_genres : undefined)
         const data = await discover({
           min_rating: f.min_rating || undefined,
           original_language: f.original_language || undefined,
           origin_country: f.origin_country || undefined,
-          with_genres: f.with_genres.length ? f.with_genres : undefined,
+          with_genres: genres,
           year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
           year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
           with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
@@ -141,25 +143,19 @@ export function Discover() {
           <button onClick={() => setMobileOpen(false)} className="text-xl px-2">✕</button>
         </div>
         <div className="p-4 lg:p-0">
-          <FilterPanel value={filters} onChange={setFilters} onReset={onReset} activeCount={activeCount} mediaType={mediaType} />
+          <FilterPanel
+            value={filters}
+            onChange={setFilters}
+            onReset={onReset}
+            activeCount={activeCount}
+            mediaType={mediaType}
+            onMediaTypeChange={setMediaType}
+          />
         </div>
       </aside>
 
       {/* Content */}
       <div className="space-y-5 min-w-0">
-        {/* Media-type segmented control — wraps on narrow viewports */}
-        <div className="inline-flex flex-wrap p-1 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] gap-0.5">
-          <SegBtn active={mediaType === 'movie'} onClick={() => setMediaType('movie')}>
-            🎬 {t('discover.mediaToggle.movies')}
-          </SegBtn>
-          <SegBtn active={mediaType === 'tv'} onClick={() => setMediaType('tv')}>
-            📺 {t('discover.mediaToggle.tv')}
-          </SegBtn>
-          <SegBtn active={mediaType === 'mini'} onClick={() => setMediaType('mini')}>
-            🎞️ {t('discover.mediaToggle.mini')}
-          </SegBtn>
-        </div>
-
         <SearchBar
           onSearch={(q) => runSearch(q, 1)}
           onClear={() => { setSearchQuery(null); runDiscover(filters, 1) }}
@@ -288,22 +284,7 @@ function PageBtn({ disabled, onClick, children }: { disabled?: boolean; onClick:
 function parseMediaType(raw: string | null): MediaType {
   switch (raw) {
     case 'tv': return 'tv'
-    case 'mini': return 'mini'
+    case 'doc': return 'doc'
     default: return 'movie'
   }
-}
-
-function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-        active
-          ? 'bg-[var(--color-accent)] text-black'
-          : 'text-[var(--color-text-dim)] hover:text-white'
-      }`}
-    >
-      {children}
-    </button>
-  )
 }

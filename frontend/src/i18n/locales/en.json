@@ -49,16 +49,17 @@
     "loading": "Loading…",
     "filters": "Filters",
     "openFilters": "Filters",
-    "clearFilters": "Clear filters",
-    "mediaToggle": {
-      "movies": "Movies",
-      "tv": "TV Shows",
-      "mini": "Miniseries"
-    }
+    "clearFilters": "Clear filters"
   },
   "filters": {
     "title": "Filters",
     "clear": "Clear",
+    "mediaType": "Type",
+    "mediaTypes": {
+      "movie": "Movie",
+      "tv": "TV",
+      "doc": "Documentary"
+    },
     "sort": "Sort",
     "minRating": "Min. rating",
     "minRatingHint": "TMDB-based. IMDB rating shows on cards and the detail page.",

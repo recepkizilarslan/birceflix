@@ -39,9 +39,6 @@ const discoverQuery = z.object({
   seasons_to: z.coerce.number().int().min(0).optional(),
   episodes_from: z.coerce.number().int().min(0).optional(),
   episodes_to: z.coerce.number().int().min(0).optional(),
-  // TMDB `with_type` (0 doc, 1 news, 2 miniseries, 3 reality, 4 scripted, 5 talk, 6 video).
-  // Used by the UI's "Mini dizi" category to force with_type=2.
-  with_type: z.string().optional(),
   sort_by: z.string().default('popularity.desc'),
   page: z.coerce.number().default(1),
   ui_language: z.string().default('en-US'),
@@ -118,7 +115,6 @@ export async function tvRoutes(app: FastifyInstance) {
       watch_region: q.watch_region,
       'with_runtime.gte': q.runtime_from?.toString(),
       'with_runtime.lte': q.runtime_to?.toString(),
-      with_type: q.with_type,
       include_adult: 'false',
     })
 
