@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { COUNTRIES, LANGUAGES, SORT_OPTIONS, DEFAULT_WATCH_REGION } from '../lib/constants'
+import { COUNTRIES, LANGUAGES, SORT_OPTIONS } from '../lib/constants'
+import { getRegion } from '../lib/preferences'
 
 export interface FilterState {
   min_rating: number
@@ -25,7 +26,7 @@ export const DEFAULT_FILTERS: FilterState = {
   year_from: '',
   year_to: '',
   with_watch_providers: [],
-  watch_region: DEFAULT_WATCH_REGION,
+  watch_region: getRegion(),
   runtime_from: '',
   runtime_to: '',
   sort_by: 'popularity.desc',
