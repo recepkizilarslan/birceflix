@@ -60,7 +60,6 @@
       "tv": "TV",
       "doc": "Documentary"
     },
-    "sort": "Sort",
     "minRating": "Min. rating",
     "minRatingHint": "TMDB-based. IMDB rating shows on cards and the detail page.",
     "genres": "Genres",
@@ -96,15 +95,22 @@
       "medium": "20–100",
       "many": "100+ episodes"
     },
-    "all": "All",
-    "sortOptions": {
-      "popularity": "Popularity",
-      "ratingHigh": "Rating (high)",
-      "newest": "Newest",
-      "oldest": "Oldest → newest",
-      "revenue": "Box office",
-      "nameAsc": "Name (A→Z)"
-    }
+    "all": "All"
+  },
+  "sort": {
+    "label": "Sort"
+  },
+  "sortOptions": {
+    "popularity": "Popularity",
+    "popularityAsc": "Least popular",
+    "ratingHigh": "Rating (high)",
+    "ratingLow": "Rating (low)",
+    "mostVoted": "Most voted",
+    "newest": "Newest",
+    "oldest": "Oldest → newest",
+    "revenue": "Box office",
+    "nameAsc": "Name (A→Z)",
+    "nameDesc": "Name (Z→A)"
   },
   "card": {
     "tmdbRating": "★ {{rating}}",

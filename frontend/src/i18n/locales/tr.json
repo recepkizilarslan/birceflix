@@ -60,7 +60,6 @@
       "tv": "Dizi",
       "doc": "Belgesel"
     },
-    "sort": "Sıralama",
     "minRating": "Min. Puan",
     "minRatingHint": "TMDB tabanlı. IMDB rating'i kartta ve detayda görünür.",
     "genres": "Kategori",
@@ -96,15 +95,22 @@
       "medium": "20–100",
       "many": "100+ bölüm"
     },
-    "all": "Tümü",
-    "sortOptions": {
-      "popularity": "Popülerlik",
-      "ratingHigh": "Puan (yüksek)",
-      "newest": "Yeni çıkanlar",
-      "oldest": "Eski → yeni",
-      "revenue": "Hasılat",
-      "nameAsc": "Ad (A→Z)"
-    }
+    "all": "Tümü"
+  },
+  "sort": {
+    "label": "Sırala"
+  },
+  "sortOptions": {
+    "popularity": "Popülerlik",
+    "popularityAsc": "Az popüler",
+    "ratingHigh": "Puan (yüksek)",
+    "ratingLow": "Puan (düşük)",
+    "mostVoted": "En çok oylanan",
+    "newest": "Yeni çıkanlar",
+    "oldest": "Eski → yeni",
+    "revenue": "Hasılat",
+    "nameAsc": "Ad (A→Z)",
+    "nameDesc": "Ad (Z→A)"
   },
   "card": {
     "tmdbRating": "★ {{rating}}",

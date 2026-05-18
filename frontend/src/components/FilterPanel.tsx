@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
 import { listTvGenres, listTvProviders } from '../lib/tv'
-import { COUNTRIES, LANGUAGES, SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
+import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
 
@@ -91,8 +91,6 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
     }).catch(() => setProviders([]))
   }, [tvMode, value.watch_region])
 
-  const sortOptions = tvMode ? TV_SORT_OPTIONS : SORT_OPTIONS
-
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
 
@@ -159,12 +157,6 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
             )
           })}
         </div>
-      </Section>
-
-      <Section title={t('filters.sort')} defaultOpen>
-        <Select value={value.sort_by} onChange={(v) => onChange({ ...value, sort_by: v })}>
-          {sortOptions.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
-        </Select>
       </Section>
 
       <Section title={`${t('filters.minRating')} ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
@@ -348,7 +340,8 @@ export function countActiveFilters(f: FilterState): number {
   if (f.seasons_to !== '') n++
   if (f.episodes_from !== '') n++
   if (f.episodes_to !== '') n++
-  if (f.sort_by !== DEFAULT_FILTERS.sort_by) n++
+  // Note: sort_by is intentionally NOT counted — sorting lives outside
+  // the filter panel (in the results toolbar) and isn't a "filter".
   return n
 }
 

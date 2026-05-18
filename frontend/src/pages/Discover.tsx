@@ -7,6 +7,7 @@ import { SearchBar } from '../components/SearchBar'
 import { MovieCard } from '../components/MovieCard'
 import { discover, search, poster, type TmdbMovie } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
+import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 
 // Combined movie + TV discover. The media-type segmented control at the top
 // toggles which TMDB endpoint we hit; the FilterPanel re-loads its genre and
@@ -161,7 +162,7 @@ export function Discover() {
           onClear={() => { setSearchQuery(null); runDiscover(filters, 1) }}
         />
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center gap-2"
@@ -172,8 +173,27 @@ export function Discover() {
           {searchQuery && (
             <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
-          <div className="text-xs text-[var(--color-text-dim)] ml-auto">
-            {results.length > 0 && !loading && t('discover.results', { count: results.length, page })}
+          <div className="flex items-center gap-3 ml-auto">
+            {results.length > 0 && !loading && (
+              <div className="text-xs text-[var(--color-text-dim)]">
+                {t('discover.results', { count: results.length, page })}
+              </div>
+            )}
+            {/* Sort lives next to the results count, not in the filter sidebar —
+                sorting is a view concern, not a filter. */}
+            <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
+              <span className="hidden sm:inline">{t('sort.label')}</span>
+              <span className="sm:hidden">⇅</span>
+              <select
+                value={filters.sort_by}
+                onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] min-w-[160px]"
+              >
+                {(isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS).map((s) => (
+                  <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
