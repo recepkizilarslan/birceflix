@@ -30,7 +30,8 @@
     "noResults": "Sonuç bulunamadı.",
     "page": "Sayfa",
     "previous": "← Önceki",
-    "next": "Sonraki →"
+    "next": "Sonraki →",
+    "pageOf": "Sayfa {{page}} / {{total}}"
   },
   "prefs": {
     "title": "Tercihler",
@@ -118,7 +119,8 @@
     "markFirst": "Önce \"İzledim\" olarak işaretle, sonra buradan puan ver ve not ekle.",
     "yourRating": "Senin puanın",
     "yourNotes": "Notların",
-    "notesPlaceholder": "Bu filmle ilgili kendi notların… (otomatik kaydedilir)"
+    "notesPlaceholder": "Bu filmle ilgili kendi notların… (otomatik kaydedilir)",
+    "ratePoint": "{{n}} puan"
   },
   "history": {
     "empty": "Henüz tarihli bir izleme eklemedin.",
@@ -214,8 +216,8 @@
     "letterboxdDiaryDesc": "Tarihli izleme kayıtları (rewatch + puan dahil). İzleme geçmişine yazılır; eksikse ayrıca 'izledim' olarak işaretlenir.",
     "upload": "Yükle",
     "uploading": "İçe aktarılıyor…",
-    "matched": "{{matched}} / {{total}} eşleşti.",
-    "unmatched": "Eşleşmeyen: {{count}}",
+    "matched": "<b>{{matched}}</b> / {{total}} eşleşti.",
+    "unmatched": "Eşleşmeyen: <b>{{count}}</b>",
     "unmatchedToggle": "Eşleşmeyenleri göster",
     "uploadFailed": "içe aktarım başarısız"
   },
@@ -233,8 +235,8 @@
     "importing": "İçe aktarılıyor…",
     "disconnect": "Bağlantıyı kes",
     "confirmDisconnect": "Trakt bağlantısını kesmek istediğine emin misin?",
-    "imported": "{{count}} izleme kaydı içe aktarıldı.",
-    "skipped": "TMDB ID'si olmayan {{count}} kayıt atlandı.",
+    "imported": "<b>{{count}}</b> izleme kaydı içe aktarıldı.",
+    "skipped": "TMDB ID'si olmayan <b>{{count}}</b> kayıt atlandı.",
     "pagesRead": "({{count}} sayfa okundu)"
   },
   "webhooks": {

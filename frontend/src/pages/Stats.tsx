@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { getStats, type Stats } from '../lib/stats'
 
 export function StatsPage() {
+  const { t } = useTranslation()
   const { user } = useOutletContext<LayoutContext>()
   const [stats, setStats] = useState<Stats | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -17,13 +19,13 @@ export function StatsPage() {
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
-        <div className="text-lg mb-2">İstatistiklerini görmek için giriş yap</div>
-        <div className="text-sm text-[var(--color-text-dim)]">Sağ üstten Google ile giriş yapabilirsin.</div>
+        <div className="text-lg mb-2">{t('stats.signInPrompt')}</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
   if (err) return <div className="text-red-400">{err}</div>
-  if (!stats) return <div className="py-10 text-center text-[var(--color-text-dim)]">Yükleniyor…</div>
+  if (!stats) return <div className="py-10 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div>
 
   const ratingMax = Math.max(1, ...stats.rating_distribution)
   const monthMax = Math.max(1, ...stats.viewings_by_month.map((m) => m.count))
@@ -33,22 +35,22 @@ export function StatsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">İstatistikler</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('stats.title')}</h1>
         <p className="text-sm text-[var(--color-text-dim)] mt-1">
-          Daha zengin ölçütler (tür, süre, oyuncu) ileride filmin meta verileri kaydedildikçe gelecek.
+          {t('stats.subtitle')}
         </p>
       </header>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Toplam izlenen film" value={stats.total_watched} />
-        <StatCard label="İzleme kaydı (rewatch dahil)" value={stats.total_viewings} />
-        <StatCard label="Puanlama yaptığın film" value={stats.rating_distribution.reduce((a, b) => a + b, 0)} />
-        <StatCard label="Farklı yer" value={stats.top_locations.length} />
+        <StatCard label={t('stats.totalWatched')} value={stats.total_watched} />
+        <StatCard label={t('stats.totalViewings')} value={stats.total_viewings} />
+        <StatCard label={t('stats.totalRated')} value={stats.rating_distribution.reduce((a, b) => a + b, 0)} />
+        <StatCard label={t('stats.distinctLocations')} value={stats.top_locations.length} />
       </div>
 
-      <Section title="Puan dağılımı">
+      <Section title={t('stats.ratingDistribution')}>
         {stats.rating_distribution.every((n) => n === 0) ? (
-          <Empty>Henüz puan vermedin.</Empty>
+          <Empty>{t('stats.ratingEmpty')}</Empty>
         ) : (
           <div className="space-y-1.5">
             {stats.rating_distribution.map((n, i) => (
@@ -58,9 +60,9 @@ export function StatsPage() {
         )}
       </Section>
 
-      <Section title="Son 12 ay">
+      <Section title={t('stats.lastTwelveMonths')}>
         {stats.viewings_by_month.length === 0 ? (
-          <Empty>Son 12 ayda kayıtlı izleme yok.</Empty>
+          <Empty>{t('stats.lastTwelveMonthsEmpty')}</Empty>
         ) : (
           <div className="space-y-1.5">
             {stats.viewings_by_month.map((m) => (
@@ -71,9 +73,9 @@ export function StatsPage() {
       </Section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section title="Yıla göre izleme (history)">
+        <Section title={t('stats.viewingsByYear')}>
           {stats.viewings_by_year.length === 0 ? (
-            <Empty>İzleme geçmişi yok.</Empty>
+            <Empty>{t('stats.viewingsByYearEmpty')}</Empty>
           ) : (
             <div className="space-y-1.5">
               {stats.viewings_by_year.map((y) => (
@@ -83,9 +85,9 @@ export function StatsPage() {
           )}
         </Section>
 
-        <Section title="Yıla göre 'izledim' işareti">
+        <Section title={t('stats.watchedByYear')}>
           {stats.watched_by_year.length === 0 ? (
-            <Empty>Henüz işaretli film yok.</Empty>
+            <Empty>{t('stats.watchedByYearEmpty')}</Empty>
           ) : (
             <div className="space-y-1.5">
               {stats.watched_by_year.map((y) => (
@@ -96,9 +98,9 @@ export function StatsPage() {
         </Section>
       </div>
 
-      <Section title="En çok izlediğin yerler">
+      <Section title={t('stats.topLocations')}>
         {stats.top_locations.length === 0 ? (
-          <Empty>İzleme geçmişinde lokasyon belirtmemişsin.</Empty>
+          <Empty>{t('stats.topLocationsEmpty')}</Empty>
         ) : (
           <div className="flex flex-wrap gap-2">
             {stats.top_locations.map((l) => (

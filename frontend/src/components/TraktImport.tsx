@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   disconnectTrakt,
   getTraktStatus,
@@ -7,6 +8,7 @@ import {
   type TraktImportResult,
   type TraktStatus,
 } from '../lib/integrations'
+import { intlLocale } from '../i18n'
 
 interface Props {
   onComplete?: () => void
@@ -14,12 +16,13 @@ interface Props {
 
 function fmt(dateIso: string | null): string | null {
   if (!dateIso) return null
-  return new Date(dateIso).toLocaleString('tr-TR', {
+  return new Date(dateIso).toLocaleString(intlLocale(), {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
 
 export function TraktImport({ onComplete }: Props) {
+  const { t } = useTranslation()
   const [status, setStatus] = useState<TraktStatus | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -50,7 +53,7 @@ export function TraktImport({ onComplete }: Props) {
   }
 
   const onDisconnect = async () => {
-    if (!confirm('Trakt bağlantısını kesmek istediğine emin misin?')) return
+    if (!confirm(t('trakt.confirmDisconnect'))) return
     try {
       await disconnectTrakt()
       await refresh()
@@ -59,15 +62,12 @@ export function TraktImport({ onComplete }: Props) {
     }
   }
 
-  if (!status) return <div className="text-sm text-[var(--color-text-dim)]">Durum yükleniyor…</div>
+  if (!status) return <div className="text-sm text-[var(--color-text-dim)]">{t('trakt.statusLoading')}</div>
 
   if (!status.configured) {
     return (
       <div className="text-sm text-[var(--color-text-dim)] leading-relaxed">
-        Trakt entegrasyonu bu sunucuda yapılandırılmamış. Yöneticiye{' '}
-        <code className="px-1 rounded bg-[var(--color-surface-2)]">TRAKT_CLIENT_ID</code>,{' '}
-        <code className="px-1 rounded bg-[var(--color-surface-2)]">TRAKT_CLIENT_SECRET</code> ve{' '}
-        <code className="px-1 rounded bg-[var(--color-surface-2)]">TRAKT_REDIRECT_URI</code> ortam değişkenlerini ayarlamasını söyle.
+        {t('trakt.notConfigured')}
       </div>
     )
   }
@@ -77,25 +77,24 @@ export function TraktImport({ onComplete }: Props) {
       {!status.connected ? (
         <>
           <p className="text-sm text-[var(--color-text-dim)] leading-relaxed">
-            Trakt hesabını bağladığında izleme geçmişini (rewatch dahil) doğrudan içe aktarabilirsin.
-            Trakt'taki film kayıtları TMDB ID'leriyle birlikte gelir — Letterboxd'un aksine eşleştirme hatasız.
+            {t('trakt.connectIntro')}
           </p>
           <button
             onClick={startTraktConnect}
             className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
           >
-            Trakt'a bağlan
+            {t('trakt.connect')}
           </button>
         </>
       ) : (
         <>
           <div className="flex items-center gap-2 text-sm">
             <span className="px-2 py-0.5 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 text-xs">
-              ✓ bağlı
+              {t('trakt.connectedBadge')}
             </span>
             {status.last_sync_at && (
               <span className="text-xs text-[var(--color-text-dim)]">
-                son senkron: {fmt(status.last_sync_at)}
+                {t('trakt.lastSync', { when: fmt(status.last_sync_at) ?? '' })}
               </span>
             )}
           </div>
@@ -105,14 +104,14 @@ export function TraktImport({ onComplete }: Props) {
               disabled={busy}
               className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {busy ? 'İçe aktarılıyor…' : 'Geçmişi içe aktar'}
+              {busy ? t('trakt.importing') : t('trakt.import')}
             </button>
             <button
               onClick={onDisconnect}
               disabled={busy}
               className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
             >
-              Bağlantıyı kes
+              {t('trakt.disconnect')}
             </button>
           </div>
         </>
@@ -121,12 +120,23 @@ export function TraktImport({ onComplete }: Props) {
       {err && <div className="text-sm text-red-400">{err}</div>}
       {result && (
         <div className="text-sm">
-          <span className="font-medium">{result.imported}</span> izleme kaydı içe aktarıldı.
+          <Trans
+            i18nKey="trakt.imported"
+            values={{ count: result.imported }}
+            components={{ b: <span className="font-medium" /> }}
+          />
           {result.skipped_no_tmdb > 0 && (
-            <> TMDB ID'si olmayan <span className="font-medium text-red-400">{result.skipped_no_tmdb}</span> kayıt atlandı.</>
+            <>
+              {' '}
+              <Trans
+                i18nKey="trakt.skipped"
+                values={{ count: result.skipped_no_tmdb }}
+                components={{ b: <span className="font-medium text-red-400" /> }}
+              />
+            </>
           )}
           {result.pages_read > 1 && (
-            <span className="text-xs text-[var(--color-text-dim)]"> ({result.pages_read} sayfa okundu)</span>
+            <span className="text-xs text-[var(--color-text-dim)]"> {t('trakt.pagesRead', { count: result.pages_read })}</span>
           )}
         </div>
       )}

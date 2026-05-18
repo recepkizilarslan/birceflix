@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
 /**
@@ -7,6 +8,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
  * to refresh now if they want the fresh code immediately.
  */
 export function PWAUpdateToast() {
+  const { t } = useTranslation()
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -27,9 +29,7 @@ export function PWAUpdateToast() {
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl p-4">
       <div className="text-sm">
-        {needRefresh
-          ? 'Yeni sürüm hazır. Şimdi yenilemek ister misin?'
-          : 'Çevrimdışı kullanıma hazır.'}
+        {needRefresh ? t('pwa.newVersion') : t('pwa.offlineReady')}
       </div>
       <div className="flex gap-2 mt-3">
         {needRefresh && (
@@ -37,14 +37,14 @@ export function PWAUpdateToast() {
             onClick={() => updateServiceWorker(true)}
             className="text-xs px-3 py-1 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
           >
-            Yenile
+            {t('pwa.refresh')}
           </button>
         )}
         <button
           onClick={() => { setNeedRefresh(false); setOfflineReady(false) }}
           className="text-xs px-3 py-1 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
         >
-          Kapat
+          {t('pwa.dismiss')}
         </button>
       </div>
     </div>

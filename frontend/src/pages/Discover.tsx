@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, type FilterState } from '../components/FilterPanel'
 import { SearchBar } from '../components/SearchBar'
@@ -7,6 +8,7 @@ import { MovieCard } from '../components/MovieCard'
 import { discover, search, type TmdbMovie } from '../lib/api'
 
 export function Discover() {
+  const { t } = useTranslation()
   const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
 
@@ -57,8 +59,8 @@ export function Discover() {
 
   useEffect(() => {
     if (!searchQuery) {
-      const t = setTimeout(() => runDiscover(filters, 1), 250)
-      return () => clearTimeout(t)
+      const tid = setTimeout(() => runDiscover(filters, 1), 250)
+      return () => clearTimeout(tid)
     }
   }, [filters, runDiscover, searchQuery])
 
@@ -83,7 +85,7 @@ export function Discover() {
         `}
       >
         <div className="lg:hidden flex justify-between items-center p-4 border-b border-[var(--color-border)]">
-          <span className="font-semibold">Filtreler</span>
+          <span className="font-semibold">{t('filters.title')}</span>
           <button onClick={() => setMobileOpen(false)} className="text-xl px-2">✕</button>
         </div>
         <div className="p-4 lg:p-0">
@@ -103,22 +105,23 @@ export function Discover() {
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center gap-2"
           >
-            <span>⚙</span> Filtreler
+            <span>⚙</span> {t('filters.title')}
             {activeCount > 0 && <span className="text-xs px-1.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>}
           </button>
           {searchQuery && (
-            <div className="text-sm text-[var(--color-text-dim)]">"{searchQuery}" için sonuçlar</div>
+            <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
           <div className="text-xs text-[var(--color-text-dim)] ml-auto">
-            {results.length > 0 && !loading && `${results.length} sonuç • sayfa ${page}`}
+            {results.length > 0 && !loading && t('discover.results', { count: results.length, page })}
           </div>
         </div>
 
         {err && <div className="text-red-400 text-sm">{err}</div>}
-        {loading && <div className="text-center text-[var(--color-text-dim)] py-10">Yükleniyor…</div>}
+        {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
         {!loading && results.length === 0 && (
           <div className="text-center text-[var(--color-text-dim)] py-10">
-            Sonuç bulunamadı. {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">Filtreleri temizle</button>}
+            {t('common.noResults')}{' '}
+            {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">{t('discover.clearFilters')}</button>}
           </div>
         )}
 
@@ -141,13 +144,13 @@ export function Discover() {
               const p = page - 1
               if (searchQuery) runSearch(searchQuery, p)
               else runDiscover(filters, p)
-            }}>← Önceki</PageBtn>
-            <div className="text-sm text-[var(--color-text-dim)]">Sayfa {page} / {totalPages}</div>
+            }}>{t('common.previous')}</PageBtn>
+            <div className="text-sm text-[var(--color-text-dim)]">{t('common.pageOf', { page, total: totalPages })}</div>
             <PageBtn disabled={page >= totalPages} onClick={() => {
               const p = page + 1
               if (searchQuery) runSearch(searchQuery, p)
               else runDiscover(filters, p)
-            }}>Sonraki →</PageBtn>
+            }}>{t('common.next')}</PageBtn>
           </div>
         )}
       </div>

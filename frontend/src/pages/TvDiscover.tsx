@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { SearchBar } from '../components/SearchBar'
 import { poster } from '../lib/api'
 import { popularTv, searchTv, type TmdbTvShow } from '../lib/tv'
 
 export function TvDiscover() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [results, setResults] = useState<TmdbTvShow[]>([])
   const [query, setQuery] = useState<string | null>(null)
@@ -46,17 +48,17 @@ export function TvDiscover() {
 
       <div className="flex items-center justify-between gap-3 text-sm">
         <div className="text-[var(--color-text-dim)]">
-          {query ? <>"{query}" için sonuçlar</> : 'Popüler diziler'}
+          {query ? t('tv.searchResults', { query }) : t('tv.popular')}
         </div>
         {results.length > 0 && !loading && (
-          <div className="text-xs text-[var(--color-text-dim)]">{results.length} sonuç · sayfa {page}</div>
+          <div className="text-xs text-[var(--color-text-dim)]">{t('tv.results', { count: results.length, page })}</div>
         )}
       </div>
 
       {err && <div className="text-red-400 text-sm">{err}</div>}
-      {loading && <div className="text-center text-[var(--color-text-dim)] py-10">Yükleniyor…</div>}
+      {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
       {!loading && results.length === 0 && (
-        <div className="text-center text-[var(--color-text-dim)] py-10">Sonuç bulunamadı.</div>
+        <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.noResults')}</div>
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
@@ -78,7 +80,7 @@ export function TvDiscover() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
-                    Poster yok
+                    {t('card.noPoster')}
                   </div>
                 )}
               </div>
@@ -102,13 +104,13 @@ export function TvDiscover() {
             const p = page - 1
             if (query) runSearch(query, p)
             else runPopular(p)
-          }}>← Önceki</PageBtn>
-          <div className="text-sm text-[var(--color-text-dim)]">Sayfa {page} / {totalPages}</div>
+          }}>{t('common.previous')}</PageBtn>
+          <div className="text-sm text-[var(--color-text-dim)]">{t('common.pageOf', { page, total: totalPages })}</div>
           <PageBtn disabled={page >= totalPages} onClick={() => {
             const p = page + 1
             if (query) runSearch(query, p)
             else runPopular(p)
-          }}>Sonraki →</PageBtn>
+          }}>{t('common.next')}</PageBtn>
         </div>
       )}
     </div>

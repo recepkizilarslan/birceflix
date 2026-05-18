@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { createList, listLists, type ListSummary } from '../lib/lists'
 
 export function ListsPage() {
+  const { t } = useTranslation()
   const { user } = useOutletContext<LayoutContext>()
   const [rows, setRows] = useState<ListSummary[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -27,8 +29,8 @@ export function ListsPage() {
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
-        <div className="text-lg mb-2">Listelerini saklamak için giriş yap</div>
-        <div className="text-sm text-[var(--color-text-dim)]">Sağ üstten Google ile giriş yapabilirsin.</div>
+        <div className="text-lg mb-2">{t('lists.signInPrompt')}</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
@@ -51,13 +53,13 @@ export function ListsPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <header className="flex items-baseline justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Listelerim</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('lists.title')}</h1>
         {!creating && (
           <button
             onClick={() => setCreating(true)}
             className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
           >
-            + Yeni liste
+            {t('lists.newList')}
           </button>
         )}
       </header>
@@ -65,14 +67,14 @@ export function ListsPage() {
       {creating && (
         <form onSubmit={onCreate} className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4 space-y-3">
           <label className="block">
-            <span className="text-xs text-[var(--color-text-dim)]">Liste adı</span>
+            <span className="text-xs text-[var(--color-text-dim)]">{t('lists.listName')}</span>
             <input
               type="text"
               value={newName}
               autoFocus
               maxLength={200}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Örn: Favori Wes Anderson"
+              placeholder={t('lists.listNamePlaceholder')}
               className="mt-1 w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-accent)]"
             />
           </label>
@@ -82,14 +84,14 @@ export function ListsPage() {
               disabled={busy || !newName.trim()}
               className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {busy ? 'Oluşturuluyor…' : 'Oluştur'}
+              {busy ? t('lists.creating') : t('lists.create')}
             </button>
             <button
               type="button"
               onClick={() => { setCreating(false); setNewName(''); setErr(null) }}
               className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
             >
-              İptal
+              {t('common.cancel')}
             </button>
           </div>
         </form>
@@ -97,10 +99,10 @@ export function ListsPage() {
 
       {err && <div className="text-sm text-red-400">{err}</div>}
 
-      {rows == null && <div className="text-sm text-[var(--color-text-dim)]">Yükleniyor…</div>}
+      {rows == null && <div className="text-sm text-[var(--color-text-dim)]">{t('lists.loading')}</div>}
       {rows && rows.length === 0 && !creating && (
         <div className="text-sm text-[var(--color-text-dim)]">
-          Henüz liste oluşturmadın. Yukarıdan başlayabilirsin.
+          {t('lists.empty')}
         </div>
       )}
 
@@ -116,7 +118,7 @@ export function ListsPage() {
                 <h3 className="font-medium leading-snug">{l.name}</h3>
                 {l.is_public && (
                   <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/40">
-                    public
+                    {t('lists.publicBadge')}
                   </span>
                 )}
               </div>
@@ -124,7 +126,7 @@ export function ListsPage() {
                 <p className="text-xs text-[var(--color-text-dim)] mt-1 line-clamp-2">{l.description}</p>
               )}
               <div className="text-xs text-[var(--color-text-dim)] mt-2">
-                {l.item_count ?? 0} film
+                {t('lists.filmCount', { count: l.item_count ?? 0 })}
               </div>
             </Link>
           ))}

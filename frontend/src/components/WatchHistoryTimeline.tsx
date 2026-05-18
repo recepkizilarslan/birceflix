@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { addHistory, deleteHistory, listHistory, type WatchHistoryEntry } from '../lib/history'
+import { fmtDate as intlFmtDate } from '../lib/intl'
 
 interface Props {
   tmdbId: number
@@ -12,16 +14,11 @@ function todayISODate(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-function fmtDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
 export function WatchHistoryTimeline({ tmdbId }: Props) {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<WatchHistoryEntry[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  // form state
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState<string>(todayISODate())
   const [location, setLocation] = useState('')
@@ -31,8 +28,8 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
   const refresh = async () => {
     try {
       setRows(await listHistory(tmdbId))
-    } catch (e: any) {
-      setErr(e.message ?? 'yüklenemedi')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -50,24 +47,24 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
       })
       setLocation(''); setNotes(''); setDate(todayISODate()); setOpen(false)
       await refresh()
-    } catch (e: any) {
-      setErr(e.message ?? 'kaydedilemedi')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
     } finally {
       setSaving(false)
     }
   }
 
   const remove = async (id: string) => {
-    if (!confirm('Bu izleme kaydını silmek istediğine emin misin?')) return
+    if (!confirm(t('history.confirmDelete'))) return
     try {
       await deleteHistory(id)
       await refresh()
-    } catch (e: any) {
-      setErr(e.message ?? 'silinemedi')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
     }
   }
 
-  if (rows == null) return <div className="text-sm text-[var(--color-text-dim)]">Yükleniyor…</div>
+  if (rows == null) return <div className="text-sm text-[var(--color-text-dim)]">{t('common.loading')}</div>
 
   return (
     <div className="space-y-3">
@@ -75,7 +72,7 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
 
       {rows.length === 0 && !open && (
         <div className="text-sm text-[var(--color-text-dim)]">
-          Henüz tarihli bir izleme eklemedin.
+          {t('history.empty')}
         </div>
       )}
 
@@ -86,11 +83,11 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
               <span className="absolute -left-[21px] top-2 w-3 h-3 rounded-full bg-[var(--color-accent)] border-2 border-[var(--color-bg)]" />
               <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-sm font-medium tabular-nums">{fmtDate(r.watched_at)}</div>
+                  <div className="text-sm font-medium tabular-nums">{intlFmtDate(r.watched_at)}</div>
                   <button
                     onClick={() => remove(r.id)}
                     className="text-xs text-[var(--color-text-dim)] hover:text-red-400"
-                    aria-label="Sil"
+                    aria-label={t('common.delete')}
                   >
                     ✕
                   </button>
@@ -111,7 +108,7 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
           onClick={() => setOpen(true)}
           className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
         >
-          + İzleme ekle
+          {t('history.addEntry')}
         </button>
       )}
 
@@ -119,7 +116,7 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
         <form onSubmit={submit} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
-              Tarih
+              {t('history.date')}
               <input
                 type="date"
                 value={date}
@@ -130,11 +127,11 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
               />
             </label>
             <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
-              Nerede (opsiyonel)
+              {t('history.location')}
               <input
                 type="text"
                 value={location}
-                placeholder="ev, sinema, uçak…"
+                placeholder={t('history.locationPlaceholder')}
                 maxLength={120}
                 onChange={(e) => setLocation(e.target.value)}
                 className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]"
@@ -142,12 +139,12 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
             </label>
           </div>
           <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
-            Not (opsiyonel)
+            {t('history.note')}
             <textarea
               rows={2}
               value={notes}
               maxLength={2000}
-              placeholder="o izlemeyle ilgili kısa not…"
+              placeholder={t('history.notePlaceholder')}
               onChange={(e) => setNotes(e.target.value)}
               className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] resize-y"
             />
@@ -158,14 +155,14 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
               disabled={saving}
               className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {saving ? 'Kaydediliyor…' : 'Kaydet'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
             <button
               type="button"
               onClick={() => { setOpen(false); setErr(null) }}
               className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
             >
-              İptal
+              {t('common.cancel')}
             </button>
           </div>
         </form>

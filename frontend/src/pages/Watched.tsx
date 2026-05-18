@@ -1,24 +1,26 @@
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import type { TmdbMovie } from '../lib/api'
 
 export function Watched() {
+  const { t } = useTranslation()
   const { user, watchedRows, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
 
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
-        <div className="text-lg mb-2">İzlediğin filmleri saklamak için giriş yap</div>
-        <div className="text-sm text-[var(--color-text-dim)]">Sağ üstten Google ile giriş yapabilirsin.</div>
+        <div className="text-lg mb-2">{t('watched.signInPrompt')}</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
 
   if (watchedRows.length === 0) {
     return (
-      <div className="text-center text-[var(--color-text-dim)] py-10">Henüz izlediğin bir film yok.</div>
+      <div className="text-center text-[var(--color-text-dim)] py-10">{t('watched.empty')}</div>
     )
   }
 

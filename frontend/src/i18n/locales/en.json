@@ -30,7 +30,8 @@
     "noResults": "No results.",
     "page": "Page",
     "previous": "← Previous",
-    "next": "Next →"
+    "next": "Next →",
+    "pageOf": "Page {{page}} / {{total}}"
   },
   "prefs": {
     "title": "Preferences",
@@ -118,7 +119,8 @@
     "markFirst": "Mark this as watched first, then rate and add notes here.",
     "yourRating": "Your rating",
     "yourNotes": "Your notes",
-    "notesPlaceholder": "Your notes about this movie… (auto-saved)"
+    "notesPlaceholder": "Your notes about this movie… (auto-saved)",
+    "ratePoint": "{{n}} points"
   },
   "history": {
     "empty": "No dated viewings yet.",
@@ -214,8 +216,8 @@
     "letterboxdDiaryDesc": "Dated viewings (rewatches + ratings). Writes to watch history; if not already marked, also flips 'watched'.",
     "upload": "Upload",
     "uploading": "Importing…",
-    "matched": "{{matched}} / {{total}} matched.",
-    "unmatched": "Unmatched: {{count}}",
+    "matched": "<b>{{matched}}</b> / {{total}} matched.",
+    "unmatched": "Unmatched: <b>{{count}}</b>",
     "unmatchedToggle": "Show unmatched",
     "uploadFailed": "import failed"
   },
@@ -233,8 +235,8 @@
     "importing": "Importing…",
     "disconnect": "Disconnect",
     "confirmDisconnect": "Disconnect from Trakt?",
-    "imported": "{{count}} viewings imported.",
-    "skipped": "{{count}} entries skipped (no TMDB ID).",
+    "imported": "<b>{{count}}</b> viewings imported.",
+    "skipped": "<b>{{count}}</b> entries skipped (no TMDB ID).",
     "pagesRead": "({{count}} pages read)"
   },
   "webhooks": {

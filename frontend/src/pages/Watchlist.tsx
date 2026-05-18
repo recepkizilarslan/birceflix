@@ -1,17 +1,19 @@
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import type { TmdbMovie } from '../lib/api'
 
 export function Watchlist() {
+  const { t } = useTranslation()
   const { user, watchlistRows, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
 
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
-        <div className="text-lg mb-2">İzleme listeni saklamak için giriş yap</div>
-        <div className="text-sm text-[var(--color-text-dim)]">Sağ üstten Google ile giriş yapabilirsin.</div>
+        <div className="text-lg mb-2">{t('watchlist.signInPrompt')}</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
@@ -19,7 +21,7 @@ export function Watchlist() {
   if (watchlistRows.length === 0) {
     return (
       <div className="text-center text-[var(--color-text-dim)] py-10">
-        Listende henüz film yok. Detay sayfasında "+ Listeme ekle" diyebilirsin.
+        {t('watchlist.empty')}
       </div>
     )
   }
