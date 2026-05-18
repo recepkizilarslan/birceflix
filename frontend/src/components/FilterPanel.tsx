@@ -6,7 +6,21 @@ import { COUNTRIES, LANGUAGES, SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/cons
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
 
-export type MediaType = 'movie' | 'tv'
+/**
+ * UI-level media category. Maps to a TMDB endpoint + forced params at the
+ * call site:
+ *   movie → /discover/movie
+ *   tv    → /discover/tv (all types)
+ *   mini  → /discover/tv with_type=2 (Miniseries)
+ *   doc   → /discover/movie with_genres=99 (Documentary, forced)
+ */
+export type MediaType = 'movie' | 'tv' | 'mini' | 'doc'
+
+/** True when the category uses /discover/tv under the hood (TV genres, TV providers, TV sort, season/episode filters). */
+// eslint-disable-next-line react-refresh/only-export-components
+export function isTvMedia(t: MediaType): boolean {
+  return t === 'tv' || t === 'mini'
+}
 
 export interface FilterState {
   min_rating: number
@@ -61,20 +75,22 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
 
-  useEffect(() => {
-    const loader = mediaType === 'tv' ? listTvGenres : listGenres
-    loader().then(setGenres).catch(() => {})
-  }, [mediaType])
+  const tvMode = isTvMedia(mediaType)
 
   useEffect(() => {
-    const loader = mediaType === 'tv' ? listTvProviders : listProviders
+    const loader = tvMode ? listTvGenres : listGenres
+    loader().then(setGenres).catch(() => {})
+  }, [tvMode])
+
+  useEffect(() => {
+    const loader = tvMode ? listTvProviders : listProviders
     loader(value.watch_region).then((p) => {
       const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
       setProviders(top)
     }).catch(() => setProviders([]))
-  }, [mediaType, value.watch_region])
+  }, [tvMode, value.watch_region])
 
-  const sortOptions = mediaType === 'tv' ? TV_SORT_OPTIONS : SORT_OPTIONS
+  const sortOptions = tvMode ? TV_SORT_OPTIONS : SORT_OPTIONS
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
@@ -149,22 +165,26 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </div>
       </Section>
 
-      <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
-          {genres.map((g) => {
-            const active = value.with_genres.includes(g.id)
-            return (
-              <button
-                key={g.id}
-                onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
-                className={chipCls(active)}
-              >
-                {g.name}
-              </button>
-            )
-          })}
-        </div>
-      </Section>
+      {/* Documentary mode forces with_genres=99 at the call site, so the
+          genre chip section here would be misleading — hide it. */}
+      {mediaType !== 'doc' && (
+        <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
+          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+            {genres.map((g) => {
+              const active = value.with_genres.includes(g.id)
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
+                  className={chipCls(active)}
+                >
+                  {g.name}
+                </button>
+              )
+            })}
+          </div>
+        </Section>
+      )}
 
       <Section title={`${t('filters.language')} ${value.original_language ? '•' : ''}`}>
         <Select value={value.original_language} onChange={(v) => onChange({ ...value, original_language: v })}>
@@ -195,7 +215,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </div>
       </Section>
 
-      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last={mediaType !== 'tv'}>
+      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last={!tvMode}>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {RUNTIME_PRESETS.map((preset) => {
             const active = value.runtime_from === preset.from && value.runtime_to === preset.to
@@ -226,7 +246,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </div>
       </Section>
 
-      {mediaType === 'tv' && (
+      {tvMode && (
         <Section title={`${t('filters.seasons')} ${value.seasons_from || value.seasons_to ? '•' : ''}`}>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {SEASONS_PRESETS.map((preset) => {
@@ -259,7 +279,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </Section>
       )}
 
-      {mediaType === 'tv' && (
+      {tvMode && (
         <Section title={`${t('filters.episodes')} ${value.episodes_from || value.episodes_to ? '•' : ''}`} last>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {EPISODES_PRESETS.map((preset) => {

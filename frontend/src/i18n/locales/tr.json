@@ -52,7 +52,9 @@
     "clearFilters": "Filtreleri temizle",
     "mediaToggle": {
       "movies": "Filmler",
-      "tv": "Diziler"
+      "tv": "Diziler",
+      "mini": "Mini dizi",
+      "doc": "Belgesel"
     }
   },
   "filters": {

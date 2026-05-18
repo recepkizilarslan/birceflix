@@ -87,6 +87,8 @@ export interface DiscoverTvFilters {
   seasons_to?: number
   episodes_from?: number
   episodes_to?: number
+  /** TMDB with_type (2 = Miniseries). Used by the "Mini dizi" category. */
+  with_type?: number
   sort_by?: string
   page?: number
 }
@@ -108,6 +110,7 @@ export function discoverTv(f: DiscoverTvFilters) {
   set('seasons_to', f.seasons_to?.toString())
   set('episodes_from', f.episodes_from?.toString())
   set('episodes_to', f.episodes_to?.toString())
+  set('with_type', f.with_type?.toString())
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
   return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{

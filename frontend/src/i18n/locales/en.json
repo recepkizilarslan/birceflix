@@ -52,7 +52,9 @@
     "clearFilters": "Clear filters",
     "mediaToggle": {
       "movies": "Movies",
-      "tv": "TV Shows"
+      "tv": "TV Shows",
+      "mini": "Miniseries",
+      "doc": "Documentary"
     }
   },
   "filters": {
