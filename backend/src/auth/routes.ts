@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify'
-import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { users } from '../db/schema.js'
@@ -43,12 +42,6 @@ function deriveNames(profile: GoogleUserInfo): { firstName: string | null; lastN
     name: combined,
   }
 }
-
-const patchBody = z.object({
-  first_name: z.string().min(1).max(120).nullable().optional(),
-  last_name: z.string().min(1).max(120).nullable().optional(),
-  avatar_url: z.string().url().max(1024).nullable().optional(),
-})
 
 export async function authRoutes(app: FastifyInstance) {
   // 1) Start OAuth — redirect to Google
@@ -152,54 +145,6 @@ export async function authRoutes(app: FastifyInstance) {
       first_name: row.user.firstName,
       last_name: row.user.lastName,
       avatar_url: row.user.avatarUrl,
-    }
-  })
-
-  // 5) Update profile — name + avatar
-  app.patch('/api/auth/me', async (req, reply) => {
-    const raw = req.cookies[env.SESSION_COOKIE_NAME]
-    if (!raw) return reply.code(401).send({ error: 'unauthenticated' })
-    const id = parseCookie(raw)
-    if (!id) return reply.code(401).send({ error: 'invalid session' })
-    const row = await readSession(id)
-    if (!row) return reply.code(401).send({ error: 'session expired' })
-
-    const body = patchBody.parse(req.body)
-    if (body.first_name === undefined && body.last_name === undefined && body.avatar_url === undefined) {
-      return reply.code(400).send({ error: 'nothing to update' })
-    }
-
-    const update: Partial<typeof users.$inferInsert> = {}
-    if (body.first_name !== undefined) update.firstName = body.first_name ?? null
-    if (body.last_name !== undefined) update.lastName = body.last_name ?? null
-    if (body.avatar_url !== undefined) update.avatarUrl = body.avatar_url ?? null
-
-    // Resync the combined `name` so denormalised join targets (e.g. public
-    // lists' owner_name) stay current.
-    const nextFirst = body.first_name !== undefined ? body.first_name : row.user.firstName
-    const nextLast = body.last_name !== undefined ? body.last_name : row.user.lastName
-    update.name = [nextFirst, nextLast].filter(Boolean).join(' ') || null
-
-    const [updated] = await db
-      .update(users)
-      .set(update)
-      .where(eq(users.id, row.user.id))
-      .returning({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        avatarUrl: users.avatarUrl,
-      })
-
-    return {
-      id: updated!.id,
-      email: updated!.email,
-      name: updated!.name,
-      first_name: updated!.firstName,
-      last_name: updated!.lastName,
-      avatar_url: updated!.avatarUrl,
     }
   })
 }

@@ -7,31 +7,11 @@ export interface User {
   avatar_url: string | null
 }
 
-export interface PatchProfileInput {
-  first_name?: string | null
-  last_name?: string | null
-  avatar_url?: string | null
-}
-
-async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) throw new Error(`${res.url} -> ${res.status}`)
-  return res.json() as Promise<T>
-}
-
 export async function getMe(): Promise<User | null> {
   const res = await fetch('/api/auth/me', { credentials: 'include' })
   if (res.status === 401) return null
   if (!res.ok) throw new Error(`auth/me -> ${res.status}`)
   return res.json() as Promise<User>
-}
-
-export async function patchMe(input: PatchProfileInput): Promise<User> {
-  return json(await fetch('/api/auth/me', {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(input),
-  }))
 }
 
 /** Best-effort display name. Falls back to email local-part. */

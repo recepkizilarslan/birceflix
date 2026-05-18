@@ -1,17 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getMe, type User } from '../lib/auth'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const refresh = useCallback(async () => {
-    try {
-      setUser(await getMe())
-    } catch {
-      setUser(null)
-    }
-  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -33,5 +25,5 @@ export function useAuth() {
     setUser(null)
   }
 
-  return { user, loading, signInWithGoogle, signOut, refresh, setUser }
+  return { user, loading, signInWithGoogle, signOut }
 }
