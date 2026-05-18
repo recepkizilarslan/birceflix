@@ -124,7 +124,6 @@ export function Layout() {
             <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
             <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
             {user && <TabLink to="/lists">{t('nav.lists')}</TabLink>}
-            {user && <TabLink to="/stats">{t('nav.stats')}</TabLink>}
             {user && <TabLink to="/import">{t('nav.import')}</TabLink>}
           </nav>
           <PreferencesMenu className="ml-auto" />

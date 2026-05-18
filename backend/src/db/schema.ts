@@ -104,7 +104,6 @@ export const watchHistory = pgTable(
     tmdbId: integer('tmdb_id').notNull(),
     watchedAt: timestamp('watched_at', { withTimezone: true }).defaultNow().notNull(),
     myRating: smallint('my_rating'),
-    location: text('location'),
     notes: text('notes'),
   },
   (t) => ({

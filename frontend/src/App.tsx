@@ -3,7 +3,6 @@ import { Layout } from './Layout'
 import { Discover } from './pages/Discover'
 import { Watched } from './pages/Watched'
 import { Watchlist } from './pages/Watchlist'
-import { StatsPage } from './pages/Stats'
 import { ImportPage } from './pages/Import'
 import { MovieDetailPage } from './pages/MovieDetailPage'
 import { TvDetailPage } from './pages/TvDetailPage'
@@ -21,7 +20,6 @@ function App() {
           <Route index element={<Discover />} />
           <Route path="watched" element={<Watched />} />
           <Route path="watchlist" element={<Watchlist />} />
-          <Route path="stats" element={<StatsPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="movie/:id" element={<MovieDetailPage />} />
           {/* /tv is the old separate TV discover route — redirect into the unified discover */}

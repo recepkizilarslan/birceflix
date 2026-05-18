@@ -7,7 +7,6 @@
     "watchlist": "Watchlist",
     "watched": "Watched",
     "lists": "Lists",
-    "stats": "Stats",
     "import": "Import / Export"
   },
   "auth": {
@@ -172,8 +171,6 @@
     "empty": "No dated viewings yet.",
     "addEntry": "+ Add viewing",
     "date": "Date",
-    "location": "Where (optional)",
-    "locationPlaceholder": "home, theater, plane…",
     "note": "Note (optional)",
     "notePlaceholder": "a short note about this viewing…",
     "confirmDelete": "Delete this viewing?",
@@ -234,25 +231,6 @@
     "watchedPartial": "{{watched}}/{{total}} watched",
     "watchedToggle": "Watched",
     "watchedToggleOn": "✓ Watched"
-  },
-  "stats": {
-    "title": "Stats",
-    "subtitle": "Richer breakdowns (genres, runtime, actors) will come once movie metadata is denormalised.",
-    "signInPrompt": "Sign in to see your stats",
-    "totalWatched": "Total movies watched",
-    "totalViewings": "Viewings (incl. rewatches)",
-    "totalRated": "Movies you've rated",
-    "distinctLocations": "Distinct locations",
-    "ratingDistribution": "Rating distribution",
-    "ratingEmpty": "No ratings yet.",
-    "lastTwelveMonths": "Last 12 months",
-    "lastTwelveMonthsEmpty": "No viewings logged in the last 12 months.",
-    "viewingsByYear": "Viewings by year (history)",
-    "viewingsByYearEmpty": "No watch history.",
-    "watchedByYear": "'Watched' marks by year",
-    "watchedByYearEmpty": "No watched marks yet.",
-    "topLocations": "Where you watch most",
-    "topLocationsEmpty": "You haven't set a location on any history entry."
   },
   "import": {
     "title": "Import / Export",

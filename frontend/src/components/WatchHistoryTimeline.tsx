@@ -21,7 +21,6 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
 
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState<string>(todayISODate())
-  const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -42,10 +41,9 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
       await addHistory({
         tmdb_id: tmdbId,
         watched_at: date,
-        location: location.trim() || null,
         notes: notes.trim() || null,
       })
-      setLocation(''); setNotes(''); setDate(todayISODate()); setOpen(false)
+      setNotes(''); setDate(todayISODate()); setOpen(false)
       await refresh()
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
@@ -92,10 +90,11 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
                     ✕
                   </button>
                 </div>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--color-text-dim)]">
-                  {r.location && <span className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]">📍 {r.location}</span>}
-                  {r.my_rating != null && <span className="px-2 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/40">★ {r.my_rating}/10</span>}
-                </div>
+                {r.my_rating != null && (
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--color-text-dim)]">
+                    <span className="px-2 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/40">★ {r.my_rating}/10</span>
+                  </div>
+                )}
                 {r.notes && <div className="mt-2 text-sm leading-relaxed whitespace-pre-line">{r.notes}</div>}
               </div>
             </li>
@@ -114,30 +113,17 @@ export function WatchHistoryTimeline({ tmdbId }: Props) {
 
       {open && (
         <form onSubmit={submit} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3 space-y-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
-              {t('history.date')}
-              <input
-                type="date"
-                value={date}
-                max={todayISODate()}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-accent)]"
-              />
-            </label>
-            <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
-              {t('history.location')}
-              <input
-                type="text"
-                value={location}
-                placeholder={t('history.locationPlaceholder')}
-                maxLength={120}
-                onChange={(e) => setLocation(e.target.value)}
-                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]"
-              />
-            </label>
-          </div>
+          <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
+            {t('history.date')}
+            <input
+              type="date"
+              value={date}
+              max={todayISODate()}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-accent)]"
+            />
+          </label>
           <label className="flex flex-col text-xs text-[var(--color-text-dim)] gap-1">
             {t('history.note')}
             <textarea

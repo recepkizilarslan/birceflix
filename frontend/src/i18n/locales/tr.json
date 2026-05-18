@@ -7,7 +7,6 @@
     "watchlist": "Listem",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
-    "stats": "İstatistik",
     "import": "İçe / Dışa aktar"
   },
   "auth": {
@@ -172,8 +171,6 @@
     "empty": "Henüz tarihli bir izleme eklemedin.",
     "addEntry": "+ İzleme ekle",
     "date": "Tarih",
-    "location": "Nerede (opsiyonel)",
-    "locationPlaceholder": "ev, sinema, uçak…",
     "note": "Not (opsiyonel)",
     "notePlaceholder": "o izlemeyle ilgili kısa not…",
     "confirmDelete": "Bu izleme kaydını silmek istediğine emin misin?",
@@ -234,25 +231,6 @@
     "watchedPartial": "{{watched}}/{{total}} izlendi",
     "watchedToggle": "İzledim",
     "watchedToggleOn": "✓ İzledim"
-  },
-  "stats": {
-    "title": "İstatistikler",
-    "subtitle": "Daha zengin ölçütler (tür, süre, oyuncu) ileride filmin meta verileri kaydedildikçe gelecek.",
-    "signInPrompt": "İstatistiklerini görmek için giriş yap",
-    "totalWatched": "Toplam izlenen film",
-    "totalViewings": "İzleme kaydı (rewatch dahil)",
-    "totalRated": "Puanlama yaptığın film",
-    "distinctLocations": "Farklı yer",
-    "ratingDistribution": "Puan dağılımı",
-    "ratingEmpty": "Henüz puan vermedin.",
-    "lastTwelveMonths": "Son 12 ay",
-    "lastTwelveMonthsEmpty": "Son 12 ayda kayıtlı izleme yok.",
-    "viewingsByYear": "Yıla göre izleme (history)",
-    "viewingsByYearEmpty": "İzleme geçmişi yok.",
-    "watchedByYear": "Yıla göre 'izledim' işareti",
-    "watchedByYearEmpty": "Henüz işaretli film yok.",
-    "topLocations": "En çok izlediğin yerler",
-    "topLocationsEmpty": "İzleme geçmişinde lokasyon belirtmemişsin."
   },
   "import": {
     "title": "İçe / Dışa aktar",

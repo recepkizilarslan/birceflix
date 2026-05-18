@@ -121,7 +121,6 @@ export async function exportRoutes(app: FastifyInstance) {
         tmdb_id: r.tmdbId,
         watched_at: r.watchedAt.toISOString(),
         my_rating: r.myRating,
-        location: r.location,
         notes: r.notes,
       })),
       watchlist: wl.map((r) => ({
