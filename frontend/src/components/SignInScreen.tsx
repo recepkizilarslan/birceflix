@@ -81,7 +81,7 @@ export function SignInScreen() {
 
       <section className="w-full max-w-5xl">
         <SectionHeader>{t('auth.integrations')}</SectionHeader>
-        <IntegrationsRow />
+        <IntegrationsMarquee />
       </section>
     </div>
   )
@@ -106,29 +106,38 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
  * to the background via a mask so logos appear/disappear smoothly.
  */
 function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
-  const row = (
-    <div className="flex shrink-0 items-start gap-7 px-3.5">
-      {providers.map((p) => (
-        <div
-          key={p.provider_id}
-          className="flex flex-col items-center gap-2 shrink-0 w-20"
-        >
-          <div className="h-16 w-16 rounded-2xl bg-white/95 p-2 shadow-md flex items-center justify-center">
-            <img
-              src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
-              alt={p.provider_name}
-              loading="lazy"
-              className="max-h-full max-w-full object-contain"
-            />
+  return (
+    <Marquee duration={32}>
+      <div className="flex shrink-0 items-start gap-7 px-3.5">
+        {providers.map((p) => (
+          <div
+            key={p.provider_id}
+            className="flex flex-col items-center gap-2 shrink-0 w-20"
+          >
+            <div className="h-16 w-16 rounded-2xl bg-white/95 p-2 shadow-md flex items-center justify-center">
+              <img
+                src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+                alt={p.provider_name}
+                loading="lazy"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+            <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight line-clamp-2">
+              {p.provider_name}
+            </span>
           </div>
-          <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight line-clamp-2">
-            {p.provider_name}
-          </span>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </Marquee>
   )
+}
 
+/**
+ * Shared marquee scaffolding — the children prop is treated as one "row",
+ * and the row is rendered twice with a `translateX(-50%)` keyframe so the
+ * loop is seamless. Pauses while the user is hovering over the strip.
+ */
+function Marquee({ children, duration = 28 }: { children: React.ReactNode; duration?: number }) {
   return (
     <div
       className="w-full overflow-hidden"
@@ -137,9 +146,12 @@ function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
         WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
       }}
     >
-      <div className="flex w-max animate-[marquee_32s_linear_infinite]">
-        {row}
-        {row}
+      <div
+        className="flex w-max hover:[animation-play-state:paused]"
+        style={{ animation: `marquee ${duration}s linear infinite` }}
+      >
+        {children}
+        {children}
       </div>
       <style>{`
         @keyframes marquee {
@@ -152,12 +164,13 @@ function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
 }
 
 /**
- * Static row of brand chips for the data/scrobble integrations the app
+ * Scrolling row of brand chips for the data/scrobble integrations the app
  * speaks to. Pure CSS — each chip mimics the brand's wordmark/logo in
  * its native colors so the row reads at a glance even at small sizes.
- * No external asset loading.
+ * No external asset loading. Tiles the 6 brands a few times so the strip
+ * is wide enough to actually scroll on big screens.
  */
-function IntegrationsRow() {
+function IntegrationsMarquee() {
   // [label shown below, render-fn for the badge]
   const items: { name: string; node: React.ReactNode }[] = [
     {
@@ -212,17 +225,27 @@ function IntegrationsRow() {
     },
   ]
 
-  return (
-    <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-4">
-      {items.map((it) => (
-        <div key={it.name} className="flex flex-col items-center gap-2 w-20">
-          {it.node}
-          <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight">
-            {it.name}
-          </span>
-        </div>
-      ))}
+  // Wrap each "tile copy" in its own keyed div so React doesn't see
+  // duplicate keys when the same brand name appears across copies.
+  const tile = (it: { name: string; node: React.ReactNode }) => (
+    <div className="flex flex-col items-center gap-2 shrink-0 w-20">
+      {it.node}
+      <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight">
+        {it.name}
+      </span>
     </div>
+  )
+
+  return (
+    <Marquee duration={26}>
+      <div className="flex shrink-0 items-start gap-6 px-3">
+        {[0, 1, 2].map((copy) => (
+          <div key={copy} className="flex shrink-0 items-start gap-6">
+            {items.map((it) => <div key={it.name}>{tile(it)}</div>)}
+          </div>
+        ))}
+      </div>
+    </Marquee>
   )
 }
 
