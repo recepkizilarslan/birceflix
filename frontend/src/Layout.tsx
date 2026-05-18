@@ -88,7 +88,7 @@ export function Layout() {
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-30 backdrop-blur bg-[var(--color-bg)]/85 border-b border-[var(--color-border)]">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 flex items-center gap-4">
           <Link to="/" className="hover:opacity-90">
             <span
               className="block leading-none"
@@ -113,10 +113,8 @@ export function Layout() {
             {user && <TabLink to="/stats">{t('nav.stats')}</TabLink>}
             {user && <TabLink to="/import">{t('nav.import')}</TabLink>}
           </nav>
-          <div className="flex items-center gap-2">
-            <PreferencesMenu />
-            <AuthButton />
-          </div>
+          <PreferencesMenu className="ml-auto" />
+          <AuthButton />
         </div>
       </header>
       <main className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6">

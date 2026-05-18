@@ -9,7 +9,7 @@ import { useLanguage, useRegion, type Lang } from '../lib/preferences'
  * Click-outside closes the menu; both selections persist to localStorage
  * (handled in lib/preferences).
  */
-export function PreferencesMenu() {
+export function PreferencesMenu({ className = '' }: { className?: string }) {
   const { t } = useTranslation()
   const [lang, setLang] = useLanguage()
   const [region, setRegion] = useRegion()
@@ -28,7 +28,7 @@ export function PreferencesMenu() {
   const regions = COUNTRIES.filter((c) => c.code)
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${className}`} ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={t('prefs.open')}
