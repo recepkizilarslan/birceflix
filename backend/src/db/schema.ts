@@ -11,6 +11,11 @@ export const users = pgTable('users', {
   name: text('name'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  // Trakt integration — null until the user connects.
+  traktAccessToken: text('trakt_access_token'),
+  traktRefreshToken: text('trakt_refresh_token'),
+  traktExpiresAt: timestamp('trakt_expires_at', { withTimezone: true }),
+  traktLastSyncAt: timestamp('trakt_last_sync_at', { withTimezone: true }),
 })
 
 // ---------------------------------------------------------------------------
