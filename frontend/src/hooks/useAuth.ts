@@ -22,7 +22,12 @@ export function useAuth() {
 
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    setUser(null)
+    // Hard reload to '/'. Each useAuth() call has its own state, so
+    // setUser(null) here only clears one instance — Layout would still
+    // think the user is signed in until its own /me probe re-fires.
+    // The reload kicks everything (including the gate in Layout) into
+    // a clean unauth state.
+    window.location.href = '/'
   }
 
   return { user, loading, signInWithGoogle, signOut }

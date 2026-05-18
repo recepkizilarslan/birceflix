@@ -2,12 +2,16 @@ import { pgTable, uuid, text, timestamp, integer, smallint, boolean, primaryKey,
 import { sql } from 'drizzle-orm'
 
 // ---------------------------------------------------------------------------
-// Users — Google-authenticated, one row per real person
+// Users — one row per real person. Auth is either Google OAuth, an
+// email+password pair, or both linked on the same row (matched by email).
 // ---------------------------------------------------------------------------
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  googleSub: text('google_sub').notNull().unique(),
+  /** Null when the user only registered with email+password. */
+  googleSub: text('google_sub').unique(),
   email: text('email').notNull().unique(),
+  /** scrypt-derived hash. Format: "<hex-salt>:<hex-derived>". Null for Google-only accounts. */
+  passwordHash: text('password_hash'),
   /** Denormalised full name. Kept in sync as `${firstName} ${lastName}`. */
   name: text('name'),
   firstName: text('first_name'),

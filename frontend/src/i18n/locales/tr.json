@@ -14,7 +14,22 @@
     "signIn": "Google ile giriş",
     "signOut": "Çıkış",
     "tagline": "İzlediklerini takip et, izleyeceklerini keşfet.",
-    "signInToContinue": "Devam etmek için giriş yap"
+    "signInToContinue": "Devam etmek için giriş yap",
+    "login": "Giriş yap",
+    "register": "Kayıt ol",
+    "or": "veya",
+    "continueWithGoogle": "Google ile devam et",
+    "emailPlaceholder": "E-posta",
+    "passwordPlaceholder": "Şifre",
+    "namePlaceholder": "Ad Soyad (opsiyonel)",
+    "noAccount": "Hesabın yok mu?",
+    "haveAccount": "Zaten hesabın var mı?",
+    "errors": {
+      "email_taken": "Bu e-posta zaten kayıtlı.",
+      "invalid_credentials": "E-posta veya şifre hatalı.",
+      "invalid_input": "Geçersiz bilgi. Şifre en az 8 karakter olmalı.",
+      "request_failed": "Bir şeyler ters gitti, tekrar dene."
+    }
   },
   "common": {
     "loading": "Yükleniyor…",

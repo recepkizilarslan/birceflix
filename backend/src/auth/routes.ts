@@ -1,10 +1,12 @@
 import type { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { users } from '../db/schema.js'
 import { env } from '../env.js'
 import { google, generateState, generateCodeVerifier, fetchGoogleUserInfo, type GoogleUserInfo } from './google.js'
 import { cookieValue, createSession, deleteSession, parseCookie, readSession } from './session.js'
+import { hashPassword, verifyPassword } from './password.js'
 
 const STATE_COOKIE = 'google_oauth_state'
 const VERIFIER_COOKIE = 'google_oauth_verifier'
@@ -130,7 +132,90 @@ export async function authRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  // 4) Whoami — read current user from session
+  // 4) Email + password register
+  const registerBody = z.object({
+    email: z.string().email().max(200).transform((s) => s.trim().toLowerCase()),
+    password: z.string().min(8).max(200),
+    name: z.string().trim().max(120).optional(),
+  })
+  app.post('/api/auth/register', async (req, reply) => {
+    const parsed = registerBody.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'invalid_input', details: parsed.error.flatten() })
+    }
+    const { email, password, name } = parsed.data
+
+    const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    if (existing) {
+      // Two cases: pure-Google account (we can link a password to it) or
+      // already has a password (registered before). Linking is the friendly
+      // path — the user picks the same email they signed up with on
+      // Google and we just attach a password. We reject if there's already
+      // a password, so brute-force attempts can't tell registered emails
+      // apart from unregistered ones.
+      if (existing.passwordHash) {
+        return reply.code(409).send({ error: 'email_taken' })
+      }
+      const hashed = await hashPassword(password)
+      const update: Partial<typeof users.$inferInsert> = { passwordHash: hashed }
+      if (name && !existing.name) {
+        update.name = name
+        const idx = name.indexOf(' ')
+        update.firstName = idx < 0 ? name : name.slice(0, idx)
+        update.lastName = idx < 0 ? null : name.slice(idx + 1).trim() || null
+      }
+      await db.update(users).set(update).where(eq(users.id, existing.id))
+      const session = await createSession(existing.id)
+      reply.setCookie(env.SESSION_COOKIE_NAME, cookieValue(session.id), sessionCookieOpts())
+      return { ok: true, linked: true }
+    }
+
+    // New user
+    const hashed = await hashPassword(password)
+    const first = name ? name.slice(0, name.indexOf(' ') >= 0 ? name.indexOf(' ') : name.length) : null
+    const last = name && name.indexOf(' ') >= 0 ? name.slice(name.indexOf(' ') + 1).trim() || null : null
+    const [created] = await db
+      .insert(users)
+      .values({
+        email,
+        passwordHash: hashed,
+        name: name ?? null,
+        firstName: first,
+        lastName: last,
+      })
+      .returning({ id: users.id })
+    const session = await createSession(created!.id)
+    reply.setCookie(env.SESSION_COOKIE_NAME, cookieValue(session.id), sessionCookieOpts())
+    return { ok: true }
+  })
+
+  // 5) Email + password login
+  const loginBody = z.object({
+    email: z.string().email().max(200).transform((s) => s.trim().toLowerCase()),
+    password: z.string().min(1).max(200),
+  })
+  app.post('/api/auth/login', async (req, reply) => {
+    const parsed = loginBody.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'invalid_input' })
+    }
+    const { email, password } = parsed.data
+    const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    // Same response for "no such user" and "wrong password" so we don't
+    // leak which emails exist in the system.
+    if (!row || !row.passwordHash) {
+      return reply.code(401).send({ error: 'invalid_credentials' })
+    }
+    const ok = await verifyPassword(password, row.passwordHash)
+    if (!ok) {
+      return reply.code(401).send({ error: 'invalid_credentials' })
+    }
+    const session = await createSession(row.id)
+    reply.setCookie(env.SESSION_COOKIE_NAME, cookieValue(session.id), sessionCookieOpts())
+    return { ok: true }
+  })
+
+  // 6) Whoami — read current user from session
   app.get('/api/auth/me', async (req, reply) => {
     const raw = req.cookies[env.SESSION_COOKIE_NAME]
     if (!raw) return reply.code(401).send({ error: 'unauthenticated' })

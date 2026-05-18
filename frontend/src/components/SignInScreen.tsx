@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
 import { listProviders, type ProviderListItem } from '../lib/api'
 import { getRegion } from '../lib/preferences'
+import { AuthError, loginWithPassword, registerWithPassword } from '../lib/auth'
 
 /**
  * The unauthenticated landing screen. Layout renders this in place of the
@@ -13,10 +14,39 @@ import { getRegion } from '../lib/preferences'
  * away from the SPA, so the gate above doesn't need to do anything
  * special to allow it.
  */
+type Mode = 'login' | 'register'
+
 export function SignInScreen() {
   const { t } = useTranslation()
   const { signInWithGoogle } = useAuth()
   const [providers, setProviders] = useState<ProviderListItem[]>([])
+
+  const [mode, setMode] = useState<Mode>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [errCode, setErrCode] = useState<string | null>(null)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrCode(null)
+    setBusy(true)
+    try {
+      if (mode === 'login') {
+        await loginWithPassword({ email, password })
+      } else {
+        await registerWithPassword({ email, password, name: name.trim() || undefined })
+      }
+      // Hard reload so the gate (which has its own useAuth instance)
+      // re-probes /api/auth/me and renders the authed app.
+      window.location.href = '/'
+    } catch (e) {
+      const code = e instanceof AuthError ? e.code : 'request_failed'
+      setErrCode(code)
+      setBusy(false)
+    }
+  }
 
   useEffect(() => {
     // Best-effort — if the request fails (offline, gate misconfigured)
@@ -55,17 +85,82 @@ export function SignInScreen() {
         <p className="mt-3 text-base sm:text-lg font-medium text-[var(--color-text)] leading-snug">
           {t('auth.tagline')}
         </p>
-        <p className="mt-2 text-xs text-[var(--color-text-dim)]">
-          {t('auth.signInToContinue')}
-        </p>
+
+        <form onSubmit={submit} className="mt-7 space-y-2.5 text-left">
+          {mode === 'register' && (
+            <input
+              type="text"
+              placeholder={t('auth.namePlaceholder')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              disabled={busy}
+              className={inputCls}
+            />
+          )}
+          <input
+            type="email"
+            required
+            placeholder={t('auth.emailPlaceholder')}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            disabled={busy}
+            className={inputCls}
+          />
+          <input
+            type="password"
+            required
+            minLength={mode === 'register' ? 8 : 1}
+            placeholder={t('auth.passwordPlaceholder')}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            disabled={busy}
+            className={inputCls}
+          />
+
+          {errCode && (
+            <div className="text-xs text-red-400 text-center pt-1">
+              {t(`auth.errors.${errCode}`, { defaultValue: t('auth.errors.request_failed') })}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={busy || !email || !password}
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {busy ? t('common.loading') : (mode === 'login' ? t('auth.login') : t('auth.register'))}
+          </button>
+        </form>
+
+        {/* "veya" divider */}
+        <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+          <span>{t('auth.or')}</span>
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+        </div>
 
         <button
           onClick={() => signInWithGoogle()}
-          className="mt-8 w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 transition"
+          className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium transition"
         >
           <GoogleIcon />
-          {t('auth.signIn')}
+          {t('auth.continueWithGoogle')}
         </button>
+
+        {/* Mode toggle */}
+        <p className="mt-5 text-xs text-[var(--color-text-dim)]">
+          {mode === 'login' ? t('auth.noAccount') : t('auth.haveAccount')}{' '}
+          <button
+            type="button"
+            onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErrCode(null) }}
+            className="text-[var(--color-text)] underline underline-offset-2 hover:opacity-80"
+          >
+            {mode === 'login' ? t('auth.register') : t('auth.login')}
+          </button>
+        </p>
       </div>
 
       <section className="w-full max-w-5xl">
@@ -222,6 +317,8 @@ function integrationBrands(): { key: string; name: string; node: React.ReactNode
     },
   ]
 }
+
+const inputCls = 'w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text)] placeholder-[var(--color-text-dim)] focus:outline-none focus:border-[var(--color-text-dim)] disabled:opacity-60'
 
 /** Inline Google "G" logo so we don't pull in another asset. */
 function GoogleIcon() {

@@ -14,7 +14,22 @@
     "signIn": "Sign in with Google",
     "signOut": "Sign out",
     "tagline": "Track what you watch. Discover what's next.",
-    "signInToContinue": "Sign in to continue"
+    "signInToContinue": "Sign in to continue",
+    "login": "Sign in",
+    "register": "Sign up",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "namePlaceholder": "Full name (optional)",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "errors": {
+      "email_taken": "That email is already registered.",
+      "invalid_credentials": "Wrong email or password.",
+      "invalid_input": "Invalid input. Password must be at least 8 characters.",
+      "request_failed": "Something went wrong, please try again."
+    }
   },
   "common": {
     "loading": "Loading…",
