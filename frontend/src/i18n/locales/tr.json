@@ -14,8 +14,7 @@
     "signIn": "Google ile giriş",
     "signOut": "Çıkış",
     "tagline": "İzlediklerini takip et, izleyeceklerini keşfet.",
-    "signInToContinue": "Devam etmek için giriş yap",
-    "signInHint": "Sağ üstten Google ile giriş yapabilirsin."
+    "signInToContinue": "Devam etmek için giriş yap"
   },
   "common": {
     "loading": "Yükleniyor…",

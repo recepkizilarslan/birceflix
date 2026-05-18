@@ -66,10 +66,6 @@ export function SignInScreen() {
           <GoogleIcon />
           {t('auth.signIn')}
         </button>
-
-        <p className="mt-6 text-[11px] text-[var(--color-text-dim)]">
-          {t('auth.signInHint')}
-        </p>
       </div>
 
       <section className="w-full max-w-5xl">
