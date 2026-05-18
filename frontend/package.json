@@ -16,7 +16,7 @@
     "i18next-browser-languagedetector": "^8.0.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-i18next": "^15.0.0",
+    "react-i18next": "^17.0.8",
     "react-router-dom": "^7.15.1",
     "tailwindcss": "^4.3.0",
     "workbox-window": "^7.3.0"
