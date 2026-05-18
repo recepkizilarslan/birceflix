@@ -22,6 +22,11 @@ function isPublicPath(url: string): boolean {
   const path = url.split('?')[0] ?? url
   if (path === '/api/health') return true
   if (path.startsWith('/api/auth/')) return true
+  // The sign-in screen shows a marquee of streaming-service logos. These
+  // are TMDB metadata endpoints with tiny, bounded response payloads — no
+  // privacy concern in exposing them anonymously, and they don't burn
+  // our TMDB budget the way an unbounded /discover would.
+  if (path === '/api/providers' || path === '/api/tv/providers') return true
   // Anything outside /api/* isn't ours to gate (Caddy serves the SPA).
   return !path.startsWith('/api/')
 }

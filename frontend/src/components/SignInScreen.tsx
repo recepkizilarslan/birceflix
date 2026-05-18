@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
+import { listProviders, type ProviderListItem } from '../lib/api'
+import { getRegion } from '../lib/preferences'
 
 /**
  * The unauthenticated landing screen. Layout renders this in place of the
@@ -13,9 +16,27 @@ import { useAuth } from '../hooks/useAuth'
 export function SignInScreen() {
   const { t } = useTranslation()
   const { signInWithGoogle } = useAuth()
+  const [providers, setProviders] = useState<ProviderListItem[]>([])
+
+  useEffect(() => {
+    // Best-effort — if the request fails (offline, gate misconfigured)
+    // we just hide the marquee. The sign-in flow itself doesn't depend
+    // on it.
+    listProviders(getRegion())
+      .then((rows) => {
+        // Top-20 by TMDB display priority — gives us the recognisable
+        // services (Netflix/Disney+/Prime/HBO etc.) and avoids the
+        // long tail of niche channels.
+        const top = [...rows]
+          .sort((a, b) => a.display_priority - b.display_priority)
+          .slice(0, 20)
+        setProviders(top)
+      })
+      .catch(() => setProviders([]))
+  }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--color-bg)]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-[var(--color-bg)] gap-12">
       <div className="text-center max-w-sm w-full">
         <span
           className="block leading-none"
@@ -45,6 +66,56 @@ export function SignInScreen() {
           {t('auth.signInHint')}
         </p>
       </div>
+
+      {providers.length > 0 && <ProviderMarquee providers={providers} />}
+    </div>
+  )
+}
+
+/**
+ * Infinite horizontal marquee of streaming-service logos. Pure CSS — the
+ * row is duplicated so the second copy slides into view as the first
+ * leaves, and the keyframe wraps at -50% for a seamless loop. Edges fade
+ * to the background via a mask so logos appear/disappear smoothly.
+ */
+function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
+  const row = (
+    <div className="flex shrink-0 items-center gap-6 px-3">
+      {providers.map((p) => (
+        <div
+          key={p.provider_id}
+          title={p.provider_name}
+          className="h-12 w-12 rounded-xl bg-white/95 p-1.5 shadow-sm shrink-0 flex items-center justify-center"
+        >
+          <img
+            src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+            alt={p.provider_name}
+            loading="lazy"
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      ))}
+    </div>
+  )
+
+  return (
+    <div
+      className="w-full max-w-4xl overflow-hidden"
+      style={{
+        maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+      }}
+    >
+      <div className="flex w-max animate-[marquee_28s_linear_infinite]">
+        {row}
+        {row}
+      </div>
+      <style>{`
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   )
 }
