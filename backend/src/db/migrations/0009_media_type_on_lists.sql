@@ -18,6 +18,10 @@ CREATE UNIQUE INDEX "watched_user_tmdb_type_unique" ON "watched_movies" ("user_i
 
 -- watchlist used a composite PK (user_id, tmdb_id). Need to drop + recreate
 -- with media_type included.
+-- Default PK name created by Postgres is `<table>_pkey`. Be tolerant of
+-- both spellings just in case it was renamed in a previous bare-metal env.
+ALTER TABLE "watchlist" DROP CONSTRAINT IF EXISTS "watchlist_pkey";
+--> statement-breakpoint
 ALTER TABLE "watchlist" DROP CONSTRAINT IF EXISTS "watchlist_user_id_tmdb_id_pk";
 --> statement-breakpoint
 ALTER TABLE "watchlist" ADD CONSTRAINT "watchlist_user_id_tmdb_id_media_type_pk" PRIMARY KEY ("user_id", "tmdb_id", "media_type");
