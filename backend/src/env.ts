@@ -22,6 +22,11 @@ const schema = z.object({
   TMDB_API_KEY: z.string().min(1),
   OMDB_API_KEY: z.string().min(1),
 
+  // Trakt — optional. Set all three (or none) to enable Trakt import.
+  TRAKT_CLIENT_ID: z.string().optional(),
+  TRAKT_CLIENT_SECRET: z.string().optional(),
+  TRAKT_REDIRECT_URI: z.string().url().optional(),
+
   // Frontend origin (for CORS in dev; in prod the reverse proxy makes this same-origin)
   FRONTEND_ORIGIN: z.string().url().default('http://localhost:5173'),
 

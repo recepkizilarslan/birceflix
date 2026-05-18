@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import type { LayoutContext } from '../Layout'
 import { importLetterboxdDiary, importLetterboxdWatched, type ImportReport } from '../lib/imports'
+import { TraktImport } from '../components/TraktImport'
 
 type Kind = 'watched' | 'diary'
 
@@ -41,6 +42,18 @@ export function ImportPage() {
         description="Tarihli izleme kayıtları (rewatch + puan dahil). İzleme geçmişine yazılır; eksikse ayrıca 'izledim' olarak işaretlenir."
         onComplete={refreshWatched}
       />
+
+      <section className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <h3 className="text-base font-semibold">Trakt.tv</h3>
+          <span className="text-xs text-[var(--color-text-dim)]">canlı API</span>
+        </div>
+        <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-3">
+          Trakt hesabını OAuth ile bağla, izleme geçmişini doğrudan içe aktar. Trakt kayıtları TMDB ID'si taşır
+          — Letterboxd CSV'sinin aksine eşleştirme tek atışta, hatasız.
+        </p>
+        <TraktImport onComplete={refreshWatched} />
+      </section>
     </div>
   )
 }
