@@ -15,7 +15,9 @@
     "signOut": "Sign out",
     "tagline": "Track what you watch. Discover what's next.",
     "signInToContinue": "Sign in to continue",
-    "signInHint": "Use the button on the top right to sign in with Google."
+    "signInHint": "Use the button on the top right to sign in with Google.",
+    "platforms": "Platforms",
+    "integrations": "Integrations"
   },
   "common": {
     "loading": "Loading…",

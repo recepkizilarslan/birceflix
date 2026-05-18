@@ -72,7 +72,29 @@ export function SignInScreen() {
         </p>
       </div>
 
-      {providers.length > 0 && <ProviderMarquee providers={providers} />}
+      {providers.length > 0 && (
+        <section className="w-full max-w-5xl">
+          <SectionHeader>{t('auth.platforms')}</SectionHeader>
+          <ProviderMarquee providers={providers} />
+        </section>
+      )}
+
+      <section className="w-full max-w-5xl">
+        <SectionHeader>{t('auth.integrations')}</SectionHeader>
+        <IntegrationsRow />
+      </section>
+    </div>
+  )
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 mb-4 px-1">
+      <div className="flex-1 h-px bg-[var(--color-border)]" />
+      <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-[var(--color-border)]" />
     </div>
   )
 }
@@ -85,19 +107,23 @@ export function SignInScreen() {
  */
 function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
   const row = (
-    <div className="flex shrink-0 items-center gap-6 px-3">
+    <div className="flex shrink-0 items-start gap-7 px-3.5">
       {providers.map((p) => (
         <div
           key={p.provider_id}
-          title={p.provider_name}
-          className="h-12 w-12 rounded-xl bg-white/95 p-1.5 shadow-sm shrink-0 flex items-center justify-center"
+          className="flex flex-col items-center gap-2 shrink-0 w-20"
         >
-          <img
-            src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
-            alt={p.provider_name}
-            loading="lazy"
-            className="max-h-full max-w-full object-contain"
-          />
+          <div className="h-16 w-16 rounded-2xl bg-white/95 p-2 shadow-md flex items-center justify-center">
+            <img
+              src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+              alt={p.provider_name}
+              loading="lazy"
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+          <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight line-clamp-2">
+            {p.provider_name}
+          </span>
         </div>
       ))}
     </div>
@@ -105,13 +131,13 @@ function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
 
   return (
     <div
-      className="w-full max-w-4xl overflow-hidden"
+      className="w-full overflow-hidden"
       style={{
-        maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+        maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
       }}
     >
-      <div className="flex w-max animate-[marquee_28s_linear_infinite]">
+      <div className="flex w-max animate-[marquee_32s_linear_infinite]">
         {row}
         {row}
       </div>
@@ -121,6 +147,81 @@ function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
           100% { transform: translateX(-50%); }
         }
       `}</style>
+    </div>
+  )
+}
+
+/**
+ * Static row of brand chips for the data/scrobble integrations the app
+ * speaks to. Pure CSS — each chip mimics the brand's wordmark/logo in
+ * its native colors so the row reads at a glance even at small sizes.
+ * No external asset loading.
+ */
+function IntegrationsRow() {
+  // [label shown below, render-fn for the badge]
+  const items: { name: string; node: React.ReactNode }[] = [
+    {
+      name: 'TMDB',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(90deg, #90cea1 0%, #01b4e4 100%)' }}>
+          <span className="font-black text-[18px] tracking-tight" style={{ color: '#0d253f' }}>TMDB</span>
+        </div>
+      ),
+    },
+    {
+      name: 'IMDb',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: '#F5C518' }}>
+          <span className="font-black italic text-[20px] text-black tracking-tight">IMDb</span>
+        </div>
+      ),
+    },
+    {
+      name: 'Trakt',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md bg-black border border-[#ED1C24]/40">
+          <span className="font-bold text-[16px]" style={{ color: '#ED1C24' }}>trakt</span>
+        </div>
+      ),
+    },
+    {
+      name: 'Letterboxd',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center gap-1.5 shadow-md bg-[#202830]">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#FF8000' }} />
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#00E054' }} />
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#40BCF4' }} />
+        </div>
+      ),
+    },
+    {
+      name: 'Plex',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md bg-black">
+          <span className="font-black text-[16px] tracking-tight" style={{ color: '#E5A00D' }}>PLEX</span>
+        </div>
+      ),
+    },
+    {
+      name: 'Jellyfin',
+      node: (
+        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(135deg, #AA5CC3 0%, #00A4DC 100%)' }}>
+          <span className="font-bold text-[12px] text-white tracking-wide">Jellyfin</span>
+        </div>
+      ),
+    },
+  ]
+
+  return (
+    <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-4">
+      {items.map((it) => (
+        <div key={it.name} className="flex flex-col items-center gap-2 w-20">
+          {it.node}
+          <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight">
+            {it.name}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
