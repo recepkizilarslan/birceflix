@@ -181,6 +181,31 @@ export const listItems = pgTable(
   }),
 )
 
+// ---------------------------------------------------------------------------
+// Webhook tokens — per-user opaque secrets used by Plex/Jellyfin to POST
+// scrobble events. Multiple tokens are supported per user so a single
+// compromised host can be rotated without touching the others.
+// ---------------------------------------------------------------------------
+export const webhookTokens = pgTable(
+  'webhook_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Opaque random string used in the public webhook URL. */
+    token: text('token').notNull().unique(),
+    /** User-facing label, e.g. 'Plex (ev)' or 'Jellyfin (sunucu)'. */
+    label: text('label').notNull(),
+    /** When the token was last hit by a scrobble. Null until first use. */
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index('webhook_tokens_user_idx').on(t.userId),
+  }),
+)
+
 export type User = typeof users.$inferSelect
 export type Session = typeof sessions.$inferSelect
 export type WatchedMovie = typeof watchedMovies.$inferSelect
