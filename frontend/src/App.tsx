@@ -11,6 +11,7 @@ import { TvDetailPage } from './pages/TvDetailPage'
 import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
+import { PWAUpdateToast } from './components/PWAUpdateToast'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="public/lists/:slug" element={<PublicListPage />} />
         </Route>
       </Routes>
+      <PWAUpdateToast />
     </BrowserRouter>
   )
 }

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    Maskable PWA icon. The full 512×512 viewport is the canvas.
+    The "safe zone" is the inner 80% (centered), where the B sits, so
+    Android/Chrome can mask it to any shape (squircle, circle, rounded
+    square) without clipping the letter.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b0b10"/>
+      <stop offset="100%" stop-color="#1a1a22"/>
+    </linearGradient>
+    <linearGradient id="bFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E50914"/>
+      <stop offset="100%" stop-color="#B0070F"/>
+    </linearGradient>
+    <linearGradient id="bFold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7A0008"/>
+      <stop offset="100%" stop-color="#3D0004"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background fill -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!--
+    The B sits inside the 80% safe zone (center 410×410, offset 51).
+    Original B viewBox was 130×180; we scale it into the safe area while
+    keeping the aspect ratio: scale = 410/180 ≈ 2.28, so 130*2.28 ≈ 296
+    wide. We center it: x = (512-296)/2 = 108.
+  -->
+  <g transform="translate(108, 51) scale(2.28)">
+    <path fill="url(#bFold)" d="M40 12 L52 12 L52 168 L40 168 Z"/>
+    <path
+      fill="url(#bFront)"
+      fill-rule="evenodd"
+      d="M18 12 L75 12 Q105 12 105 48 Q105 70 86 78 Q110 86 110 120 Q110 168 78 168 L18 168 Z
+         M40 32 L40 70 L70 70 Q85 70 85 51 Q85 32 70 32 Z
+         M40 88 L40 148 L75 148 Q92 148 92 118 Q92 88 75 88 Z"
+    />
+  </g>
+</svg>
