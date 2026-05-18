@@ -80,6 +80,35 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         )}
       </div>
 
+      <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
+        <div className="mb-2">
+          <Select value={value.watch_region} onChange={(v) => onChange({ ...value, watch_region: v, with_watch_providers: [] })}>
+            {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
+          {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
+          {providers.map((p) => {
+            const active = value.with_watch_providers.includes(p.provider_id)
+            return (
+              <button
+                key={p.provider_id}
+                onClick={() => onChange({ ...value, with_watch_providers: toggle(value.with_watch_providers, p.provider_id) })}
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-left transition ${
+                  active
+                    ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
+                    : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
+                }`}
+                title={p.provider_name}
+              >
+                {p.logo_path && <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt="" className="h-5 w-5 rounded shrink-0" />}
+                <span className="text-[11px] truncate">{p.provider_name}</span>
+              </button>
+            )
+          })}
+        </div>
+      </Section>
+
       <Section title={t('filters.sort')} defaultOpen>
         <Select value={value.sort_by} onChange={(v) => onChange({ ...value, sort_by: v })}>
           {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
@@ -112,35 +141,6 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
                 className={chipCls(active)}
               >
                 {g.name}
-              </button>
-            )
-          })}
-        </div>
-      </Section>
-
-      <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
-        <div className="mb-2">
-          <Select value={value.watch_region} onChange={(v) => onChange({ ...value, watch_region: v, with_watch_providers: [] })}>
-            {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
-          </Select>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
-          {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
-          {providers.map((p) => {
-            const active = value.with_watch_providers.includes(p.provider_id)
-            return (
-              <button
-                key={p.provider_id}
-                onClick={() => onChange({ ...value, with_watch_providers: toggle(value.with_watch_providers, p.provider_id) })}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-left transition ${
-                  active
-                    ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
-                    : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
-                }`}
-                title={p.provider_name}
-              >
-                {p.logo_path && <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt="" className="h-5 w-5 rounded shrink-0" />}
-                <span className="text-[11px] truncate">{p.provider_name}</span>
               </button>
             )
           })}
