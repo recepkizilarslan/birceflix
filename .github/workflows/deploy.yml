@@ -85,7 +85,7 @@ jobs:
       GH_ACTOR: ${{ github.actor }}
     steps:
       - name: SSH and rollout
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
