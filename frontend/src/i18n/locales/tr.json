@@ -53,8 +53,7 @@
     "mediaToggle": {
       "movies": "Filmler",
       "tv": "Diziler",
-      "mini": "Mini dizi",
-      "doc": "Belgesel"
+      "mini": "Mini dizi"
     }
   },
   "filters": {

@@ -76,15 +76,11 @@ export function Discover() {
         setPage(data.page)
         setTotalPages(Math.min(data.total_pages, 500))
       } else {
-        // Documentary category forces genre=99 and ignores the user's
-        // chip selections — the FilterPanel hides the genre section
-        // for this category to make that obvious.
-        const genres = mediaType === 'doc' ? [99] : (f.with_genres.length ? f.with_genres : undefined)
         const data = await discover({
           min_rating: f.min_rating || undefined,
           original_language: f.original_language || undefined,
           origin_country: f.origin_country || undefined,
-          with_genres: genres,
+          with_genres: f.with_genres.length ? f.with_genres : undefined,
           year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
           year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
           with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
@@ -161,9 +157,6 @@ export function Discover() {
           </SegBtn>
           <SegBtn active={mediaType === 'mini'} onClick={() => setMediaType('mini')}>
             🎞️ {t('discover.mediaToggle.mini')}
-          </SegBtn>
-          <SegBtn active={mediaType === 'doc'} onClick={() => setMediaType('doc')}>
-            🎥 {t('discover.mediaToggle.doc')}
           </SegBtn>
         </div>
 
@@ -296,7 +289,6 @@ function parseMediaType(raw: string | null): MediaType {
   switch (raw) {
     case 'tv': return 'tv'
     case 'mini': return 'mini'
-    case 'doc': return 'doc'
     default: return 'movie'
   }
 }

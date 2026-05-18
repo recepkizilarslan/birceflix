@@ -12,9 +12,8 @@ import { countryName, languageName } from '../lib/intl'
  *   movie → /discover/movie
  *   tv    → /discover/tv (all types)
  *   mini  → /discover/tv with_type=2 (Miniseries)
- *   doc   → /discover/movie with_genres=99 (Documentary, forced)
  */
-export type MediaType = 'movie' | 'tv' | 'mini' | 'doc'
+export type MediaType = 'movie' | 'tv' | 'mini'
 
 /** True when the category uses /discover/tv under the hood (TV genres, TV providers, TV sort, season/episode filters). */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -165,26 +164,22 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </div>
       </Section>
 
-      {/* Documentary mode forces with_genres=99 at the call site, so the
-          genre chip section here would be misleading — hide it. */}
-      {mediaType !== 'doc' && (
-        <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
-          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
-            {genres.map((g) => {
-              const active = value.with_genres.includes(g.id)
-              return (
-                <button
-                  key={g.id}
-                  onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
-                  className={chipCls(active)}
-                >
-                  {g.name}
-                </button>
-              )
-            })}
-          </div>
-        </Section>
-      )}
+      <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
+        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+          {genres.map((g) => {
+            const active = value.with_genres.includes(g.id)
+            return (
+              <button
+                key={g.id}
+                onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
+                className={chipCls(active)}
+              >
+                {g.name}
+              </button>
+            )
+          })}
+        </div>
+      </Section>
 
       <Section title={`${t('filters.language')} ${value.original_language ? '•' : ''}`}>
         <Select value={value.original_language} onChange={(v) => onChange({ ...value, original_language: v })}>

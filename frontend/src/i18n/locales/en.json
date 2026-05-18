@@ -53,8 +53,7 @@
     "mediaToggle": {
       "movies": "Movies",
       "tv": "TV Shows",
-      "mini": "Miniseries",
-      "doc": "Documentary"
+      "mini": "Miniseries"
     }
   },
   "filters": {
