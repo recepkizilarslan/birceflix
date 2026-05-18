@@ -71,6 +71,14 @@
       "medium": "90–120",
       "long": "120–150",
       "veryLong": "> 150 dk"
+    },
+    "all": "Tümü",
+    "sortOptions": {
+      "popularity": "Popülerlik",
+      "ratingHigh": "Puan (yüksek)",
+      "newest": "Yeni çıkanlar",
+      "oldest": "Eski → yeni",
+      "revenue": "Hasılat"
     }
   },
   "card": {

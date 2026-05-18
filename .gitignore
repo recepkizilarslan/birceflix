@@ -39,3 +39,5 @@ backend/.env.*
 *.njsproj
 *.sln
 *.sw?
+docker-compose.override.yml
+Caddyfile.local

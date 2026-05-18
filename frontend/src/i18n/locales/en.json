@@ -71,6 +71,14 @@
       "medium": "90–120",
       "long": "120–150",
       "veryLong": "> 150 min"
+    },
+    "all": "All",
+    "sortOptions": {
+      "popularity": "Popularity",
+      "ratingHigh": "Rating (high)",
+      "newest": "Newest",
+      "oldest": "Oldest → newest",
+      "revenue": "Box office"
     }
   },
   "card": {

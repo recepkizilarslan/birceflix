@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
 import { COUNTRIES, LANGUAGES, SORT_OPTIONS } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
+import { countryName, languageName } from '../lib/intl'
 
 export interface FilterState {
   min_rating: number
@@ -40,6 +42,7 @@ interface Props {
 }
 
 export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
+  const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
 
@@ -57,29 +60,33 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
 
+  // Resolve a label for a code-or-empty entry — empty means "All".
+  const countryLabel = (code: string) => code ? countryName(code) : t('filters.all')
+  const languageLabel = (code: string) => code ? languageName(code) : t('filters.all')
+
   return (
     <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">Filtreler</span>
+          <span className="font-semibold text-sm">{t('filters.title')}</span>
           {activeCount > 0 && (
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>
           )}
         </div>
         {activeCount > 0 && (
           <button onClick={onReset} className="text-xs text-[var(--color-text-dim)] hover:text-[var(--color-accent)]">
-            Temizle
+            {t('filters.clear')}
           </button>
         )}
       </div>
 
-      <Section title="Sıralama" defaultOpen>
+      <Section title={t('filters.sort')} defaultOpen>
         <Select value={value.sort_by} onChange={(v) => onChange({ ...value, sort_by: v })}>
-          {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
         </Select>
       </Section>
 
-      <Section title={`Min. Puan ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
+      <Section title={`${t('filters.minRating')} ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
         <input
           type="range" min={0} max={10} step={0.5}
           value={value.min_rating}
@@ -90,11 +97,11 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
           <span>0</span><span>5</span><span>10</span>
         </div>
         <div className="text-[10px] text-[var(--color-text-dim)] mt-1.5 leading-tight">
-          TMDB tabanlı. IMDB rating'i kartta ve detayda görünür.
+          {t('filters.minRatingHint')}
         </div>
       </Section>
 
-      <Section title={`Kategori ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
+      <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
         <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
           {genres.map((g) => {
             const active = value.with_genres.includes(g.id)
@@ -111,14 +118,14 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={`Platform ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
+      <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
         <div className="mb-2">
           <Select value={value.watch_region} onChange={(v) => onChange({ ...value, watch_region: v, with_watch_providers: [] })}>
-            {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+            {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
           </Select>
         </div>
         <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
-          {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">Yükleniyor…</div>}
+          {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
           {providers.map((p) => {
             const active = value.with_watch_providers.includes(p.provider_id)
             return (
@@ -140,28 +147,28 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={`Dil ${value.original_language ? '•' : ''}`}>
+      <Section title={`${t('filters.language')} ${value.original_language ? '•' : ''}`}>
         <Select value={value.original_language} onChange={(v) => onChange({ ...value, original_language: v })}>
-          {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+          {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{languageLabel(l.code)}</option>)}
         </Select>
       </Section>
 
-      <Section title={`Yapım Ülkesi ${value.origin_country ? '•' : ''}`}>
+      <Section title={`${t('filters.originCountry')} ${value.origin_country ? '•' : ''}`}>
         <Select value={value.origin_country} onChange={(v) => onChange({ ...value, origin_country: v })}>
-          {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+          {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
         </Select>
       </Section>
 
-      <Section title={`Yıl ${value.year_from || value.year_to ? '•' : ''}`}>
+      <Section title={`${t('filters.year')} ${value.year_from || value.year_to ? '•' : ''}`}>
         <div className="grid grid-cols-2 gap-2">
           <input
-            type="number" min={1900} max={2100} placeholder="başlangıç"
+            type="number" min={1900} max={2100} placeholder={t('filters.yearFrom')}
             value={value.year_from}
             onChange={(e) => onChange({ ...value, year_from: e.target.value ? Number(e.target.value) : '' })}
             className={inputCls}
           />
           <input
-            type="number" min={1900} max={2100} placeholder="bitiş"
+            type="number" min={1900} max={2100} placeholder={t('filters.yearTo')}
             value={value.year_to}
             onChange={(e) => onChange({ ...value, year_to: e.target.value ? Number(e.target.value) : '' })}
             className={inputCls}
@@ -169,30 +176,30 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={`Süre ${value.runtime_from || value.runtime_to ? '•' : ''}`} last>
+      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {RUNTIME_PRESETS.map((preset) => {
             const active = value.runtime_from === preset.from && value.runtime_to === preset.to
             return (
               <button
-                key={preset.label}
+                key={preset.labelKey}
                 onClick={() => onChange({ ...value, runtime_from: preset.from, runtime_to: preset.to })}
                 className={chipCls(active)}
               >
-                {preset.label}
+                {t(preset.labelKey)}
               </button>
             )
           })}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <input
-            type="number" min={0} max={600} placeholder="min (dk)"
+            type="number" min={0} max={600} placeholder={t('filters.runtimeFromPlaceholder')}
             value={value.runtime_from}
             onChange={(e) => onChange({ ...value, runtime_from: e.target.value ? Number(e.target.value) : '' })}
             className={inputCls}
           />
           <input
-            type="number" min={0} max={600} placeholder="max (dk)"
+            type="number" min={0} max={600} placeholder={t('filters.runtimeToPlaceholder')}
             value={value.runtime_to}
             onChange={(e) => onChange({ ...value, runtime_to: e.target.value ? Number(e.target.value) : '' })}
             className={inputCls}
@@ -219,11 +226,11 @@ export function countActiveFilters(f: FilterState): number {
   return n
 }
 
-const RUNTIME_PRESETS: { label: string; from: number | ''; to: number | '' }[] = [
-  { label: '< 90 dk', from: '', to: 90 },
-  { label: '90–120', from: 90, to: 120 },
-  { label: '120–150', from: 120, to: 150 },
-  { label: '> 150 dk', from: 150, to: '' },
+const RUNTIME_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[] = [
+  { labelKey: 'filters.runtimePresets.short',     from: '',  to: 90 },
+  { labelKey: 'filters.runtimePresets.medium',    from: 90,  to: 120 },
+  { labelKey: 'filters.runtimePresets.long',      from: 120, to: 150 },
+  { labelKey: 'filters.runtimePresets.veryLong',  from: 150, to: '' },
 ]
 
 function Section({ title, children, defaultOpen, last }: { title: string; children: React.ReactNode; defaultOpen?: boolean; last?: boolean }) {
