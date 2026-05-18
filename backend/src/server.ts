@@ -22,6 +22,7 @@ import { integrationsRoutes } from './routes/integrations.js'
 import { tvRoutes } from './routes/tv.js'
 import { watchedEpisodeRoutes } from './routes/watchedEpisodes.js'
 import { listsRoutes } from './routes/lists.js'
+import { webhookRoutes } from './routes/webhooks.js'
 
 async function build() {
   const app = Fastify({
@@ -63,6 +64,7 @@ async function build() {
   await app.register(tvRoutes)
   await app.register(watchedEpisodeRoutes)
   await app.register(listsRoutes)
+  await app.register(webhookRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
 

@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import type { LayoutContext } from '../Layout'
 import { importLetterboxdDiary, importLetterboxdWatched, type ImportReport } from '../lib/imports'
 import { TraktImport } from '../components/TraktImport'
+import { WebhookTokens } from '../components/WebhookTokens'
 
 type Kind = 'watched' | 'diary'
 
@@ -53,6 +54,14 @@ export function ImportPage() {
           — Letterboxd CSV'sinin aksine eşleştirme tek atışta, hatasız.
         </p>
         <TraktImport onComplete={refreshWatched} />
+      </section>
+
+      <section className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <h3 className="text-base font-semibold">Plex / Jellyfin scrobbler</h3>
+          <span className="text-xs text-[var(--color-text-dim)]">webhook</span>
+        </div>
+        <WebhookTokens />
       </section>
     </div>
   )
