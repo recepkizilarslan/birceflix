@@ -131,6 +131,8 @@
     "tmdbRating": "★ {{rating}}",
     "watched": "✓ İzledim",
     "markWatched": "İzledim olarak işaretle",
+    "addToWatchlist": "+ Listeme ekle",
+    "inWatchlist": "✓ Listemde",
     "noPoster": "Poster yok",
     "signInToMark": "Giriş yapınca işaretleyebilirsin"
   },

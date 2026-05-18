@@ -1,15 +1,21 @@
-import type { TmdbMovie } from './api'
+export type MediaType = 'movie' | 'tv'
 
 export interface WatchedRow {
   id: string
   user_id: string
   tmdb_id: number
+  media_type: MediaType
   imdb_id: string | null
   title: string
   poster_path: string | null
   watched_at: string
   my_rating: number | null
   notes: string | null
+}
+
+/** Stable key for Set<string> lookups: "movie:550" vs "tv:550" are distinct. */
+export function mediaKey(media_type: MediaType, tmdb_id: number): string {
+  return `${media_type}:${tmdb_id}`
 }
 
 async function json<T>(res: Response): Promise<T> {
@@ -21,13 +27,22 @@ export async function listWatched(): Promise<WatchedRow[]> {
   return json<WatchedRow[]>(await fetch('/api/watched', { credentials: 'include' }))
 }
 
-export async function markWatched(m: Pick<TmdbMovie, 'id' | 'title' | 'poster_path'> & { imdb_id?: string | null }) {
+export interface MarkWatchedInput {
+  id: number
+  media_type: MediaType
+  title: string
+  poster_path: string | null
+  imdb_id?: string | null
+}
+
+export async function markWatched(m: MarkWatchedInput) {
   await json<{ ok: true }>(await fetch('/api/watched', {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       tmdb_id: m.id,
+      media_type: m.media_type,
       imdb_id: m.imdb_id ?? null,
       title: m.title,
       poster_path: m.poster_path,
@@ -35,15 +50,15 @@ export async function markWatched(m: Pick<TmdbMovie, 'id' | 'title' | 'poster_pa
   }))
 }
 
-export async function unmarkWatched(tmdb_id: number) {
-  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}`, {
+export async function unmarkWatched(tmdb_id: number, media_type: MediaType) {
+  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}?media_type=${media_type}`, {
     method: 'DELETE',
     credentials: 'include',
   }))
 }
 
-export async function getWatched(tmdb_id: number): Promise<WatchedRow | null> {
-  const res = await fetch(`/api/watched/${tmdb_id}`, { credentials: 'include' })
+export async function getWatched(tmdb_id: number, media_type: MediaType = 'movie'): Promise<WatchedRow | null> {
+  const res = await fetch(`/api/watched/${tmdb_id}?media_type=${media_type}`, { credentials: 'include' })
   if (res.status === 404) return null
   return json<WatchedRow>(res)
 }
@@ -51,8 +66,9 @@ export async function getWatched(tmdb_id: number): Promise<WatchedRow | null> {
 export async function updateWatchedMeta(
   tmdb_id: number,
   patch: { my_rating?: number | null; notes?: string | null },
+  media_type: MediaType = 'movie',
 ) {
-  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}`, {
+  await json<{ ok: true }>(await fetch(`/api/watched/${tmdb_id}?media_type=${media_type}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
@@ -60,10 +76,11 @@ export async function updateWatchedMeta(
   }))
 }
 
-export async function getWatchedIdSet(): Promise<Set<number>> {
+/** Keyed by mediaKey() so movie/tv rows with the same TMDB id don't collide. */
+export async function getWatchedKeySet(): Promise<Set<string>> {
   try {
     const rows = await listWatched()
-    return new Set(rows.map((r) => r.tmdb_id))
+    return new Set(rows.map((r) => mediaKey(r.media_type, r.tmdb_id)))
   } catch {
     return new Set()
   }

@@ -45,8 +45,9 @@ export const sessions = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Watched movies — current behaviour: one row per (user, movie)
-// (Future: split into watch_history for rewatches, see Roadmap.)
+// Watched titles — one row per (user, tmdb_id, media_type). Table name kept
+// as `watched_movies` for backwards-compat; rows now include TV shows too
+// (media_type='tv'). Episode-level tracking still lives in watched_episodes.
 // ---------------------------------------------------------------------------
 export const watchedMovies = pgTable(
   'watched_movies',
@@ -56,6 +57,8 @@ export const watchedMovies = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     tmdbId: integer('tmdb_id').notNull(),
+    /** 'movie' | 'tv'. Defaults to 'movie' for backfill. */
+    mediaType: text('media_type').notNull().default('movie'),
     imdbId: text('imdb_id'),
     title: text('title').notNull(),
     posterPath: text('poster_path'),
@@ -64,14 +67,15 @@ export const watchedMovies = pgTable(
     notes: text('notes'),
   },
   (t) => ({
-    userMovieUnique: uniqueIndex('watched_user_movie_unique').on(t.userId, t.tmdbId),
+    userMediaUnique: uniqueIndex('watched_user_tmdb_type_unique').on(t.userId, t.tmdbId, t.mediaType),
     userIdx: index('watched_user_idx').on(t.userId, t.watchedAt),
     ratingCheck: check('watched_rating_range', sql`${t.myRating} is null or (${t.myRating} between 1 and 10)`),
   }),
 )
 
 // ---------------------------------------------------------------------------
-// Watchlist — "want to watch" queue, separate from watched
+// Watchlist — "want to watch" queue, separate from watched. Holds both
+// movies and TV shows disambiguated by media_type.
 // ---------------------------------------------------------------------------
 export const watchlist = pgTable(
   'watchlist',
@@ -80,13 +84,15 @@ export const watchlist = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     tmdbId: integer('tmdb_id').notNull(),
+    /** 'movie' | 'tv'. Defaults to 'movie' for backfill. */
+    mediaType: text('media_type').notNull().default('movie'),
     title: text('title').notNull(),
     posterPath: text('poster_path'),
     addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
     priority: smallint('priority').default(0).notNull(),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.userId, t.tmdbId] }),
+    pk: primaryKey({ columns: [t.userId, t.tmdbId, t.mediaType] }),
     userAddedIdx: index('watchlist_user_added_idx').on(t.userId, t.addedAt),
   }),
 )

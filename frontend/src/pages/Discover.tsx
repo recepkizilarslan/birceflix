@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, isTvMedia, type FilterState, type MediaType } from '../components/FilterPanel'
 import { SearchBar } from '../components/SearchBar'
-import { MovieCard } from '../components/MovieCard'
-import { discover, search, poster, type TmdbMovie } from '../lib/api'
+import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
+import { discover, search, type TmdbMovie } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
+import { mediaKey } from '../lib/watched'
 import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 
 // Combined movie + TV discover. The media-type segmented control at the top
@@ -16,7 +17,7 @@ import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 // reset when the user flips the toggle.
 export function Discover() {
   const { t } = useTranslation()
-  const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
+  const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -207,65 +208,48 @@ export function Discover() {
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
-          {!isTvMedia(mediaType)
-            ? (results as TmdbMovie[]).map((m) => (
-                <MovieCard
-                  key={m.id}
-                  movie={m}
-                  watched={watchedIds.has(m.id)}
-                  canMark={!!user}
-                  onToggleWatched={toggleWatched}
-                  onOpen={(mv) => navigate(`/movie/${mv.id}`)}
-                />
-              ))
-            : (results as TmdbTvShow[]).map((s) => {
-                const year = s.first_air_date?.slice(0, 4) ?? ''
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => navigate(`/tv/${s.id}`)}
-                    className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition text-left"
-                  >
-                    <div className="aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
-                      {poster(s.poster_path) ? (
-                        <img
-                          src={poster(s.poster_path)!}
-                          alt={s.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
-                          {t('card.noPoster')}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-medium leading-snug line-clamp-2">{s.name}</h3>
-                        <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]">
-                          ★ {s.vote_average.toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-1.5">
-                        {year && <span>{year}</span>}
-                        {s.number_of_seasons != null && (
-                          <>
-                            {year && <span>·</span>}
-                            <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
-                          </>
-                        )}
-                        {s.number_of_episodes != null && (
-                          <>
-                            <span>·</span>
-                            <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+          {(isTvMedia(mediaType)
+            ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
+                id: s.id,
+                media_type: 'tv',
+                title: s.name,
+                poster_path: s.poster_path,
+                vote_average: s.vote_average,
+                date: s.first_air_date ?? null,
+                meta: (
+                  <>
+                    {s.number_of_seasons != null && (
+                      <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
+                    )}
+                    {s.number_of_seasons != null && s.number_of_episodes != null && <span>·</span>}
+                    {s.number_of_episodes != null && (
+                      <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
+                    )}
+                  </>
+                ),
+              }))
+            : (results as TmdbMovie[]).map((m): DiscoverCardItem => ({
+                id: m.id,
+                media_type: 'movie',
+                title: m.title,
+                poster_path: m.poster_path,
+                vote_average: m.vote_average,
+                date: m.release_date ?? null,
+              }))
+          ).map((item) => {
+            const k = mediaKey(item.media_type, item.id)
+            return (
+              <DiscoverCard
+                key={k}
+                item={item}
+                onOpen={(it) => navigate(it.media_type === 'tv' ? `/tv/${it.id}` : `/movie/${it.id}`)}
+                onToggleWatched={user ? toggleWatched : null}
+                watched={watchedKeys.has(k)}
+                onToggleWatchlist={user ? toggleWatchlist : null}
+                inWatchlist={watchlistKeys.has(k)}
+              />
+            )
+          })}
         </div>
 
         {results.length > 0 && totalPages > 1 && (

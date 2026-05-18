@@ -131,6 +131,8 @@
     "tmdbRating": "★ {{rating}}",
     "watched": "✓ Watched",
     "markWatched": "Mark as watched",
+    "addToWatchlist": "+ Add to watchlist",
+    "inWatchlist": "✓ In watchlist",
     "noPoster": "No poster",
     "signInToMark": "Sign in to mark watched"
   },
