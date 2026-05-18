@@ -153,7 +153,21 @@ export function TvDiscover() {
                       ★ {s.vote_average.toFixed(1)}
                     </span>
                   </div>
-                  <div className="text-xs text-[var(--color-text-dim)] mt-1">{year}</div>
+                  <div className="text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-1.5">
+                    {year && <span>{year}</span>}
+                    {s.number_of_seasons != null && (
+                      <>
+                        {year && <span>·</span>}
+                        <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
+                      </>
+                    )}
+                    {s.number_of_episodes != null && (
+                      <>
+                        <span>·</span>
+                        <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </button>
             )

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
+import { enrichTvBrief } from '../lib/tvCache.js'
 import { env } from '../env.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
@@ -69,12 +70,13 @@ export async function tvRoutes(app: FastifyInstance) {
 
   app.get('/api/tv/search', async (req) => {
     const { q, page, ui_language } = searchQuery.parse(req.query)
-    return tmdb('/search/tv', {
+    const data = await tmdb<{ results: { id: number }[]; page: number; total_pages: number; total_results: number }>('/search/tv', {
       query: q,
       page: String(page),
       language: ui_language,
       include_adult: 'false',
     })
+    return { ...data, results: await enrichTvBrief(data.results) }
   })
 
   // Popular TV shows — kept around as a no-filter fallback the discover page
@@ -93,7 +95,7 @@ export async function tvRoutes(app: FastifyInstance) {
     const q = discoverQuery.parse(req.query)
     const defaultMinVotes = q.sort_by.startsWith('vote_average') ? '50' : undefined
 
-    return tmdb('/discover/tv', {
+    const data = await tmdb<{ results: { id: number }[]; page: number; total_pages: number; total_results: number }>('/discover/tv', {
       language: q.ui_language,
       sort_by: q.sort_by,
       page: String(q.page),
@@ -110,6 +112,7 @@ export async function tvRoutes(app: FastifyInstance) {
       'with_runtime.lte': q.runtime_to?.toString(),
       include_adult: 'false',
     })
+    return { ...data, results: await enrichTvBrief(data.results) }
   })
 
   // TV genre list — IDs differ from /genre/movie/list so the filter UI
