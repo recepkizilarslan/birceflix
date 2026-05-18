@@ -8,6 +8,9 @@ import { ImportPage } from './pages/Import'
 import { MovieDetailPage } from './pages/MovieDetailPage'
 import { TvDiscover } from './pages/TvDiscover'
 import { TvDetailPage } from './pages/TvDetailPage'
+import { ListsPage } from './pages/Lists'
+import { ListDetailPage } from './pages/ListDetail'
+import { PublicListPage } from './pages/PublicList'
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
           <Route path="movie/:id" element={<MovieDetailPage />} />
           <Route path="tv" element={<TvDiscover />} />
           <Route path="tv/:id" element={<TvDetailPage />} />
+          <Route path="lists" element={<ListsPage />} />
+          <Route path="lists/:id" element={<ListDetailPage />} />
+          <Route path="public/lists/:slug" element={<PublicListPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

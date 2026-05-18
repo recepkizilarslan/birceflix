@@ -4,6 +4,7 @@ import type { LayoutContext } from '../Layout'
 import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
 import { DEFAULT_WATCH_REGION } from '../lib/constants'
 import { PersonalNote } from '../components/PersonalNote'
+import { AddToListMenu } from '../components/AddToListMenu'
 import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 
 export function MovieDetailPage() {
@@ -116,6 +117,7 @@ export function MovieDetailPage() {
             >
               {inWatchlist ? '✓ Listemde — çıkar' : '+ Listeme ekle'}
             </button>
+            {user && <AddToListMenu tmdbId={d.id} title={d.title} posterPath={d.poster_path} />}
           </div>
         </div>
       </div>

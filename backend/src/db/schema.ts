@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, smallint, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, smallint, boolean, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // ---------------------------------------------------------------------------
@@ -137,6 +137,47 @@ export const watchedEpisodes = pgTable(
     ),
     userShowIdx: index('watched_episodes_user_show_idx').on(t.userId, t.showId),
     userTimeIdx: index('watched_episodes_user_time_idx').on(t.userId, t.watchedAt),
+  }),
+)
+
+// ---------------------------------------------------------------------------
+// User-defined lists — "Favori Wes Anderson", "Yılbaşı izleme planı" etc.
+// ---------------------------------------------------------------------------
+export const lists = pgTable(
+  'lists',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    isPublic: boolean('is_public').default(false).notNull(),
+    /** Random short token used for public URLs (/lists/public/<slug>); null until shared. */
+    publicSlug: text('public_slug').unique(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index('lists_user_idx').on(t.userId, t.createdAt),
+  }),
+)
+
+export const listItems = pgTable(
+  'list_items',
+  {
+    listId: uuid('list_id')
+      .notNull()
+      .references(() => lists.id, { onDelete: 'cascade' }),
+    tmdbId: integer('tmdb_id').notNull(),
+    title: text('title').notNull(),
+    posterPath: text('poster_path'),
+    position: smallint('position').default(0).notNull(),
+    addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.listId, t.tmdbId] }),
+    listOrderIdx: index('list_items_list_order_idx').on(t.listId, t.position, t.addedAt),
   }),
 )
 
