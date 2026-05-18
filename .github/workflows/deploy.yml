@@ -1,12 +1,10 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to deploy (defaults to sha-<short> of current commit)"
+        description: "Image tag to deploy (defaults to sha-<short> of current commit on the selected branch)"
         required: false
 
 concurrency:
