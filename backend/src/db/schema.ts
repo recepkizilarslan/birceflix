@@ -106,6 +106,40 @@ export const watchHistory = pgTable(
   }),
 )
 
+// ---------------------------------------------------------------------------
+// Watched TV episodes — one row per (user, show, season, episode)
+// ---------------------------------------------------------------------------
+export const watchedEpisodes = pgTable(
+  'watched_episodes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** TMDB tv show id. */
+    showId: integer('show_id').notNull(),
+    /** Denormalised so the watched-shows list doesn't need a TMDB roundtrip. */
+    showName: text('show_name').notNull(),
+    showPosterPath: text('show_poster_path'),
+    seasonNumber: integer('season_number').notNull(),
+    episodeNumber: integer('episode_number').notNull(),
+    episodeName: text('episode_name'),
+    watchedAt: timestamp('watched_at', { withTimezone: true }).defaultNow().notNull(),
+    myRating: smallint('my_rating'),
+    notes: text('notes'),
+  },
+  (t) => ({
+    userUnique: uniqueIndex('watched_episodes_user_unique').on(
+      t.userId,
+      t.showId,
+      t.seasonNumber,
+      t.episodeNumber,
+    ),
+    userShowIdx: index('watched_episodes_user_show_idx').on(t.userId, t.showId),
+    userTimeIdx: index('watched_episodes_user_time_idx').on(t.userId, t.watchedAt),
+  }),
+)
+
 export type User = typeof users.$inferSelect
 export type Session = typeof sessions.$inferSelect
 export type WatchedMovie = typeof watchedMovies.$inferSelect

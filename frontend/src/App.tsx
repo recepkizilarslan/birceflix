@@ -6,6 +6,8 @@ import { Watchlist } from './pages/Watchlist'
 import { StatsPage } from './pages/Stats'
 import { ImportPage } from './pages/Import'
 import { MovieDetailPage } from './pages/MovieDetailPage'
+import { TvDiscover } from './pages/TvDiscover'
+import { TvDetailPage } from './pages/TvDetailPage'
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
           <Route path="stats" element={<StatsPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="movie/:id" element={<MovieDetailPage />} />
+          <Route path="tv" element={<TvDiscover />} />
+          <Route path="tv/:id" element={<TvDetailPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
