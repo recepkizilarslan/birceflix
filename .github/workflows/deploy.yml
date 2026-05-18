@@ -83,6 +83,8 @@ jobs:
       GHCR_OWNER: ${{ needs.build-and-push.outputs.owner }}
       REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
       APP_ENV: ${{ secrets.APP_ENV }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_ACTOR: ${{ github.actor }}
     steps:
       - name: SSH and rollout
         uses: appleboy/ssh-action@v1.2.0
@@ -91,16 +93,22 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          envs: IMAGE_TAG,GHCR_OWNER,REPO_URL,APP_ENV
+          envs: IMAGE_TAG,GHCR_OWNER,REPO_URL,APP_ENV,GH_TOKEN,GH_ACTOR
           script: |
             set -euo pipefail
             DEPLOY_DIR="${{ secrets.DEPLOY_DIR }}"
             cd "$DEPLOY_DIR"
 
+            # Repo is private — use the ephemeral GITHUB_TOKEN as a basic-auth
+            # header for the duration of these git commands. Token never lands
+            # in .git/config because we pass it inline via -c.
+            AUTH_HEADER="Authorization: Basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
             if [ ! -d .git ]; then
-              git clone "$REPO_URL" .
+              git -c "http.extraheader=$AUTH_HEADER" clone "$REPO_URL" .
+              # Scrub the credential helper that clone sometimes records
+              git config --unset-all http.extraheader 2>/dev/null || true
             fi
-            git fetch --quiet origin main
+            git -c "http.extraheader=$AUTH_HEADER" fetch --quiet origin main
             git reset --hard origin/main
 
             # Render .env from the APP_ENV secret, then append/refresh
@@ -111,6 +119,10 @@ jobs:
               echo "GHCR_OWNER=$GHCR_OWNER"
               echo "IMAGE_TAG=$IMAGE_TAG"
             } >> .env
+
+            # GHCR packages are private by default; log in with the same token
+            # so `compose pull` can fetch the freshly-pushed images.
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
 
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
