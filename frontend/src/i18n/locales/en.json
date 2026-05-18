@@ -7,7 +7,8 @@
     "watched": "Watched",
     "lists": "Lists",
     "stats": "Stats",
-    "import": "Import / Export"
+    "import": "Import / Export",
+    "profile": "Profile"
   },
   "auth": {
     "signIn": "Sign in with Google",
@@ -281,5 +282,26 @@
   "search": {
     "placeholder": "Search movies…",
     "clear": "clear"
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your name and profile picture are visible to other users (e.g. on public lists).",
+    "signInPrompt": "Sign in to view your profile",
+    "firstName": "First name",
+    "firstNamePlaceholder": "Your first name",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Your last name",
+    "avatarUrl": "Profile picture (URL)",
+    "avatarUrlPlaceholder": "https://...",
+    "avatarHint": "Paste any image URL. If you signed in with Google, your Google avatar pre-populates.",
+    "preview": "Preview",
+    "noPreview": "No URL set",
+    "emailLabel": "Email",
+    "emailHint": "Comes from your Google account and can't be changed.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "✓ Profile updated.",
+    "saveFailed": "Couldn't save profile.",
+    "invalidUrl": "Invalid URL."
   }
 }

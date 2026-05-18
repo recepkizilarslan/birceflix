@@ -8,7 +8,10 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   googleSub: text('google_sub').notNull().unique(),
   email: text('email').notNull().unique(),
+  /** Denormalised full name. Kept in sync as `${firstName} ${lastName}`. */
   name: text('name'),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   // Trakt integration — null until the user connects.

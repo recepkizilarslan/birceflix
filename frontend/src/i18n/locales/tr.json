@@ -7,7 +7,8 @@
     "watched": "İzlediklerim",
     "lists": "Listelerim",
     "stats": "İstatistik",
-    "import": "İçe / Dışa aktar"
+    "import": "İçe / Dışa aktar",
+    "profile": "Profil"
   },
   "auth": {
     "signIn": "Google ile giriş",
@@ -281,5 +282,26 @@
   "search": {
     "placeholder": "Film ara…",
     "clear": "temizle"
+  },
+  "profile": {
+    "title": "Profilim",
+    "subtitle": "İsmin ve profil fotoğrafın diğer kullanıcılara (örn. public listelerde) görünür.",
+    "signInPrompt": "Profilini görmek için giriş yap",
+    "firstName": "İsim",
+    "firstNamePlaceholder": "Adın",
+    "lastName": "Soyisim",
+    "lastNamePlaceholder": "Soyadın",
+    "avatarUrl": "Profil fotoğrafı (URL)",
+    "avatarUrlPlaceholder": "https://...",
+    "avatarHint": "Bir resmin tam URL'sini yapıştır. Google ile giriş yaptıysan başlangıçta Google avatarın gelir.",
+    "preview": "Önizleme",
+    "noPreview": "URL girilmedi",
+    "emailLabel": "E-posta",
+    "emailHint": "Google hesabından geliyor, değiştirilemez.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "✓ Profil güncellendi.",
+    "saveFailed": "Profil kaydedilemedi.",
+    "invalidUrl": "Geçersiz URL."
   }
 }

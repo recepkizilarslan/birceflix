@@ -51,6 +51,8 @@ export async function readSession(id: string) {
         id: users.id,
         email: users.email,
         name: users.name,
+        firstName: users.firstName,
+        lastName: users.lastName,
         avatarUrl: users.avatarUrl,
       },
     })

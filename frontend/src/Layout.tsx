@@ -11,6 +11,8 @@ type MovieRef = { id: number; title: string; poster_path: string | null; imdb_id
 
 export interface LayoutContext {
   user: ReturnType<typeof useAuth>['user']
+  refreshUser: () => Promise<void>
+  setUser: ReturnType<typeof useAuth>['setUser']
   watchedIds: Set<number>
   watchedRows: WatchedRow[]
   refreshWatched: () => Promise<void>
@@ -23,7 +25,7 @@ export interface LayoutContext {
 
 export function Layout() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, refresh: refreshUser, setUser } = useAuth()
   const navigate = useNavigate()
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set())
   const [watchedRows, setWatchedRows] = useState<WatchedRow[]>([])
@@ -75,7 +77,7 @@ export function Layout() {
   }, [user, watchlistIds, refreshWatchlist, navigate])
 
   const ctx: LayoutContext = {
-    user,
+    user, refreshUser, setUser,
     watchedIds, watchedRows, refreshWatched, toggleWatched,
     watchlistIds, watchlistRows, refreshWatchlist, toggleWatchlist,
   }
