@@ -5,12 +5,13 @@ import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import { deleteList, getList, removeFromList, updateList, type ListWithItems } from '../lib/lists'
 import type { TmdbMovie } from '../lib/api'
+import { mediaKey } from '../lib/watched'
 
 export function ListDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
+  const { user, watchedKeys, toggleWatched } = useOutletContext<LayoutContext>()
 
   const [list, setList] = useState<ListWithItems | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -216,9 +217,9 @@ export function ListDetailPage() {
             <div key={m.id} className="relative group">
               <MovieCard
                 movie={m}
-                watched={watchedIds.has(m.id)}
+                watched={watchedKeys.has(mediaKey('movie', m.id))}
                 canMark={!!user}
-                onToggleWatched={toggleWatched}
+                onToggleWatched={(mv) => toggleWatched({ id: mv.id, media_type: 'movie', title: mv.title, poster_path: mv.poster_path })}
                 onOpen={(mv) => navigate(`/movie/${mv.id}`)}
               />
               <button

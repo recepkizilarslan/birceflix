@@ -3,6 +3,7 @@ import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
+import { mediaKey } from '../lib/watched'
 import { useRegion } from '../lib/preferences'
 import { PersonalNote } from '../components/PersonalNote'
 import { AddToListMenu } from '../components/AddToListMenu'
@@ -13,7 +14,7 @@ export function MovieDetailPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [region] = useRegion()
-  const { user, watchedIds, toggleWatched, watchlistIds, toggleWatchlist } = useOutletContext<LayoutContext>()
+  const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const [d, setD] = useState<MovieDetail | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
@@ -26,8 +27,8 @@ export function MovieDetailPage() {
   if (err) return <Wrap><div className="text-red-400">{err}</div></Wrap>
   if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div></Wrap>
 
-  const watched = watchedIds.has(d.id)
-  const inWatchlist = watchlistIds.has(d.id)
+  const watched = watchedKeys.has(mediaKey('movie', d.id))
+  const inWatchlist = watchlistKeys.has(mediaKey('movie', d.id))
   const year = d.release_date?.slice(0, 4) ?? ''
 
   return (
@@ -94,7 +95,7 @@ export function MovieDetailPage() {
           <div className="flex flex-wrap gap-2 mt-2">
             <button
               disabled={!user}
-              onClick={() => toggleWatched({ id: d.id, title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
               className={`px-5 py-2.5 rounded-lg text-sm font-medium transition ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
@@ -108,7 +109,7 @@ export function MovieDetailPage() {
             </button>
             <button
               disabled={!user}
-              onClick={() => toggleWatchlist({ id: d.id, title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
               className={`px-5 py-2.5 rounded-lg text-sm font-medium transition border ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'

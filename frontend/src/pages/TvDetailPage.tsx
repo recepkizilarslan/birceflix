@@ -5,6 +5,7 @@ import type { LayoutContext } from '../Layout'
 import { tvDetail, tvSeason, type TvDetail, type TvSeasonDetail } from '../lib/tv'
 import { poster } from '../lib/api'
 import { fmtDate } from '../lib/intl'
+import { mediaKey } from '../lib/watched'
 import {
   listWatchedEpisodes,
   markEpisode,
@@ -21,7 +22,13 @@ export function TvDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user } = useOutletContext<LayoutContext>()
+  const {
+    user,
+    watchedKeys: showWatchedKeys,
+    watchlistKeys: showWatchlistKeys,
+    toggleWatched,
+    toggleWatchlist,
+  } = useOutletContext<LayoutContext>()
 
   const [show, setShow] = useState<TvDetail | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -173,6 +180,40 @@ export function TvDetailPage() {
             </div>
           )}
           {show.overview && <p className="text-sm leading-relaxed pt-2">{show.overview}</p>}
+
+          {/* Show-level watched + watchlist toggles. Episode-level marking
+              lives further down — this is the "I'm done with this whole
+              show" / "add it to my queue" lane. */}
+          {user && (() => {
+            const k = mediaKey('tv', show.id)
+            const isWatched = showWatchedKeys.has(k)
+            const inWatchlist = showWatchlistKeys.has(k)
+            const ref = { id: show.id, media_type: 'tv' as const, title: show.name, poster_path: show.poster_path }
+            return (
+              <div className="flex flex-wrap gap-2 pt-3">
+                <button
+                  onClick={() => toggleWatched(ref)}
+                  className={`text-sm px-4 py-2 rounded-lg transition ${
+                    isWatched
+                      ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                      : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
+                  }`}
+                >
+                  {isWatched ? t('movie.watchedRemove') : t('card.markWatched')}
+                </button>
+                <button
+                  onClick={() => toggleWatchlist(ref)}
+                  className={`text-sm px-4 py-2 rounded-lg transition ${
+                    inWatchlist
+                      ? 'bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/30'
+                      : 'bg-transparent border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
+                  }`}
+                >
+                  {inWatchlist ? t('movie.watchlistRemove') : t('movie.watchlistAdd')}
+                </button>
+              </div>
+            )
+          })()}
         </div>
       </div>
 

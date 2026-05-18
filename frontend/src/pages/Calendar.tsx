@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import { getNowPlaying, getUpcoming, type CalendarResponse } from '../lib/calendar'
+import { mediaKey } from '../lib/watched'
 import { COUNTRIES } from '../lib/constants'
 import { useRegion } from '../lib/preferences'
 import { fmtDate as intlFmtDate } from '../lib/intl'
@@ -34,7 +35,7 @@ function groupByDate(movies: TmdbMovie[]): { date: string; items: TmdbMovie[] }[
 export function CalendarPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
+  const { user, watchedKeys, toggleWatched } = useOutletContext<LayoutContext>()
   const [tab, setTab] = useState<Tab>('upcoming')
   const [region, setRegion] = useRegion()
   const [data, setData] = useState<CalendarResponse | null>(null)
@@ -106,9 +107,9 @@ export function CalendarPage() {
                 <MovieCard
                   key={m.id}
                   movie={m}
-                  watched={watchedIds.has(m.id)}
+                  watched={watchedKeys.has(mediaKey('movie', m.id))}
                   canMark={!!user}
-                  onToggleWatched={toggleWatched}
+                  onToggleWatched={(mv) => toggleWatched({ id: mv.id, media_type: 'movie', title: mv.title, poster_path: mv.poster_path })}
                   onOpen={(mv) => navigate(`/movie/${mv.id}`)}
                 />
               ))}

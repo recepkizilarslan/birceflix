@@ -1,19 +1,18 @@
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
-import { MovieCard } from '../components/MovieCard'
-import type { TmdbMovie } from '../lib/api'
+import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
+import { mediaKey } from '../lib/watched'
 
 export function Watchlist() {
   const { t } = useTranslation()
-  const { user, watchlistRows, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
+  const { user, watchlistRows, watchedKeys, watchlistKeys, toggleWatched, toggleWatchlist } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
 
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
         <div className="text-lg mb-2">{t('watchlist.signInPrompt')}</div>
-        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
@@ -26,31 +25,30 @@ export function Watchlist() {
     )
   }
 
-  const movies: TmdbMovie[] = watchlistRows.map((r) => ({
-    id: r.tmdb_id,
-    title: r.title,
-    original_title: r.title,
-    original_language: '',
-    overview: '',
-    poster_path: r.poster_path,
-    backdrop_path: null,
-    release_date: r.added_at.slice(0, 10),
-    vote_average: 0,
-    vote_count: 0,
-  }))
-
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-      {movies.map((m) => (
-        <MovieCard
-          key={m.id}
-          movie={m}
-          watched={watchedIds.has(m.id)}
-          canMark={!!user}
-          onToggleWatched={toggleWatched}
-          onOpen={(mv) => navigate(`/movie/${mv.id}`)}
-        />
-      ))}
+      {watchlistRows.map((r) => {
+        const item: DiscoverCardItem = {
+          id: r.tmdb_id,
+          media_type: r.media_type,
+          title: r.title,
+          poster_path: r.poster_path,
+          vote_average: 0,
+          date: r.added_at.slice(0, 10),
+        }
+        const k = mediaKey(item.media_type, item.id)
+        return (
+          <DiscoverCard
+            key={k}
+            item={item}
+            onOpen={(it) => navigate(it.media_type === 'tv' ? `/tv/${it.id}` : `/movie/${it.id}`)}
+            onToggleWatched={toggleWatched}
+            watched={watchedKeys.has(k)}
+            onToggleWatchlist={toggleWatchlist}
+            inWatchlist={watchlistKeys.has(k)}
+          />
+        )
+      })}
     </div>
   )
 }

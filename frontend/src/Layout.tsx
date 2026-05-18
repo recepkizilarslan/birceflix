@@ -5,51 +5,60 @@ import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
 import { SignInScreen } from './components/SignInScreen'
 import { useAuth } from './hooks/useAuth'
-import { getWatchedIdSet, listWatched, markWatched, unmarkWatched, type WatchedRow } from './lib/watched'
+import { getWatchedKeySet, listWatched, markWatched, mediaKey, unmarkWatched, type MediaType, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
 
-type MovieRef = { id: number; title: string; poster_path: string | null; imdb_id?: string | null }
+/** Minimal shape needed to upsert into watched/watchlist. media_type
+ * disambiguates between TMDB movie id 550 and TV id 550. */
+export type MediaRef = {
+  id: number
+  media_type: MediaType
+  title: string
+  poster_path: string | null
+  imdb_id?: string | null
+}
 
 export interface LayoutContext {
   user: ReturnType<typeof useAuth>['user']
-  watchedIds: Set<number>
+  /** Set of `${media_type}:${tmdb_id}` keys. Use mediaKey() from lib/watched. */
+  watchedKeys: Set<string>
   watchedRows: WatchedRow[]
   refreshWatched: () => Promise<void>
-  toggleWatched: (m: MovieRef) => Promise<void>
-  watchlistIds: Set<number>
+  toggleWatched: (m: MediaRef) => Promise<void>
+  watchlistKeys: Set<string>
   watchlistRows: WatchlistRow[]
   refreshWatchlist: () => Promise<void>
-  toggleWatchlist: (m: MovieRef) => Promise<void>
+  toggleWatchlist: (m: MediaRef) => Promise<void>
 }
 
 export function Layout() {
   const { t } = useTranslation()
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set())
+  const [watchedKeys, setWatchedKeys] = useState<Set<string>>(new Set())
   const [watchedRows, setWatchedRows] = useState<WatchedRow[]>([])
-  const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set())
+  const [watchlistKeys, setWatchlistKeys] = useState<Set<string>>(new Set())
   const [watchlistRows, setWatchlistRows] = useState<WatchlistRow[]>([])
 
   const refreshWatched = useCallback(async () => {
-    if (!user) { setWatchedIds(new Set()); setWatchedRows([]); return }
+    if (!user) { setWatchedKeys(new Set()); setWatchedRows([]); return }
     try {
       const rows = await listWatched()
       setWatchedRows(rows)
-      setWatchedIds(new Set(rows.map((r) => r.tmdb_id)))
+      setWatchedKeys(new Set(rows.map((r) => mediaKey(r.media_type, r.tmdb_id))))
     } catch {
-      setWatchedIds(await getWatchedIdSet())
+      setWatchedKeys(await getWatchedKeySet())
     }
   }, [user])
 
   const refreshWatchlist = useCallback(async () => {
-    if (!user) { setWatchlistIds(new Set()); setWatchlistRows([]); return }
+    if (!user) { setWatchlistKeys(new Set()); setWatchlistRows([]); return }
     try {
       const rows = await listWatchlist()
       setWatchlistRows(rows)
-      setWatchlistIds(new Set(rows.map((r) => r.tmdb_id)))
+      setWatchlistKeys(new Set(rows.map((r) => mediaKey(r.media_type, r.tmdb_id))))
     } catch {
-      setWatchlistIds(new Set())
+      setWatchlistKeys(new Set())
       setWatchlistRows([])
     }
   }, [user])
@@ -57,32 +66,34 @@ export function Layout() {
   useEffect(() => { refreshWatched() }, [refreshWatched])
   useEffect(() => { refreshWatchlist() }, [refreshWatchlist])
 
-  const toggleWatched = useCallback(async (m: MovieRef) => {
+  const toggleWatched = useCallback(async (m: MediaRef) => {
     if (!user) { navigate('/'); return }
+    const k = mediaKey(m.media_type, m.id)
     try {
-      if (watchedIds.has(m.id)) await unmarkWatched(m.id)
+      if (watchedKeys.has(k)) await unmarkWatched(m.id, m.media_type)
       else await markWatched(m)
       await refreshWatched()
     } catch (e: any) { alert(e.message) }
-  }, [user, watchedIds, refreshWatched, navigate])
+  }, [user, watchedKeys, refreshWatched, navigate])
 
-  const toggleWatchlist = useCallback(async (m: MovieRef) => {
+  const toggleWatchlist = useCallback(async (m: MediaRef) => {
     if (!user) { navigate('/'); return }
+    const k = mediaKey(m.media_type, m.id)
     try {
-      if (watchlistIds.has(m.id)) await removeFromWatchlist(m.id)
+      if (watchlistKeys.has(k)) await removeFromWatchlist(m.id, m.media_type)
       else await addToWatchlist(m)
       await refreshWatchlist()
     } catch (e: any) { alert(e.message) }
-  }, [user, watchlistIds, refreshWatchlist, navigate])
+  }, [user, watchlistKeys, refreshWatchlist, navigate])
 
   const ctx: LayoutContext = {
     user,
-    watchedIds, watchedRows, refreshWatched, toggleWatched,
-    watchlistIds, watchlistRows, refreshWatchlist, toggleWatchlist,
+    watchedKeys, watchedRows, refreshWatched, toggleWatched,
+    watchlistKeys, watchlistRows, refreshWatchlist, toggleWatchlist,
   }
 
-  const watchlistSuffix = user && watchlistIds.size > 0 ? ` (${watchlistIds.size})` : ''
-  const watchedSuffix = user && watchedIds.size > 0 ? ` (${watchedIds.size})` : ''
+  const watchlistSuffix = user && watchlistKeys.size > 0 ? ` (${watchlistKeys.size})` : ''
+  const watchedSuffix = user && watchedKeys.size > 0 ? ` (${watchedKeys.size})` : ''
 
   // Auth gate: the whole app sits behind login. The hooks above still run
   // (they're cheap no-ops without a user), so the conditional return is
