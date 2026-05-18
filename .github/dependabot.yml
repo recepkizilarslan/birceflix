@@ -13,32 +13,6 @@ updates:
       minor-and-patch:
         update-types: ["minor", "patch"]
 
-  - package-ecosystem: "npm"
-    directory: "/frontend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "Europe/Istanbul"
-    open-pull-requests-limit: 5
-    labels: ["dependencies", "frontend"]
-    groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "npm"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "Europe/Istanbul"
-    open-pull-requests-limit: 5
-    labels: ["dependencies", "backend"]
-    groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
