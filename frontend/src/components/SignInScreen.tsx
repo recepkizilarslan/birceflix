@@ -72,58 +72,54 @@ export function SignInScreen() {
         </p>
       </div>
 
-      {providers.length > 0 && (
-        <section className="w-full max-w-5xl">
-          <SectionHeader>{t('auth.platforms')}</SectionHeader>
-          <ProviderMarquee providers={providers} />
-        </section>
-      )}
-
       <section className="w-full max-w-5xl">
-        <SectionHeader>{t('auth.integrations')}</SectionHeader>
-        <IntegrationsMarquee />
+        <BrandMarquee providers={providers} />
       </section>
     </div>
   )
 }
 
-function SectionHeader({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3 mb-4 px-1">
-      <div className="flex-1 h-px bg-[var(--color-border)]" />
-      <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
-        {children}
-      </span>
-      <div className="flex-1 h-px bg-[var(--color-border)]" />
-    </div>
-  )
-}
-
 /**
- * Infinite horizontal marquee of streaming-service logos. Pure CSS — the
- * row is duplicated so the second copy slides into view as the first
- * leaves, and the keyframe wraps at -50% for a seamless loop. Edges fade
- * to the background via a mask so logos appear/disappear smoothly.
+ * Single combined marquee of every brand the app speaks to — TMDB watch
+ * providers (Netflix, Disney+, ...) and our data/scrobble integrations
+ * (IMDb, Trakt, Letterboxd, Plex, Jellyfin, ...) all share one strip.
+ * Visually consistent: every brand is a w-20 column with a tile on top
+ * and the brand name below.
  */
-function ProviderMarquee({ providers }: { providers: ProviderListItem[] }) {
+function BrandMarquee({ providers }: { providers: ProviderListItem[] }) {
+  const tiles: { key: string; node: React.ReactNode; name: string }[] = [
+    ...providers.map((p) => ({
+      key: `p-${p.provider_id}`,
+      name: p.provider_name,
+      node: (
+        <div className="h-16 w-16 rounded-2xl bg-white/95 p-2 shadow-md flex items-center justify-center">
+          <img
+            src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+            alt={p.provider_name}
+            loading="lazy"
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      ),
+    })),
+    ...integrationBrands(),
+  ]
+
+  // No tiles at all? Skip — the provider fetch failed and there'd be only
+  // integration chips, which feels orphaned without context.
+  if (tiles.length === 0) return null
+
+  // Slow the scroll if we have a lot to show — keeps long names readable.
+  const duration = Math.max(28, Math.min(50, Math.round(tiles.length * 1.6)))
+
   return (
-    <Marquee duration={32}>
+    <Marquee duration={duration}>
       <div className="flex shrink-0 items-start gap-7 px-3.5">
-        {providers.map((p) => (
-          <div
-            key={p.provider_id}
-            className="flex flex-col items-center gap-2 shrink-0 w-20"
-          >
-            <div className="h-16 w-16 rounded-2xl bg-white/95 p-2 shadow-md flex items-center justify-center">
-              <img
-                src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
-                alt={p.provider_name}
-                loading="lazy"
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
+        {tiles.map((t) => (
+          <div key={t.key} className="flex flex-col items-center gap-2 shrink-0 w-20">
+            {t.node}
             <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight line-clamp-2">
-              {p.provider_name}
+              {t.name}
             </span>
           </div>
         ))}
@@ -164,89 +160,71 @@ function Marquee({ children, duration = 28 }: { children: React.ReactNode; durat
 }
 
 /**
- * Scrolling row of brand chips for the data/scrobble integrations the app
- * speaks to. Pure CSS — each chip mimics the brand's wordmark/logo in
- * its native colors so the row reads at a glance even at small sizes.
- * No external asset loading. Tiles the 6 brands a few times so the strip
- * is wide enough to actually scroll on big screens.
+ * Brand chips for the data/scrobble integrations the app speaks to.
+ * Pure CSS — each chip mimics the brand's wordmark/logo in its native
+ * colors so the row reads at a glance even at small sizes. No external
+ * asset loading. The chip is fixed at h-16 w-16 to line up with the
+ * provider tiles in the combined marquee above.
  */
-function IntegrationsMarquee() {
-  // [label shown below, render-fn for the badge]
-  const items: { name: string; node: React.ReactNode }[] = [
+function integrationBrands(): { key: string; name: string; node: React.ReactNode }[] {
+  return [
     {
+      key: 'i-tmdb',
       name: 'TMDB',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(90deg, #90cea1 0%, #01b4e4 100%)' }}>
-          <span className="font-black text-[18px] tracking-tight" style={{ color: '#0d253f' }}>TMDB</span>
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(90deg, #90cea1 0%, #01b4e4 100%)' }}>
+          <span className="font-black text-[15px] tracking-tight" style={{ color: '#0d253f' }}>TMDB</span>
         </div>
       ),
     },
     {
+      key: 'i-imdb',
       name: 'IMDb',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: '#F5C518' }}>
-          <span className="font-black italic text-[20px] text-black tracking-tight">IMDb</span>
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-md" style={{ background: '#F5C518' }}>
+          <span className="font-black italic text-[17px] text-black tracking-tight">IMDb</span>
         </div>
       ),
     },
     {
+      key: 'i-trakt',
       name: 'Trakt',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md bg-black border border-[#ED1C24]/40">
-          <span className="font-bold text-[16px]" style={{ color: '#ED1C24' }}>trakt</span>
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-md bg-black border border-[#ED1C24]/40">
+          <span className="font-bold text-[14px]" style={{ color: '#ED1C24' }}>trakt</span>
         </div>
       ),
     },
     {
+      key: 'i-letterboxd',
       name: 'Letterboxd',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center gap-1.5 shadow-md bg-[#202830]">
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#FF8000' }} />
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#00E054' }} />
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#40BCF4' }} />
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center gap-1 shadow-md bg-[#202830]">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#FF8000' }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#00E054' }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#40BCF4' }} />
         </div>
       ),
     },
     {
+      key: 'i-plex',
       name: 'Plex',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md bg-black">
-          <span className="font-black text-[16px] tracking-tight" style={{ color: '#E5A00D' }}>PLEX</span>
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-md bg-black">
+          <span className="font-black text-[14px] tracking-tight" style={{ color: '#E5A00D' }}>PLEX</span>
         </div>
       ),
     },
     {
+      key: 'i-jellyfin',
       name: 'Jellyfin',
       node: (
-        <div className="h-16 w-20 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(135deg, #AA5CC3 0%, #00A4DC 100%)' }}>
-          <span className="font-bold text-[12px] text-white tracking-wide">Jellyfin</span>
+        <div className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(135deg, #AA5CC3 0%, #00A4DC 100%)' }}>
+          <span className="font-bold text-[11px] text-white tracking-wide">Jellyfin</span>
         </div>
       ),
     },
   ]
-
-  // Wrap each "tile copy" in its own keyed div so React doesn't see
-  // duplicate keys when the same brand name appears across copies.
-  const tile = (it: { name: string; node: React.ReactNode }) => (
-    <div className="flex flex-col items-center gap-2 shrink-0 w-20">
-      {it.node}
-      <span className="text-[10.5px] text-[var(--color-text-dim)] text-center leading-tight">
-        {it.name}
-      </span>
-    </div>
-  )
-
-  return (
-    <Marquee duration={26}>
-      <div className="flex shrink-0 items-start gap-6 px-3">
-        {[0, 1, 2].map((copy) => (
-          <div key={copy} className="flex shrink-0 items-start gap-6">
-            {items.map((it) => <div key={it.name}>{tile(it)}</div>)}
-          </div>
-        ))}
-      </div>
-    </Marquee>
-  )
 }
 
 /** Inline Google "G" logo so we don't pull in another asset. */
