@@ -32,30 +32,51 @@ Two app containers + Postgres + Caddy. One `docker-compose up -d` brings up the 
 
 ## Quick start (local dev)
 
+Two flows depending on what you're optimising for.
+
+### A) HMR + native debugging — recommended for development
+
+Database runs in Docker; the app runs on your host with Vite/Fastify HMR.
+
 ```bash
-# 1. Get the code & install
 git clone https://github.com/recepkizilarslan/birceflix.git
 cd birceflix
 npm install
 
-# 2. Configure
-cp .env.example .env                  # for docker-compose
-cp backend/.env.example backend/.env  # for `npm run dev:backend`
+cp backend/.env.example backend/.env
+$EDITOR backend/.env   # SESSION_SECRET (32+ chars), Google OAuth, TMDB, OMDb
 
-# Fill in: DB_PASSWORD, SESSION_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
-#         TMDB_API_KEY, OMDB_API_KEY.
-# See CONTRIBUTING.md for how to obtain each one.
-
-# 3. Local development
-npm run dev      # runs frontend (5173) + backend (3000) together
-                 # — backend expects a Postgres reachable via DATABASE_URL.
-
-# Easiest local Postgres:
-docker run -d --name birceflix-db -p 5432:5432 \
-  -e POSTGRES_PASSWORD=birceflix -e POSTGRES_USER=birceflix -e POSTGRES_DB=birceflix \
-  postgres:16-alpine
-npm run -w backend db:migrate
+npm start              # = docker compose -f docker-compose.dev.yml up
+                       # + npm run -w backend db:migrate
+                       # + concurrently runs frontend (:5173) + backend (:3000)
 ```
+
+That's it. Open <http://localhost:5173>.
+
+Adminer (web DB browser) sits at <http://localhost:8081> — server `db`, user/pass `birceflix`.
+
+Individual targets are also exposed:
+
+| `npm run …`     | `make …`   | What it does                                   |
+|-----------------|------------|------------------------------------------------|
+| `db:up`         | `db-up`    | Start Postgres + Adminer                       |
+| `db:down`       | `db-down`  | Stop them (volumes preserved)                  |
+| `db:reset`      | `db-reset` | Wipe + recreate (data loss)                    |
+| `db:migrate`    | `migrate`  | Apply pending SQL migrations                   |
+| `dev`           | —          | Frontend + backend with HMR                    |
+
+### B) Full prod-shaped stack on localhost
+
+Mirrors what the on-prem deploy looks like (Caddy → nginx → frontend, Caddy → api → Postgres).
+
+```bash
+cp .env.example .env
+$EDITOR .env            # DOMAIN=localhost, DB_PASSWORD, SESSION_SECRET, OAuth, TMDB/OMDb
+npm run prod:up         # = docker compose up -d --build
+npm run prod:logs
+```
+
+Caddy serves over HTTPS with a self-signed cert on `localhost`. Useful for testing the production build but no HMR — every code change needs `npm run prod:up` again.
 
 The full dev walkthrough (Google OAuth setup, env vars, troubleshooting) lives in [CONTRIBUTING.md](CONTRIBUTING.md).
 

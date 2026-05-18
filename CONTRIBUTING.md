@@ -49,17 +49,24 @@ Both env files are git-ignored — never commit them.
 
 ### 4. Start a local Postgres
 
-The simplest path is Docker:
+The repo ships a dev compose file that brings up Postgres + Adminer:
 
 ```bash
-docker run -d --name birceflix-db -p 5432:5432 \
-  -e POSTGRES_PASSWORD=birceflix \
-  -e POSTGRES_USER=birceflix \
-  -e POSTGRES_DB=birceflix \
-  postgres:16-alpine
+npm run db:up          # docker compose -f docker-compose.dev.yml up -d
 ```
 
-If you have a Postgres already, set `DATABASE_URL` in `backend/.env` to point at it.
+That binds Postgres to `127.0.0.1:5432` (matching `backend/.env.example`) and Adminer to `127.0.0.1:8081` for browsing tables. Data lives in the `dev_db_data` volume between restarts.
+
+If you already have a Postgres instance you'd rather use, skip `npm run db:up` and point `DATABASE_URL` in `backend/.env` at it.
+
+Other useful targets:
+
+| `npm run …` | `make …` | What it does |
+|---|---|---|
+| `db:up` | `db-up` | Start Postgres + Adminer |
+| `db:down` | `db-down` | Stop them (volumes preserved) |
+| `db:reset` | `db-reset` | Wipe + recreate (loses data) |
+| `db:logs` | `db-logs` | Tail logs |
 
 ### 5. Install + migrate + run
 

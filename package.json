@@ -15,7 +15,20 @@
     "build:backend": "npm run -w backend build",
     "build": "npm run build:frontend && npm run build:backend",
     "lint": "npm run -w frontend lint",
-    "typecheck": "npm run -w frontend typecheck && npm run -w backend typecheck"
+    "typecheck": "npm run -w frontend typecheck && npm run -w backend typecheck",
+
+    "db:up": "docker compose -f docker-compose.dev.yml up -d",
+    "db:down": "docker compose -f docker-compose.dev.yml down",
+    "db:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "db:reset": "docker compose -f docker-compose.dev.yml down -v && docker compose -f docker-compose.dev.yml up -d",
+    "db:migrate": "npm run -w backend db:migrate",
+
+    "start": "npm run db:up && npm run db:migrate && npm run dev",
+
+    "prod:up": "docker compose up -d --build",
+    "prod:down": "docker compose down",
+    "prod:logs": "docker compose logs -f",
+    "prod:restart": "docker compose restart api frontend"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

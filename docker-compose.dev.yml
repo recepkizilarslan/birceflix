@@ -1,0 +1,44 @@
+name: birceflix-dev
+
+# Development stack — only the dependencies the app needs to talk to.
+# The backend + frontend run on the host with `npm run dev` for fast HMR
+# and native debugging. If you want to run the full prod-shaped stack
+# locally instead, use `docker compose up -d --build` (the default file).
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: birceflix-dev-db
+    restart: unless-stopped
+    ports:
+      # Exposed on the host so `backend/.env` can point at localhost:5432.
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: birceflix
+      POSTGRES_USER: birceflix
+      POSTGRES_PASSWORD: birceflix
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U birceflix -d birceflix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Lightweight web UI for browsing the local DB. Optional — comment out
+  # the service if you don't want it.
+  adminer:
+    image: adminer:5-standalone
+    container_name: birceflix-dev-adminer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: nette
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dev_db_data:
