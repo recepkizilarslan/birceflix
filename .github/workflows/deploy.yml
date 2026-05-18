@@ -28,7 +28,7 @@ jobs:
       image_tag: ${{ steps.meta.outputs.tag }}
       owner: ${{ steps.owner.outputs.value }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compute image tag
         id: meta
