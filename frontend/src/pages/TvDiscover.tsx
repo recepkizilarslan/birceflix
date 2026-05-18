@@ -34,6 +34,10 @@ export function TvDiscover() {
         watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
         runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
         runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+        seasons_from: typeof f.seasons_from === 'number' ? f.seasons_from : undefined,
+        seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
+        episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
+        episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
         sort_by: f.sort_by,
         page: p,
       })

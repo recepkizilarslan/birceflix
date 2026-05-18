@@ -19,6 +19,12 @@ export interface FilterState {
   watch_region: string
   runtime_from: number | ''
   runtime_to: number | ''
+  /** TV-only: total seasons range. Ignored for movies. */
+  seasons_from: number | ''
+  seasons_to: number | ''
+  /** TV-only: total episodes range. Ignored for movies. */
+  episodes_from: number | ''
+  episodes_to: number | ''
   sort_by: string
 }
 
@@ -34,6 +40,10 @@ export const DEFAULT_FILTERS: FilterState = {
   watch_region: getRegion(),
   runtime_from: '',
   runtime_to: '',
+  seasons_from: '',
+  seasons_to: '',
+  episodes_from: '',
+  episodes_to: '',
   sort_by: 'popularity.desc',
 }
 
@@ -185,7 +195,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
         </div>
       </Section>
 
-      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last>
+      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last={mediaType !== 'tv'}>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {RUNTIME_PRESETS.map((preset) => {
             const active = value.runtime_from === preset.from && value.runtime_to === preset.to
@@ -215,6 +225,72 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
           />
         </div>
       </Section>
+
+      {mediaType === 'tv' && (
+        <Section title={`${t('filters.seasons')} ${value.seasons_from || value.seasons_to ? '•' : ''}`}>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {SEASONS_PRESETS.map((preset) => {
+              const active = value.seasons_from === preset.from && value.seasons_to === preset.to
+              return (
+                <button
+                  key={preset.labelKey}
+                  onClick={() => onChange({ ...value, seasons_from: preset.from, seasons_to: preset.to })}
+                  className={chipCls(active)}
+                >
+                  {t(preset.labelKey)}
+                </button>
+              )
+            })}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number" min={0} max={100} placeholder={t('filters.seasonsFromPlaceholder')}
+              value={value.seasons_from}
+              onChange={(e) => onChange({ ...value, seasons_from: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+            <input
+              type="number" min={0} max={100} placeholder={t('filters.seasonsToPlaceholder')}
+              value={value.seasons_to}
+              onChange={(e) => onChange({ ...value, seasons_to: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+          </div>
+        </Section>
+      )}
+
+      {mediaType === 'tv' && (
+        <Section title={`${t('filters.episodes')} ${value.episodes_from || value.episodes_to ? '•' : ''}`} last>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {EPISODES_PRESETS.map((preset) => {
+              const active = value.episodes_from === preset.from && value.episodes_to === preset.to
+              return (
+                <button
+                  key={preset.labelKey}
+                  onClick={() => onChange({ ...value, episodes_from: preset.from, episodes_to: preset.to })}
+                  className={chipCls(active)}
+                >
+                  {t(preset.labelKey)}
+                </button>
+              )
+            })}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number" min={0} max={5000} placeholder={t('filters.episodesFromPlaceholder')}
+              value={value.episodes_from}
+              onChange={(e) => onChange({ ...value, episodes_from: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+            <input
+              type="number" min={0} max={5000} placeholder={t('filters.episodesToPlaceholder')}
+              value={value.episodes_to}
+              onChange={(e) => onChange({ ...value, episodes_to: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+          </div>
+        </Section>
+      )}
     </div>
   )
 }
@@ -231,6 +307,10 @@ export function countActiveFilters(f: FilterState): number {
   if (f.with_watch_providers.length) n++
   if (f.runtime_from !== '') n++
   if (f.runtime_to !== '') n++
+  if (f.seasons_from !== '') n++
+  if (f.seasons_to !== '') n++
+  if (f.episodes_from !== '') n++
+  if (f.episodes_to !== '') n++
   if (f.sort_by !== DEFAULT_FILTERS.sort_by) n++
   return n
 }
@@ -240,6 +320,18 @@ const RUNTIME_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[
   { labelKey: 'filters.runtimePresets.medium',    from: 90,  to: 120 },
   { labelKey: 'filters.runtimePresets.long',      from: 120, to: 150 },
   { labelKey: 'filters.runtimePresets.veryLong',  from: 150, to: '' },
+]
+
+const SEASONS_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[] = [
+  { labelKey: 'filters.seasonsPresets.limited', from: 1, to: 1 },
+  { labelKey: 'filters.seasonsPresets.short',   from: 2, to: 5 },
+  { labelKey: 'filters.seasonsPresets.long',    from: 6, to: '' },
+]
+
+const EPISODES_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[] = [
+  { labelKey: 'filters.episodesPresets.few',    from: '',  to: 20 },
+  { labelKey: 'filters.episodesPresets.medium', from: 20,  to: 100 },
+  { labelKey: 'filters.episodesPresets.many',   from: 100, to: '' },
 ]
 
 function Section({ title, children, defaultOpen, last }: { title: string; children: React.ReactNode; defaultOpen?: boolean; last?: boolean }) {

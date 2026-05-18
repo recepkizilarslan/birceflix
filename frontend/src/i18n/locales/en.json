@@ -73,6 +73,22 @@
       "long": "120–150",
       "veryLong": "> 150 min"
     },
+    "seasons": "Seasons",
+    "seasonsFromPlaceholder": "min",
+    "seasonsToPlaceholder": "max",
+    "seasonsPresets": {
+      "limited": "Limited (1)",
+      "short": "2–5 seasons",
+      "long": "6+ seasons"
+    },
+    "episodes": "Episodes",
+    "episodesFromPlaceholder": "min",
+    "episodesToPlaceholder": "max",
+    "episodesPresets": {
+      "few": "< 20 episodes",
+      "medium": "20–100",
+      "many": "100+ episodes"
+    },
     "all": "All",
     "sortOptions": {
       "popularity": "Popularity",

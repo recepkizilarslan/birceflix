@@ -73,6 +73,22 @@
       "long": "120–150",
       "veryLong": "> 150 dk"
     },
+    "seasons": "Sezon",
+    "seasonsFromPlaceholder": "min",
+    "seasonsToPlaceholder": "max",
+    "seasonsPresets": {
+      "limited": "Mini dizi (1)",
+      "short": "2–5 sezon",
+      "long": "6+ sezon"
+    },
+    "episodes": "Bölüm",
+    "episodesFromPlaceholder": "min",
+    "episodesToPlaceholder": "max",
+    "episodesPresets": {
+      "few": "< 20 bölüm",
+      "medium": "20–100",
+      "many": "100+ bölüm"
+    },
     "all": "Tümü",
     "sortOptions": {
       "popularity": "Popülerlik",

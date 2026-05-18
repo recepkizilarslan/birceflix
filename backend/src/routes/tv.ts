@@ -34,6 +34,11 @@ const discoverQuery = z.object({
   watch_region: z.string().optional(),
   runtime_from: z.coerce.number().optional(),
   runtime_to: z.coerce.number().optional(),
+  // Post-filter (TMDB doesn't natively filter by total season/episode counts)
+  seasons_from: z.coerce.number().int().min(0).optional(),
+  seasons_to: z.coerce.number().int().min(0).optional(),
+  episodes_from: z.coerce.number().int().min(0).optional(),
+  episodes_to: z.coerce.number().int().min(0).optional(),
   sort_by: z.string().default('popularity.desc'),
   page: z.coerce.number().default(1),
   ui_language: z.string().default('en-US'),
@@ -112,7 +117,32 @@ export async function tvRoutes(app: FastifyInstance) {
       'with_runtime.lte': q.runtime_to?.toString(),
       include_adult: 'false',
     })
-    return { ...data, results: await enrichTvBrief(data.results) }
+
+    let results = await enrichTvBrief(data.results)
+
+    // Post-filter on counts (TMDB has no native param for these). The
+    // `filtered_total` field tells the UI how many of the page survived
+    // the filter, separate from TMDB's total_results which counts the
+    // pre-filter universe.
+    const usingCountFilter =
+      q.seasons_from != null || q.seasons_to != null ||
+      q.episodes_from != null || q.episodes_to != null
+
+    if (usingCountFilter) {
+      const beforeFilter = results.length
+      results = results.filter((r) => {
+        const s = r.number_of_seasons ?? 0
+        const e = r.number_of_episodes ?? 0
+        if (q.seasons_from != null && s < q.seasons_from) return false
+        if (q.seasons_to != null && s > q.seasons_to) return false
+        if (q.episodes_from != null && e < q.episodes_from) return false
+        if (q.episodes_to != null && e > q.episodes_to) return false
+        return true
+      })
+      return { ...data, results, filtered_out: beforeFilter - results.length }
+    }
+
+    return { ...data, results, filtered_out: 0 }
   })
 
   // TV genre list — IDs differ from /genre/movie/list so the filter UI

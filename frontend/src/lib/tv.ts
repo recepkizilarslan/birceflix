@@ -83,6 +83,10 @@ export interface DiscoverTvFilters {
   watch_region?: string
   runtime_from?: number
   runtime_to?: number
+  seasons_from?: number
+  seasons_to?: number
+  episodes_from?: number
+  episodes_to?: number
   sort_by?: string
   page?: number
 }
@@ -100,12 +104,17 @@ export function discoverTv(f: DiscoverTvFilters) {
   set('watch_region', f.watch_region)
   set('runtime_from', f.runtime_from?.toString())
   set('runtime_to', f.runtime_to?.toString())
+  set('seasons_from', f.seasons_from?.toString())
+  set('seasons_to', f.seasons_to?.toString())
+  set('episodes_from', f.episodes_from?.toString())
+  set('episodes_to', f.episodes_to?.toString())
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
   return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{
     results: TmdbTvShow[]
     page: number
     total_pages: number
+    filtered_out?: number
   }>
 }
 
