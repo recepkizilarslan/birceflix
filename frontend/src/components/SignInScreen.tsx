@@ -50,7 +50,12 @@ export function SignInScreen() {
         >
           BIRCEFLIX
         </span>
-        <p className="mt-4 text-sm text-[var(--color-text-dim)]">
+
+        {/* Tagline — single line, sells what the app is in 6-8 words. */}
+        <p className="mt-3 text-base sm:text-lg font-medium text-[var(--color-text)] leading-snug">
+          {t('auth.tagline')}
+        </p>
+        <p className="mt-2 text-xs text-[var(--color-text-dim)]">
           {t('auth.signInToContinue')}
         </p>
 
