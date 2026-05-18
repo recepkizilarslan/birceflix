@@ -101,7 +101,7 @@ export function Layout() {
               BIRCEFLIX
             </span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="contents">
             <TabLink to="/">{t('nav.movies')}</TabLink>
             <TabLink to="/tv">{t('nav.tv')}</TabLink>
             <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
