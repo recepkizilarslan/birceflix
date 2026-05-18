@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { poster, type TmdbMovie } from '../lib/api'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, myRating }: Props) {
+  const { t } = useTranslation()
   const year = movie.release_date?.slice(0, 4) ?? ''
   return (
     <div className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition">
@@ -25,7 +27,7 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, my
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
-              Poster yok
+              {t('card.noPoster')}
             </div>
           )}
           {myRating != null && (
@@ -55,9 +57,9 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, my
               ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
               : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
           }`}
-          title={canMark ? '' : 'Giriş yapınca işaretleyebilirsin'}
+          title={canMark ? '' : t('card.signInToMark')}
         >
-          {watched ? '✓ İzledim' : 'İzledim olarak işaretle'}
+          {watched ? t('card.watched') : t('card.markWatched')}
         </button>
       </div>
     </div>

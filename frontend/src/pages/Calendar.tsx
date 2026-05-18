@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import { getNowPlaying, getUpcoming, type CalendarResponse } from '../lib/calendar'
-import { DEFAULT_WATCH_REGION } from '../lib/constants'
 import { COUNTRIES } from '../lib/constants'
+import { useRegion } from '../lib/preferences'
+import { fmtDate as intlFmtDate } from '../lib/intl'
+import { countryName } from '../lib/intl'
 import type { TmdbMovie } from '../lib/api'
 
 type Tab = 'upcoming' | 'now_playing'
 
 function fmtDate(iso: string | undefined): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
+  return intlFmtDate(iso, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 /** Group movies by their release_date (YYYY-MM-DD), preserving the API's ordering. */
@@ -33,9 +33,10 @@ function groupByDate(movies: TmdbMovie[]): { date: string; items: TmdbMovie[] }[
 
 export function CalendarPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
   const [tab, setTab] = useState<Tab>('upcoming')
-  const [region, setRegion] = useState<string>(DEFAULT_WATCH_REGION)
+  const [region, setRegion] = useRegion()
   const [data, setData] = useState<CalendarResponse | null>(null)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -63,20 +64,20 @@ export function CalendarPage() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Vizyon takvimi</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('calendar.title')}</h1>
           <p className="text-sm text-[var(--color-text-dim)] mt-1">
-            Bölge: <select
+            {t('calendar.regionLabel')} <select
               value={region}
               onChange={(e) => setRegion(e.target.value)}
               className="bg-transparent border-b border-[var(--color-border)] focus:border-[var(--color-accent)] focus:outline-none text-[var(--color-text)] ml-1"
             >
-              {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+              {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryName(c.code)}</option>)}
             </select>
           </p>
         </div>
         <div className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
-          <TabBtn active={tab === 'upcoming'} onClick={() => setTab('upcoming')}>Yakında</TabBtn>
-          <TabBtn active={tab === 'now_playing'} onClick={() => setTab('now_playing')}>Sinemada</TabBtn>
+          <TabBtn active={tab === 'upcoming'} onClick={() => setTab('upcoming')}>{t('calendar.tabUpcoming')}</TabBtn>
+          <TabBtn active={tab === 'now_playing'} onClick={() => setTab('now_playing')}>{t('calendar.tabNowPlaying')}</TabBtn>
         </div>
       </header>
 
@@ -87,10 +88,10 @@ export function CalendarPage() {
       )}
 
       {err && <div className="text-red-400 text-sm">{err}</div>}
-      {loading && <div className="text-center text-[var(--color-text-dim)] py-10">Yükleniyor…</div>}
+      {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
       {!loading && data && data.results.length === 0 && (
         <div className="text-center text-[var(--color-text-dim)] py-10">
-          Bu bölge için kayıt yok.
+          {t('calendar.emptyForRegion')}
         </div>
       )}
 
@@ -98,7 +99,7 @@ export function CalendarPage() {
         {groups.map((g) => (
           <section key={g.date}>
             <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-3 sticky top-16 bg-[var(--color-bg)]/95 backdrop-blur py-1 z-10">
-              {fmtDate(g.date) || 'Tarih bilinmiyor'} · <span className="text-[var(--color-text-dim)]/70">{g.items.length}</span>
+              {fmtDate(g.date) || t('calendar.unknownDate')} · <span className="text-[var(--color-text-dim)]/70">{g.items.length}</span>
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
               {g.items.map((m) => (
@@ -118,9 +119,9 @@ export function CalendarPage() {
 
       {data && totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 py-6">
-          <PageBtn disabled={page <= 1} onClick={() => load(tab, page - 1, region)}>← Önceki</PageBtn>
-          <div className="text-sm text-[var(--color-text-dim)]">Sayfa {page} / {totalPages}</div>
-          <PageBtn disabled={page >= totalPages} onClick={() => load(tab, page + 1, region)}>Sonraki →</PageBtn>
+          <PageBtn disabled={page <= 1} onClick={() => load(tab, page - 1, region)}>{t('common.previous')}</PageBtn>
+          <div className="text-sm text-[var(--color-text-dim)]">{t('common.page')} {page} / {totalPages}</div>
+          <PageBtn disabled={page >= totalPages} onClick={() => load(tab, page + 1, region)}>{t('common.next')}</PageBtn>
         </div>
       )}
     </div>

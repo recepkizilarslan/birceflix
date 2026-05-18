@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AuthButton } from './components/AuthButton'
+import { PreferencesMenu } from './components/PreferencesMenu'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedIdSet, listWatched, markWatched, unmarkWatched, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
@@ -20,6 +22,7 @@ export interface LayoutContext {
 }
 
 export function Layout() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set())
@@ -77,6 +80,9 @@ export function Layout() {
     watchlistIds, watchlistRows, refreshWatchlist, toggleWatchlist,
   }
 
+  const watchlistSuffix = user && watchlistIds.size > 0 ? ` (${watchlistIds.size})` : ''
+  const watchedSuffix = user && watchedIds.size > 0 ? ` (${watchedIds.size})` : ''
+
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-30 backdrop-blur bg-[var(--color-bg)]/85 border-b border-[var(--color-border)]">
@@ -96,16 +102,19 @@ export function Layout() {
             </span>
           </Link>
           <nav className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
-            <TabLink to="/">Filmler</TabLink>
-            <TabLink to="/tv">Diziler</TabLink>
-            <TabLink to="/calendar">Takvim</TabLink>
-            <TabLink to="/watchlist">Listem {user && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</TabLink>
-            <TabLink to="/watched">İzlediklerim {user && watchedIds.size > 0 ? `(${watchedIds.size})` : ''}</TabLink>
-            {user && <TabLink to="/lists">Listelerim</TabLink>}
-            {user && <TabLink to="/stats">İstatistik</TabLink>}
-            {user && <TabLink to="/import">İçe aktar</TabLink>}
+            <TabLink to="/">{t('nav.movies')}</TabLink>
+            <TabLink to="/tv">{t('nav.tv')}</TabLink>
+            <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
+            <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
+            <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
+            {user && <TabLink to="/lists">{t('nav.lists')}</TabLink>}
+            {user && <TabLink to="/stats">{t('nav.stats')}</TabLink>}
+            {user && <TabLink to="/import">{t('nav.import')}</TabLink>}
           </nav>
-          <AuthButton />
+          <div className="flex items-center gap-2">
+            <PreferencesMenu />
+            <AuthButton />
+          </div>
         </div>
       </header>
       <main className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6">

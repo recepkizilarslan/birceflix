@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
-import { DEFAULT_WATCH_REGION } from '../lib/constants'
+import { useRegion } from '../lib/preferences'
 import { PersonalNote } from '../components/PersonalNote'
 import { AddToListMenu } from '../components/AddToListMenu'
 import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
@@ -10,6 +11,8 @@ import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const [region] = useRegion()
   const { user, watchedIds, toggleWatched, watchlistIds, toggleWatchlist } = useOutletContext<LayoutContext>()
   const [d, setD] = useState<MovieDetail | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -17,11 +20,11 @@ export function MovieDetailPage() {
   useEffect(() => {
     if (!id) return
     setD(null); setErr(null)
-    movieDetail(Number(id), DEFAULT_WATCH_REGION).then(setD).catch((e) => setErr(e.message))
-  }, [id])
+    movieDetail(Number(id), region).then(setD).catch((e) => setErr(e.message))
+  }, [id, region])
 
   if (err) return <Wrap><div className="text-red-400">{err}</div></Wrap>
-  if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">Yükleniyor…</div></Wrap>
+  if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div></Wrap>
 
   const watched = watchedIds.has(d.id)
   const inWatchlist = watchlistIds.has(d.id)
@@ -41,7 +44,7 @@ export function MovieDetailPage() {
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
             className="absolute top-4 left-4 px-3 py-1.5 text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
-            ← Geri
+            {t('common.back')}
           </button>
         </div>
       )}
@@ -51,7 +54,7 @@ export function MovieDetailPage() {
           onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
           className="mb-4 text-sm text-[var(--color-text-dim)] hover:text-white"
         >
-          ← Geri
+          {t('common.back')}
         </button>
       )}
 
@@ -84,7 +87,7 @@ export function MovieDetailPage() {
           {d.imdb_id && (
             <div>
               <a href={`https://www.imdb.com/title/${d.imdb_id}`} target="_blank" rel="noreferrer" className="text-sm text-[var(--color-accent)] hover:underline">
-                IMDB sayfası →
+                {t('movie.imdbPage')}
               </a>
             </div>
           )}
@@ -99,9 +102,9 @@ export function MovieDetailPage() {
                   ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
                   : 'bg-[var(--color-accent)] text-black hover:opacity-90'
               }`}
-              title={user ? '' : 'Giriş yapınca işaretleyebilirsin'}
+              title={user ? '' : t('card.signInToMark')}
             >
-              {watched ? '✓ İzledim — kaldır' : 'İzledim olarak işaretle'}
+              {watched ? t('movie.watchedRemove') : t('card.markWatched')}
             </button>
             <button
               disabled={!user}
@@ -113,9 +116,9 @@ export function MovieDetailPage() {
                   ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/25'
                   : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
               }`}
-              title={user ? '' : 'Giriş yapınca listene ekleyebilirsin'}
+              title={user ? '' : t('movie.addToListSignInHint')}
             >
-              {inWatchlist ? '✓ Listemde — çıkar' : '+ Listeme ekle'}
+              {inWatchlist ? t('movie.watchlistRemove') : t('movie.watchlistAdd')}
             </button>
             {user && <AddToListMenu tmdbId={d.id} title={d.title} posterPath={d.poster_path} />}
           </div>
@@ -125,19 +128,19 @@ export function MovieDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {d.overview && (
-            <Section title="Özet">
+            <Section title={t('movie.summary')}>
               <p className="leading-relaxed">{d.overview}</p>
             </Section>
           )}
 
           {user && (
-            <Section title="🎞 İzleme geçmişim">
+            <Section title={t('movie.history')}>
               <WatchHistoryTimeline tmdbId={d.id} />
             </Section>
           )}
 
           {d.credits?.cast && d.credits.cast.length > 0 && (
-            <Section title="Oyuncular">
+            <Section title={t('movie.cast')}>
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
                 {d.credits.cast.slice(0, 12).map((c) => (
                   <div key={c.id} className="w-24 shrink-0 text-center">
@@ -153,7 +156,7 @@ export function MovieDetailPage() {
           )}
 
           {d.reviews?.results && d.reviews.results.length > 0 && (
-            <Section title={`Yorumlar (${d.reviews.results.length})`}>
+            <Section title={t('movie.reviews', { count: d.reviews.results.length })}>
               <div className="space-y-3">
                 {d.reviews.results.slice(0, 8).map((r) => (
                   <div key={r.id} className="bg-[var(--color-surface)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -163,7 +166,7 @@ export function MovieDetailPage() {
                     </div>
                     <p className="text-sm leading-relaxed line-clamp-6 whitespace-pre-line">{r.content}</p>
                     <a href={r.url} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
-                      Tam yorum →
+                      {t('movie.reviewFull')}
                     </a>
                   </div>
                 ))}
@@ -174,42 +177,42 @@ export function MovieDetailPage() {
 
         <aside className="space-y-8">
           {user && (
-            <Section title="✎ Senin notların">
+            <Section title={t('movie.personalNote')}>
               <PersonalNote tmdbId={d.id} watched={watched} />
             </Section>
           )}
 
           {d.awards && (
-            <Section title="🏆 Ödüller">
+            <Section title={t('movie.awards')}>
               <p className="text-sm leading-relaxed">{d.awards}</p>
               {d.imdb_id && (
                 <a href={`https://www.imdb.com/title/${d.imdb_id}/awards`} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
-                  Detaylı liste (IMDB) →
+                  {t('movie.awardsLink')}
                 </a>
               )}
             </Section>
           )}
 
-          <Section title={`Yayında (${DEFAULT_WATCH_REGION})`}>
-            {!d.watch_providers && <div className="text-sm text-[var(--color-text-dim)]">Bu bölgede platform bilgisi yok.</div>}
+          <Section title={t('movie.watchProviders', { region })}>
+            {!d.watch_providers && <div className="text-sm text-[var(--color-text-dim)]">{t('movie.noProviderForRegion')}</div>}
             {d.watch_providers && (
               <div className="space-y-4">
-                <ProviderRow label="Abonelik" items={d.watch_providers.flatrate} />
-                <ProviderRow label="Kirala" items={d.watch_providers.rent} />
-                <ProviderRow label="Satın al" items={d.watch_providers.buy} />
+                <ProviderRow label={t('movie.providerSubscription')} items={d.watch_providers.flatrate} />
+                <ProviderRow label={t('movie.providerRent')} items={d.watch_providers.rent} />
+                <ProviderRow label={t('movie.providerBuy')} items={d.watch_providers.buy} />
                 {d.watch_providers.link && (
-                  <a href={d.watch_providers.link} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">JustWatch'ta gör →</a>
+                  <a href={d.watch_providers.link} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">{t('movie.justwatchLink')}</a>
                 )}
               </div>
             )}
           </Section>
 
           {d.production_countries && d.production_countries.length > 0 && (
-            <Section title="Yapım">
+            <Section title={t('movie.production')}>
               <div className="text-sm space-y-1">
-                <div><span className="text-[var(--color-text-dim)]">Ülke:</span> {d.production_countries.map((c) => c.name).join(', ')}</div>
+                <div><span className="text-[var(--color-text-dim)]">{t('movie.country')}:</span> {d.production_countries.map((c) => c.name).join(', ')}</div>
                 {d.spoken_languages && d.spoken_languages.length > 0 && (
-                  <div><span className="text-[var(--color-text-dim)]">Dil:</span> {d.spoken_languages.map((l) => l.english_name).join(', ')}</div>
+                  <div><span className="text-[var(--color-text-dim)]">{t('movie.spokenLanguages')}:</span> {d.spoken_languages.map((l) => l.english_name).join(', ')}</div>
                 )}
               </div>
             </Section>
@@ -218,7 +221,7 @@ export function MovieDetailPage() {
       </div>
 
       <div className="mt-12 text-center">
-        <Link to="/" className="text-sm text-[var(--color-accent)] hover:underline">← Keşfet'e dön</Link>
+        <Link to="/" className="text-sm text-[var(--color-accent)] hover:underline">{t('movie.backToDiscover')}</Link>
       </div>
     </div>
   )
