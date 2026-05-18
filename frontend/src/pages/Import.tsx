@@ -4,6 +4,7 @@ import type { LayoutContext } from '../Layout'
 import { importLetterboxdDiary, importLetterboxdWatched, type ImportReport } from '../lib/imports'
 import { TraktImport } from '../components/TraktImport'
 import { WebhookTokens } from '../components/WebhookTokens'
+import { ExportSection } from '../components/ExportSection'
 
 type Kind = 'watched' | 'diary'
 
@@ -22,12 +23,10 @@ export function ImportPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">İçe aktar</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">İçe / Dışa aktar</h1>
         <p className="text-sm text-[var(--color-text-dim)] mt-1 leading-relaxed">
-          Letterboxd → Account → Settings → Data → "Export your data" ile indirdiğin zip dosyasının içinden{' '}
-          <code className="px-1 rounded bg-[var(--color-surface-2)]">watched.csv</code> ve{' '}
-          <code className="px-1 rounded bg-[var(--color-surface-2)]">diary.csv</code> dosyalarını ayrı ayrı yükle.
-          Eşleştirme TMDB araması ile yapılır; bulunamayanlar rapor sonunda listelenir.
+          Letterboxd CSV'leri, Trakt OAuth, Plex/Jellyfin scrobbler ile veriyi içeri al;
+          sayfanın altından JSON dump veya Letterboxd CSV indir.
         </p>
       </header>
 
@@ -62,6 +61,14 @@ export function ImportPage() {
           <span className="text-xs text-[var(--color-text-dim)]">webhook</span>
         </div>
         <WebhookTokens />
+      </section>
+
+      <section className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <h3 className="text-base font-semibold">Dışa aktar</h3>
+          <span className="text-xs text-[var(--color-text-dim)]">backup</span>
+        </div>
+        <ExportSection />
       </section>
     </div>
   )
