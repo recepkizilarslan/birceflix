@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { COUNTRIES, LANGUAGES, SORT_OPTIONS } from '../lib/constants'
+import { listTvGenres, listTvProviders } from '../lib/tv'
+import { COUNTRIES, LANGUAGES, SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+
+export type MediaType = 'movie' | 'tv'
 
 export interface FilterState {
   min_rating: number
@@ -39,23 +42,29 @@ interface Props {
   onChange: (next: FilterState) => void
   onReset: () => void
   activeCount: number
+  /** Drives which genres / providers / sort options the panel loads. Defaults to movies. */
+  mediaType?: MediaType
 }
 
-export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
+export function FilterPanel({ value, onChange, onReset, activeCount, mediaType = 'movie' }: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
 
   useEffect(() => {
-    listGenres().then(setGenres).catch(() => {})
-  }, [])
+    const loader = mediaType === 'tv' ? listTvGenres : listGenres
+    loader().then(setGenres).catch(() => {})
+  }, [mediaType])
 
   useEffect(() => {
-    listProviders(value.watch_region).then((p) => {
+    const loader = mediaType === 'tv' ? listTvProviders : listProviders
+    loader(value.watch_region).then((p) => {
       const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
       setProviders(top)
     }).catch(() => setProviders([]))
-  }, [value.watch_region])
+  }, [mediaType, value.watch_region])
+
+  const sortOptions = mediaType === 'tv' ? TV_SORT_OPTIONS : SORT_OPTIONS
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
@@ -111,7 +120,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
 
       <Section title={t('filters.sort')} defaultOpen>
         <Select value={value.sort_by} onChange={(v) => onChange({ ...value, sort_by: v })}>
-          {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
+          {sortOptions.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
         </Select>
       </Section>
 

@@ -71,3 +71,55 @@ export async function popularTv(page = 1): Promise<{ results: TmdbTvShow[]; page
   u.searchParams.set('page', String(page))
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
+
+export interface DiscoverTvFilters {
+  min_rating?: number
+  original_language?: string
+  origin_country?: string
+  with_genres?: number[]
+  year_from?: number
+  year_to?: number
+  with_watch_providers?: number[]
+  watch_region?: string
+  runtime_from?: number
+  runtime_to?: number
+  sort_by?: string
+  page?: number
+}
+
+export function discoverTv(f: DiscoverTvFilters) {
+  const u = new URL('/api/tv/discover', window.location.origin)
+  const set = (k: string, v: string | undefined) => { if (v !== undefined && v !== '') u.searchParams.set(k, v) }
+  set('min_rating', f.min_rating?.toString())
+  set('original_language', f.original_language)
+  set('origin_country', f.origin_country)
+  set('with_genres', f.with_genres?.join(','))
+  set('year_from', f.year_from?.toString())
+  set('year_to', f.year_to?.toString())
+  set('with_watch_providers', f.with_watch_providers?.join('|'))
+  set('watch_region', f.watch_region)
+  set('runtime_from', f.runtime_from?.toString())
+  set('runtime_to', f.runtime_to?.toString())
+  set('sort_by', f.sort_by)
+  set('page', f.page?.toString())
+  return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{
+    results: TmdbTvShow[]
+    page: number
+    total_pages: number
+  }>
+}
+
+export async function listTvGenres(): Promise<{ id: number; name: string }[]> {
+  return json(await fetch('/api/tv/genres', { credentials: 'include' }))
+}
+
+export async function listTvProviders(region: string): Promise<{
+  provider_id: number
+  provider_name: string
+  logo_path: string
+  display_priority: number
+}[]> {
+  const u = new URL('/api/tv/providers', window.location.origin)
+  u.searchParams.set('region', region)
+  return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
+}

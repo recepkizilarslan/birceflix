@@ -79,7 +79,8 @@
       "ratingHigh": "Rating (high)",
       "newest": "Newest",
       "oldest": "Oldest → newest",
-      "revenue": "Box office"
+      "revenue": "Box office",
+      "nameAsc": "Name (A→Z)"
     }
   },
   "card": {

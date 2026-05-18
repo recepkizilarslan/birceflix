@@ -31,13 +31,22 @@ export const COUNTRIES: { code: string; label: string }[] = [
   { code: 'RU', label: 'Rusya' },
 ]
 
-/** Sort options for TMDB Discover. `labelKey` resolves via i18n. */
+/** Sort options for TMDB /discover/movie. `labelKey` resolves via i18n. */
 export const SORT_OPTIONS: { value: string; labelKey: string }[] = [
   { value: 'popularity.desc',           labelKey: 'filters.sortOptions.popularity' },
   { value: 'vote_average.desc',         labelKey: 'filters.sortOptions.ratingHigh' },
   { value: 'primary_release_date.desc', labelKey: 'filters.sortOptions.newest' },
   { value: 'primary_release_date.asc',  labelKey: 'filters.sortOptions.oldest' },
   { value: 'revenue.desc',              labelKey: 'filters.sortOptions.revenue' },
+]
+
+/** Sort options for TMDB /discover/tv (no revenue; release-date = first_air_date). */
+export const TV_SORT_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: 'popularity.desc',      labelKey: 'filters.sortOptions.popularity' },
+  { value: 'vote_average.desc',    labelKey: 'filters.sortOptions.ratingHigh' },
+  { value: 'first_air_date.desc',  labelKey: 'filters.sortOptions.newest' },
+  { value: 'first_air_date.asc',   labelKey: 'filters.sortOptions.oldest' },
+  { value: 'name.asc',             labelKey: 'filters.sortOptions.nameAsc' },
 ]
 
 export const DEFAULT_WATCH_REGION = (import.meta.env.VITE_DEFAULT_WATCH_REGION as string) || 'TR'

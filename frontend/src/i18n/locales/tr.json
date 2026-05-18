@@ -79,7 +79,8 @@
       "ratingHigh": "Puan (yüksek)",
       "newest": "Yeni çıkanlar",
       "oldest": "Eski → yeni",
-      "revenue": "Hasılat"
+      "revenue": "Hasılat",
+      "nameAsc": "Ad (A→Z)"
     }
   },
   "card": {
