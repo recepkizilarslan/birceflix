@@ -11,6 +11,7 @@ import { TvDetailPage } from './pages/TvDetailPage'
 import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
+import { CalendarPage } from './pages/Calendar'
 import { PWAUpdateToast } from './components/PWAUpdateToast'
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
           <Route path="lists" element={<ListsPage />} />
           <Route path="lists/:id" element={<ListDetailPage />} />
           <Route path="public/lists/:slug" element={<PublicListPage />} />
+          <Route path="calendar" element={<CalendarPage />} />
         </Route>
       </Routes>
       <PWAUpdateToast />
