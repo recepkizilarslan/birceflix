@@ -101,7 +101,7 @@ export function Layout() {
               BIRCEFLIX
             </span>
           </Link>
-          <nav className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
+          <nav className="flex items-center gap-1">
             <TabLink to="/">{t('nav.movies')}</TabLink>
             <TabLink to="/tv">{t('nav.tv')}</TabLink>
             <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
