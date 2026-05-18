@@ -102,8 +102,7 @@ export function Layout() {
             </span>
           </Link>
           <nav className="contents">
-            <TabLink to="/">{t('nav.movies')}</TabLink>
-            <TabLink to="/tv">{t('nav.tv')}</TabLink>
+            <TabLink to="/">{t('nav.discover')}</TabLink>
             <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
             <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
             <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>

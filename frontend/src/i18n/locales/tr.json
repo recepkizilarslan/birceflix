@@ -1,5 +1,6 @@
 {
   "nav": {
+    "discover": "Keşfet",
     "movies": "Filmler",
     "tv": "Diziler",
     "calendar": "Takvim",
@@ -48,7 +49,11 @@
     "loading": "Yükleniyor…",
     "filters": "Filtreler",
     "openFilters": "Filtreler",
-    "clearFilters": "Filtreleri temizle"
+    "clearFilters": "Filtreleri temizle",
+    "mediaToggle": {
+      "movies": "Filmler",
+      "tv": "Diziler"
+    }
   },
   "filters": {
     "title": "Filtreler",
