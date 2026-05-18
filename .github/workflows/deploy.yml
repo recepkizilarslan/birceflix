@@ -1,0 +1,117 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (defaults to sha-<short> of current commit)"
+        required: false
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    name: Build & push images to GHCR
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+      owner: ${{ steps.owner.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then TAG="sha-${GITHUB_SHA::12}"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-frontend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-frontend:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-backend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-backend:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+  deploy:
+    name: Roll out to Hetzner
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      GHCR_OWNER: ${{ needs.build-and-push.outputs.owner }}
+      REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+      APP_ENV: ${{ secrets.APP_ENV }}
+    steps:
+      - name: SSH and rollout
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          envs: IMAGE_TAG,GHCR_OWNER,REPO_URL,APP_ENV
+          script: |
+            set -euo pipefail
+            DEPLOY_DIR="${{ secrets.DEPLOY_DIR }}"
+            cd "$DEPLOY_DIR"
+
+            if [ ! -d .git ]; then
+              git clone "$REPO_URL" .
+            fi
+            git fetch --quiet origin main
+            git reset --hard origin/main
+
+            # Render .env from the APP_ENV secret, then append/refresh
+            # the two values the prod overlay needs at compose time.
+            umask 077
+            printf '%s\n' "$APP_ENV" > .env
+            {
+              echo "GHCR_OWNER=$GHCR_OWNER"
+              echo "IMAGE_TAG=$IMAGE_TAG"
+            } >> .env
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
