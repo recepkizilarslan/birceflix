@@ -1,12 +1,10 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './Layout'
 import { Discover } from './pages/Discover'
 import { Watched } from './pages/Watched'
 import { Watchlist } from './pages/Watchlist'
-import { StatsPage } from './pages/Stats'
 import { ImportPage } from './pages/Import'
 import { MovieDetailPage } from './pages/MovieDetailPage'
-import { TvDiscover } from './pages/TvDiscover'
 import { TvDetailPage } from './pages/TvDetailPage'
 import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
@@ -22,10 +20,10 @@ function App() {
           <Route index element={<Discover />} />
           <Route path="watched" element={<Watched />} />
           <Route path="watchlist" element={<Watchlist />} />
-          <Route path="stats" element={<StatsPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="movie/:id" element={<MovieDetailPage />} />
-          <Route path="tv" element={<TvDiscover />} />
+          {/* /tv is the old separate TV discover route — redirect into the unified discover */}
+          <Route path="tv" element={<Navigate to="/?type=tv" replace />} />
           <Route path="tv/:id" element={<TvDetailPage />} />
           <Route path="lists" element={<ListsPage />} />
           <Route path="lists/:id" element={<ListDetailPage />} />

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { tvDetail, tvSeason, type TvDetail, type TvSeasonDetail } from '../lib/tv'
 import { poster } from '../lib/api'
+import { fmtDate } from '../lib/intl'
 import {
   listWatchedEpisodes,
   markEpisode,
@@ -11,17 +13,13 @@ import {
   unmarkSeason,
 } from '../lib/episodes'
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
 function episodeKey(s: number, e: number): string {
   return `${s}.${e}`
 }
 
 export function TvDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user } = useOutletContext<LayoutContext>()
 
@@ -56,7 +54,7 @@ export function TvDetailPage() {
       setSeasons((prev) => new Map(prev).set(n, data))
       setOpenSeason(n)
     } catch (e: any) {
-      setErr(e.message ?? 'sezon yüklenemedi')
+      setErr(e.message ?? 'season load failed')
     }
   }
 
@@ -90,7 +88,7 @@ export function TvDetailPage() {
         if (wasWatched) next.add(key); else next.delete(key)
         return next
       })
-      alert(e.message ?? 'işlem başarısız')
+      alert(e.message ?? 'failed')
     }
   }
 
@@ -98,7 +96,7 @@ export function TvDetailPage() {
     if (!show || !user) return
     const allMarked = season.episodes.every((e) => watchedKeys.has(episodeKey(season.season_number, e.episode_number)))
     if (allMarked) {
-      if (!confirm(`Sezon ${season.season_number}'in tüm izleme kayıtlarını silmek istediğine emin misin?`)) return
+      if (!confirm(t('tv.confirmRemoveSeason', { n: season.season_number }))) return
       try {
         await unmarkSeason(show.id, season.season_number)
         setWatchedKeys((prev) => {
@@ -124,9 +122,8 @@ export function TvDetailPage() {
   }
 
   if (err) return <div className="text-red-400">{err}</div>
-  if (!show) return <div className="py-16 text-center text-[var(--color-text-dim)]">Yükleniyor…</div>
+  if (!show) return <div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div>
 
-  // Filter out the optional "Specials" season (season 0) unless TMDB includes only that.
   const seasonList = (show.seasons ?? []).filter((s) => s.season_number > 0 || (show.seasons?.length ?? 0) === 1)
   const year = show.first_air_date?.slice(0, 4) ?? ''
   const watchedCount = watchedKeys.size
@@ -145,7 +142,7 @@ export function TvDetailPage() {
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/tv'))}
             className="absolute top-4 left-4 px-3 py-1.5 text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
-            ← Geri
+            {t('common.back')}
           </button>
         </div>
       )}
@@ -163,11 +160,11 @@ export function TvDetailPage() {
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             {year && <Pill>{year}</Pill>}
-            {show.number_of_seasons != null && <Pill>{show.number_of_seasons} sezon</Pill>}
-            {show.number_of_episodes != null && <Pill>{show.number_of_episodes} bölüm</Pill>}
+            {show.number_of_seasons != null && <Pill>{t('tv.seasonsLabel', { count: show.number_of_seasons })}</Pill>}
+            {show.number_of_episodes != null && <Pill>{t('tv.episodesLabel', { count: show.number_of_episodes })}</Pill>}
             <Pill>★ TMDB {show.vote_average.toFixed(1)}</Pill>
             {user && watchedCount > 0 && (
-              <Pill>✓ {watchedCount} izlenen</Pill>
+              <Pill>{t('tv.watchedBadge', { count: watchedCount })}</Pill>
             )}
           </div>
           {show.genres && (
@@ -180,10 +177,10 @@ export function TvDetailPage() {
       </div>
 
       <section>
-        <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-3">Sezonlar</h2>
+        <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-3">{t('tv.seasons')}</h2>
         {!user && (
           <p className="text-sm text-[var(--color-text-dim)] mb-3">
-            Bölümleri "izledim" olarak işaretlemek için giriş yap.
+            {t('tv.signInToTrack')}
           </p>
         )}
         <div className="space-y-2">
@@ -207,8 +204,8 @@ export function TvDetailPage() {
                     <div className="min-w-0">
                       <div className="font-medium truncate">{s.name}</div>
                       <div className="text-xs text-[var(--color-text-dim)]">
-                        {s.episode_count} bölüm
-                        {detail && markedInSeason > 0 && ` · ${markedInSeason}/${eps.length} izlendi`}
+                        {t('tv.episodeCount', { count: s.episode_count })}
+                        {detail && markedInSeason > 0 && ` · ${t('tv.watchedPartial', { watched: markedInSeason, total: eps.length })}`}
                         {s.air_date && ` · ${fmtDate(s.air_date)}`}
                       </div>
                     </div>
@@ -224,7 +221,7 @@ export function TvDetailPage() {
                           onClick={() => toggleSeason(detail)}
                           className="text-xs px-3 py-1 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
                         >
-                          {allMarked ? '✕ Tüm sezonu kaldır' : '✓ Tüm sezonu işaretle'}
+                          {allMarked ? t('tv.removeAllSeason') : t('tv.markAllSeason')}
                         </button>
                       </div>
                     )}
@@ -240,7 +237,7 @@ export function TvDetailPage() {
                             <div className="text-sm font-medium truncate">{ep.name}</div>
                             <div className="text-xs text-[var(--color-text-dim)] mt-0.5">
                               {ep.air_date && fmtDate(ep.air_date)}
-                              {ep.runtime != null && ` · ${ep.runtime}dk`}
+                              {ep.runtime != null && ` · ${ep.runtime} min`}
                             </div>
                             {ep.overview && (
                               <div className="text-xs text-[var(--color-text-dim)] mt-1 line-clamp-2">{ep.overview}</div>
@@ -256,9 +253,9 @@ export function TvDetailPage() {
                                 ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
                                 : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)] border border-transparent'
                             }`}
-                            title={user ? '' : 'Giriş yapınca işaretleyebilirsin'}
+                            title={user ? '' : t('card.signInToMark')}
                           >
-                            {watched ? '✓ İzledim' : 'İzledim'}
+                            {watched ? t('tv.watchedToggleOn') : t('tv.watchedToggle')}
                           </button>
                         </div>
                       )

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { addToList, listLists, type ListSummary } from '../lib/lists'
 
 interface Props {
@@ -9,10 +10,11 @@ interface Props {
 }
 
 /**
- * "+ Listeye ekle" dropdown for the movie detail page.
+ * "Add to list" dropdown for the movie detail page.
  * Loads the user's lists on first open; adding emits an inline confirmation.
  */
 export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [lists, setLists] = useState<ListSummary[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -51,7 +53,7 @@ export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
         onClick={() => setOpen((v) => !v)}
         className="px-5 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition"
       >
-        + Listeye ekle
+        {t('addToList.button')}
       </button>
 
       {addedTo && (
@@ -63,11 +65,11 @@ export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
       {open && (
         <div className="absolute z-20 top-full left-0 mt-2 min-w-[260px] max-h-80 overflow-y-auto rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-xl">
           {err && <div className="text-sm text-red-400 px-3 py-2">{err}</div>}
-          {lists == null && <div className="text-sm text-[var(--color-text-dim)] px-3 py-2">Yükleniyor…</div>}
+          {lists == null && <div className="text-sm text-[var(--color-text-dim)] px-3 py-2">{t('addToList.loading')}</div>}
           {lists && lists.length === 0 && (
             <div className="px-3 py-3 text-sm text-[var(--color-text-dim)] leading-relaxed">
-              Henüz listen yok.{' '}
-              <Link to="/lists" className="text-[var(--color-accent)] hover:underline">Liste oluştur</Link>.
+              {t('addToList.emptyMessage')}{' '}
+              <Link to="/lists" className="text-[var(--color-accent)] hover:underline">{t('addToList.createLink')}</Link>.
             </div>
           )}
           {lists && lists.map((l) => (
@@ -78,7 +80,7 @@ export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
             >
               <div className="text-sm font-medium truncate">{l.name}</div>
               <div className="text-xs text-[var(--color-text-dim)]">
-                {l.item_count ?? 0} film{l.is_public ? ' · public' : ''}
+                {t('addToList.filmCount', { count: l.item_count ?? 0 })}{l.is_public ? ` · ${t('lists.publicBadge')}` : ''}
               </div>
             </button>
           ))}

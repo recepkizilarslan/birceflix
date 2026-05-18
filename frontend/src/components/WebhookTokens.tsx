@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   createWebhookToken,
   deleteWebhookToken,
@@ -6,15 +7,18 @@ import {
   scrobbleUrl,
   type WebhookTokenRow,
 } from '../lib/webhooks'
-
-function fmt(iso: string | null): string {
-  if (!iso) return 'henüz tetiklenmedi'
-  return new Date(iso).toLocaleString('tr-TR', {
-    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-}
+import { intlLocale } from '../i18n'
 
 export function WebhookTokens() {
+  const { t } = useTranslation()
+
+  function fmt(iso: string | null): string {
+    if (!iso) return t('webhooks.neverTriggered')
+    return new Date(iso).toLocaleString(intlLocale(), {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    })
+  }
+
   const [rows, setRows] = useState<WebhookTokenRow[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
@@ -38,8 +42,8 @@ export function WebhookTokens() {
     if (!label.trim()) return
     setCreating(true); setErr(null)
     try {
-      const t = await createWebhookToken(label.trim())
-      if (t.token) setFreshUrl(scrobbleUrl(t.token))
+      const created = await createWebhookToken(label.trim())
+      if (created.token) setFreshUrl(scrobbleUrl(created.token))
       setLabel('')
       await refresh()
     } catch (e) {
@@ -50,7 +54,7 @@ export function WebhookTokens() {
   }
 
   const onDelete = async (id: string, lbl: string) => {
-    if (!confirm(`"${lbl}" token'ını silmek istediğine emin misin? Geri alınamaz.`)) return
+    if (!confirm(t('webhooks.confirmDelete', { label: lbl }))) return
     try {
       await deleteWebhookToken(id)
       await refresh()
@@ -62,11 +66,7 @@ export function WebhookTokens() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--color-text-dim)] leading-relaxed">
-        Plex veya Jellyfin'in webhook ayarına aşağıdaki URL'i koy. Tetiklendiğinde
-        scrobble payload'undan TMDB ID'sini çıkarıp izleme geçmişine yazarız.
-        Plex için <em>media.scrobble</em> eventi yeterli; Jellyfin için Webhook
-        plugin'inde <em>PlaybackStop</em> / <em>UserDataSaved</em> / <em>MarkPlayed</em>
-        seçilmeli.
+        {t('webhooks.intro')}
       </p>
 
       {err && <div className="text-sm text-red-400">{err}</div>}
@@ -74,7 +74,7 @@ export function WebhookTokens() {
       {freshUrl && (
         <div className="rounded-lg bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/40 p-3 space-y-2">
           <div className="text-xs text-[var(--color-accent)] font-medium">
-            ⚠ Bu URL yalnızca şimdi gösterilir — kopyalayıp Plex/Jellyfin'e yapıştır.
+            {t('webhooks.freshWarn')}
           </div>
           <div className="flex items-center gap-2">
             <code className="flex-1 px-2 py-1.5 rounded bg-[var(--color-bg)] border border-[var(--color-border)] text-xs break-all">
@@ -84,26 +84,26 @@ export function WebhookTokens() {
               onClick={() => navigator.clipboard.writeText(freshUrl)}
               className="text-xs px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
             >
-              Kopyala
+              {t('common.copy')}
             </button>
           </div>
           <button
             onClick={() => setFreshUrl(null)}
             className="text-xs text-[var(--color-text-dim)] hover:text-white"
           >
-            Anladım, kapat
+            {t('webhooks.freshAck')}
           </button>
         </div>
       )}
 
       <form onSubmit={onCreate} className="flex flex-wrap items-end gap-2">
         <label className="flex-1 min-w-[200px]">
-          <span className="block text-xs text-[var(--color-text-dim)] mb-1">Etiket</span>
+          <span className="block text-xs text-[var(--color-text-dim)] mb-1">{t('webhooks.label')}</span>
           <input
             type="text"
             value={label}
             maxLength={120}
-            placeholder="Örn: Plex (ev)"
+            placeholder={t('webhooks.labelPlaceholder')}
             onChange={(e) => setLabel(e.target.value)}
             className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
@@ -113,34 +113,34 @@ export function WebhookTokens() {
           disabled={creating || !label.trim()}
           className="text-sm px-4 py-2 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50"
         >
-          {creating ? 'Oluşturuluyor…' : 'Yeni token'}
+          {creating ? t('webhooks.creating') : t('webhooks.newToken')}
         </button>
       </form>
 
-      {rows == null && <div className="text-sm text-[var(--color-text-dim)]">Yükleniyor…</div>}
+      {rows == null && <div className="text-sm text-[var(--color-text-dim)]">{t('webhooks.loading')}</div>}
       {rows && rows.length === 0 && (
-        <div className="text-sm text-[var(--color-text-dim)]">Henüz webhook token'ın yok.</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('webhooks.empty')}</div>
       )}
 
       {rows && rows.length > 0 && (
         <ul className="space-y-2">
-          {rows.map((t) => (
+          {rows.map((row) => (
             <li
-              key={t.id}
+              key={row.id}
               className="rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] p-3 flex items-start justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="text-sm font-medium truncate">{t.label}</div>
+                <div className="text-sm font-medium truncate">{row.label}</div>
                 <div className="text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span>token: …{t.token_suffix}</span>
-                  <span>son tetik: {fmt(t.last_used_at)}</span>
+                  <span>{t('webhooks.tokenSuffix', { suffix: row.token_suffix })}</span>
+                  <span>{t('webhooks.lastTriggered', { when: fmt(row.last_used_at) })}</span>
                 </div>
               </div>
               <button
-                onClick={() => onDelete(t.id, t.label)}
+                onClick={() => onDelete(row.id, row.label)}
                 className="shrink-0 text-xs px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
               >
-                Sil
+                {t('common.delete')}
               </button>
             </li>
           ))}

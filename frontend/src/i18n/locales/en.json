@@ -1,19 +1,35 @@
 {
   "nav": {
+    "discover": "Discover",
     "movies": "Movies",
     "tv": "TV",
     "calendar": "Calendar",
     "watchlist": "Watchlist",
     "watched": "Watched",
     "lists": "Lists",
-    "stats": "Stats",
     "import": "Import / Export"
   },
   "auth": {
     "signIn": "Sign in with Google",
     "signOut": "Sign out",
+    "tagline": "Track what you watch. Discover what's next.",
     "signInToContinue": "Sign in to continue",
-    "signInHint": "Use the button on the top right to sign in with Google."
+    "login": "Sign in",
+    "register": "Sign up",
+    "or": "or",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "namePlaceholder": "Full name (optional)",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "errors": {
+      "email_taken": "That email is already registered.",
+      "invalid_credentials": "Wrong email or password.",
+      "invalid_input": "Invalid input. Password must be at least 8 characters.",
+      "request_failed": "Something went wrong, please try again."
+    }
   },
   "common": {
     "loading": "Loading…",
@@ -30,7 +46,8 @@
     "noResults": "No results.",
     "page": "Page",
     "previous": "← Previous",
-    "next": "Next →"
+    "next": "Next →",
+    "pageOf": "Page {{page}} / {{total}}"
   },
   "prefs": {
     "title": "Preferences",
@@ -52,7 +69,12 @@
   "filters": {
     "title": "Filters",
     "clear": "Clear",
-    "sort": "Sort",
+    "mediaType": "Type",
+    "mediaTypes": {
+      "movie": "Movie",
+      "tv": "TV",
+      "doc": "Documentary"
+    },
     "minRating": "Min. rating",
     "minRatingHint": "TMDB-based. IMDB rating shows on cards and the detail page.",
     "genres": "Genres",
@@ -72,14 +94,38 @@
       "long": "120–150",
       "veryLong": "> 150 min"
     },
-    "all": "All",
-    "sortOptions": {
-      "popularity": "Popularity",
-      "ratingHigh": "Rating (high)",
-      "newest": "Newest",
-      "oldest": "Oldest → newest",
-      "revenue": "Box office"
-    }
+    "seasons": "Seasons",
+    "seasonsFromPlaceholder": "min",
+    "seasonsToPlaceholder": "max",
+    "seasonsPresets": {
+      "limited": "Limited (1)",
+      "short": "2–5 seasons",
+      "long": "6+ seasons"
+    },
+    "episodes": "Episodes",
+    "episodesFromPlaceholder": "min",
+    "episodesToPlaceholder": "max",
+    "episodesPresets": {
+      "few": "< 20 episodes",
+      "medium": "20–100",
+      "many": "100+ episodes"
+    },
+    "all": "All"
+  },
+  "sort": {
+    "label": "Sort"
+  },
+  "sortOptions": {
+    "popularity": "Popularity",
+    "popularityAsc": "Least popular",
+    "ratingHigh": "Rating (high)",
+    "ratingLow": "Rating (low)",
+    "mostVoted": "Most voted",
+    "newest": "Newest",
+    "oldest": "Oldest → newest",
+    "revenue": "Box office",
+    "nameAsc": "Name (A→Z)",
+    "nameDesc": "Name (Z→A)"
   },
   "card": {
     "tmdbRating": "★ {{rating}}",
@@ -118,14 +164,13 @@
     "markFirst": "Mark this as watched first, then rate and add notes here.",
     "yourRating": "Your rating",
     "yourNotes": "Your notes",
-    "notesPlaceholder": "Your notes about this movie… (auto-saved)"
+    "notesPlaceholder": "Your notes about this movie… (auto-saved)",
+    "ratePoint": "{{n}} points"
   },
   "history": {
     "empty": "No dated viewings yet.",
     "addEntry": "+ Add viewing",
     "date": "Date",
-    "location": "Where (optional)",
-    "locationPlaceholder": "home, theater, plane…",
     "note": "Note (optional)",
     "notePlaceholder": "a short note about this viewing…",
     "confirmDelete": "Delete this viewing?",
@@ -187,25 +232,6 @@
     "watchedToggle": "Watched",
     "watchedToggleOn": "✓ Watched"
   },
-  "stats": {
-    "title": "Stats",
-    "subtitle": "Richer breakdowns (genres, runtime, actors) will come once movie metadata is denormalised.",
-    "signInPrompt": "Sign in to see your stats",
-    "totalWatched": "Total movies watched",
-    "totalViewings": "Viewings (incl. rewatches)",
-    "totalRated": "Movies you've rated",
-    "distinctLocations": "Distinct locations",
-    "ratingDistribution": "Rating distribution",
-    "ratingEmpty": "No ratings yet.",
-    "lastTwelveMonths": "Last 12 months",
-    "lastTwelveMonthsEmpty": "No viewings logged in the last 12 months.",
-    "viewingsByYear": "Viewings by year (history)",
-    "viewingsByYearEmpty": "No watch history.",
-    "watchedByYear": "'Watched' marks by year",
-    "watchedByYearEmpty": "No watched marks yet.",
-    "topLocations": "Where you watch most",
-    "topLocationsEmpty": "You haven't set a location on any history entry."
-  },
   "import": {
     "title": "Import / Export",
     "subtitle": "Pull data in via Letterboxd CSVs, Trakt OAuth, or Plex/Jellyfin scrobbler; download a JSON dump or Letterboxd CSV from the bottom.",
@@ -214,8 +240,8 @@
     "letterboxdDiaryDesc": "Dated viewings (rewatches + ratings). Writes to watch history; if not already marked, also flips 'watched'.",
     "upload": "Upload",
     "uploading": "Importing…",
-    "matched": "{{matched}} / {{total}} matched.",
-    "unmatched": "Unmatched: {{count}}",
+    "matched": "<b>{{matched}}</b> / {{total}} matched.",
+    "unmatched": "Unmatched: <b>{{count}}</b>",
     "unmatchedToggle": "Show unmatched",
     "uploadFailed": "import failed"
   },
@@ -233,8 +259,8 @@
     "importing": "Importing…",
     "disconnect": "Disconnect",
     "confirmDisconnect": "Disconnect from Trakt?",
-    "imported": "{{count}} viewings imported.",
-    "skipped": "{{count}} entries skipped (no TMDB ID).",
+    "imported": "<b>{{count}}</b> viewings imported.",
+    "skipped": "<b>{{count}}</b> entries skipped (no TMDB ID).",
     "pagesRead": "({{count}} pages read)"
   },
   "webhooks": {

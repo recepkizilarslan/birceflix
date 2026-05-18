@@ -1,19 +1,35 @@
 {
   "nav": {
+    "discover": "Keşfet",
     "movies": "Filmler",
     "tv": "Diziler",
     "calendar": "Takvim",
     "watchlist": "Listem",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
-    "stats": "İstatistik",
     "import": "İçe / Dışa aktar"
   },
   "auth": {
     "signIn": "Google ile giriş",
     "signOut": "Çıkış",
+    "tagline": "İzlediklerini takip et, izleyeceklerini keşfet.",
     "signInToContinue": "Devam etmek için giriş yap",
-    "signInHint": "Sağ üstten Google ile giriş yapabilirsin."
+    "login": "Giriş yap",
+    "register": "Kayıt ol",
+    "or": "veya",
+    "signInWithGoogle": "Google ile giriş yap",
+    "signUpWithGoogle": "Google ile kayıt ol",
+    "emailPlaceholder": "E-posta",
+    "passwordPlaceholder": "Şifre",
+    "namePlaceholder": "Ad Soyad (opsiyonel)",
+    "noAccount": "Hesabın yok mu?",
+    "haveAccount": "Zaten hesabın var mı?",
+    "errors": {
+      "email_taken": "Bu e-posta zaten kayıtlı.",
+      "invalid_credentials": "E-posta veya şifre hatalı.",
+      "invalid_input": "Geçersiz bilgi. Şifre en az 8 karakter olmalı.",
+      "request_failed": "Bir şeyler ters gitti, tekrar dene."
+    }
   },
   "common": {
     "loading": "Yükleniyor…",
@@ -30,7 +46,8 @@
     "noResults": "Sonuç bulunamadı.",
     "page": "Sayfa",
     "previous": "← Önceki",
-    "next": "Sonraki →"
+    "next": "Sonraki →",
+    "pageOf": "Sayfa {{page}} / {{total}}"
   },
   "prefs": {
     "title": "Tercihler",
@@ -52,7 +69,12 @@
   "filters": {
     "title": "Filtreler",
     "clear": "Temizle",
-    "sort": "Sıralama",
+    "mediaType": "Tür",
+    "mediaTypes": {
+      "movie": "Film",
+      "tv": "Dizi",
+      "doc": "Belgesel"
+    },
     "minRating": "Min. Puan",
     "minRatingHint": "TMDB tabanlı. IMDB rating'i kartta ve detayda görünür.",
     "genres": "Kategori",
@@ -72,14 +94,38 @@
       "long": "120–150",
       "veryLong": "> 150 dk"
     },
-    "all": "Tümü",
-    "sortOptions": {
-      "popularity": "Popülerlik",
-      "ratingHigh": "Puan (yüksek)",
-      "newest": "Yeni çıkanlar",
-      "oldest": "Eski → yeni",
-      "revenue": "Hasılat"
-    }
+    "seasons": "Sezon",
+    "seasonsFromPlaceholder": "min",
+    "seasonsToPlaceholder": "max",
+    "seasonsPresets": {
+      "limited": "Mini dizi (1)",
+      "short": "2–5 sezon",
+      "long": "6+ sezon"
+    },
+    "episodes": "Bölüm",
+    "episodesFromPlaceholder": "min",
+    "episodesToPlaceholder": "max",
+    "episodesPresets": {
+      "few": "< 20 bölüm",
+      "medium": "20–100",
+      "many": "100+ bölüm"
+    },
+    "all": "Tümü"
+  },
+  "sort": {
+    "label": "Sırala"
+  },
+  "sortOptions": {
+    "popularity": "Popülerlik",
+    "popularityAsc": "Az popüler",
+    "ratingHigh": "Puan (yüksek)",
+    "ratingLow": "Puan (düşük)",
+    "mostVoted": "En çok oylanan",
+    "newest": "Yeni çıkanlar",
+    "oldest": "Eski → yeni",
+    "revenue": "Hasılat",
+    "nameAsc": "Ad (A→Z)",
+    "nameDesc": "Ad (Z→A)"
   },
   "card": {
     "tmdbRating": "★ {{rating}}",
@@ -118,14 +164,13 @@
     "markFirst": "Önce \"İzledim\" olarak işaretle, sonra buradan puan ver ve not ekle.",
     "yourRating": "Senin puanın",
     "yourNotes": "Notların",
-    "notesPlaceholder": "Bu filmle ilgili kendi notların… (otomatik kaydedilir)"
+    "notesPlaceholder": "Bu filmle ilgili kendi notların… (otomatik kaydedilir)",
+    "ratePoint": "{{n}} puan"
   },
   "history": {
     "empty": "Henüz tarihli bir izleme eklemedin.",
     "addEntry": "+ İzleme ekle",
     "date": "Tarih",
-    "location": "Nerede (opsiyonel)",
-    "locationPlaceholder": "ev, sinema, uçak…",
     "note": "Not (opsiyonel)",
     "notePlaceholder": "o izlemeyle ilgili kısa not…",
     "confirmDelete": "Bu izleme kaydını silmek istediğine emin misin?",
@@ -187,25 +232,6 @@
     "watchedToggle": "İzledim",
     "watchedToggleOn": "✓ İzledim"
   },
-  "stats": {
-    "title": "İstatistikler",
-    "subtitle": "Daha zengin ölçütler (tür, süre, oyuncu) ileride filmin meta verileri kaydedildikçe gelecek.",
-    "signInPrompt": "İstatistiklerini görmek için giriş yap",
-    "totalWatched": "Toplam izlenen film",
-    "totalViewings": "İzleme kaydı (rewatch dahil)",
-    "totalRated": "Puanlama yaptığın film",
-    "distinctLocations": "Farklı yer",
-    "ratingDistribution": "Puan dağılımı",
-    "ratingEmpty": "Henüz puan vermedin.",
-    "lastTwelveMonths": "Son 12 ay",
-    "lastTwelveMonthsEmpty": "Son 12 ayda kayıtlı izleme yok.",
-    "viewingsByYear": "Yıla göre izleme (history)",
-    "viewingsByYearEmpty": "İzleme geçmişi yok.",
-    "watchedByYear": "Yıla göre 'izledim' işareti",
-    "watchedByYearEmpty": "Henüz işaretli film yok.",
-    "topLocations": "En çok izlediğin yerler",
-    "topLocationsEmpty": "İzleme geçmişinde lokasyon belirtmemişsin."
-  },
   "import": {
     "title": "İçe / Dışa aktar",
     "subtitle": "Letterboxd CSV'leri, Trakt OAuth, Plex/Jellyfin scrobbler ile veriyi içeri al; sayfanın altından JSON dump veya Letterboxd CSV indir.",
@@ -214,8 +240,8 @@
     "letterboxdDiaryDesc": "Tarihli izleme kayıtları (rewatch + puan dahil). İzleme geçmişine yazılır; eksikse ayrıca 'izledim' olarak işaretlenir.",
     "upload": "Yükle",
     "uploading": "İçe aktarılıyor…",
-    "matched": "{{matched}} / {{total}} eşleşti.",
-    "unmatched": "Eşleşmeyen: {{count}}",
+    "matched": "<b>{{matched}}</b> / {{total}} eşleşti.",
+    "unmatched": "Eşleşmeyen: <b>{{count}}</b>",
     "unmatchedToggle": "Eşleşmeyenleri göster",
     "uploadFailed": "içe aktarım başarısız"
   },
@@ -233,8 +259,8 @@
     "importing": "İçe aktarılıyor…",
     "disconnect": "Bağlantıyı kes",
     "confirmDisconnect": "Trakt bağlantısını kesmek istediğine emin misin?",
-    "imported": "{{count}} izleme kaydı içe aktarıldı.",
-    "skipped": "TMDB ID'si olmayan {{count}} kayıt atlandı.",
+    "imported": "<b>{{count}}</b> izleme kaydı içe aktarıldı.",
+    "skipped": "TMDB ID'si olmayan <b>{{count}}</b> kayıt atlandı.",
     "pagesRead": "({{count}} sayfa okundu)"
   },
   "webhooks": {

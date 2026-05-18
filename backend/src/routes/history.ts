@@ -12,14 +12,12 @@ const addBody = z.object({
   /** ISO date or datetime string. Defaults to now() server-side. */
   watched_at: z.string().datetime().optional().or(z.string().date().optional()),
   my_rating: z.number().int().min(1).max(10).nullable().optional(),
-  location: z.string().max(120).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
 })
 
 const patchBody = z.object({
   watched_at: z.string().datetime().optional().or(z.string().date().optional()),
   my_rating: z.number().int().min(1).max(10).nullable().optional(),
-  location: z.string().max(120).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
 })
 
@@ -32,7 +30,6 @@ function serialise(r: HistoryRow) {
     tmdb_id: r.tmdbId,
     watched_at: r.watchedAt.toISOString(),
     my_rating: r.myRating,
-    location: r.location,
     notes: r.notes,
   }
 }
@@ -69,7 +66,6 @@ export async function historyRoutes(app: FastifyInstance) {
         tmdbId: body.tmdb_id,
         ...(watchedAt ? { watchedAt } : {}),
         myRating: body.my_rating ?? null,
-        location: body.location ?? null,
         notes: body.notes ?? null,
       })
       .returning()
@@ -84,7 +80,6 @@ export async function historyRoutes(app: FastifyInstance) {
     if (
       body.watched_at === undefined &&
       body.my_rating === undefined &&
-      body.location === undefined &&
       body.notes === undefined
     ) {
       return reply.code(400).send({ error: 'nothing to update' })
@@ -93,13 +88,11 @@ export async function historyRoutes(app: FastifyInstance) {
     const update: Partial<{
       watchedAt: Date
       myRating: number | null
-      location: string | null
       notes: string | null
     }> = {}
     const watchedAt = parseWatchedAt(body.watched_at)
     if (watchedAt) update.watchedAt = watchedAt
     if (body.my_rating !== undefined) update.myRating = body.my_rating ?? null
-    if (body.location !== undefined) update.location = body.location ?? null
     if (body.notes !== undefined) update.notes = body.notes ?? null
 
     const [row] = await db

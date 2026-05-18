@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
+import { SignInScreen } from './components/SignInScreen'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedIdSet, listWatched, markWatched, unmarkWatched, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
@@ -23,7 +24,7 @@ export interface LayoutContext {
 
 export function Layout() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set())
   const [watchedRows, setWatchedRows] = useState<WatchedRow[]>([])
@@ -83,10 +84,26 @@ export function Layout() {
   const watchlistSuffix = user && watchlistIds.size > 0 ? ` (${watchlistIds.size})` : ''
   const watchedSuffix = user && watchedIds.size > 0 ? ` (${watchedIds.size})` : ''
 
+  // Auth gate: the whole app sits behind login. The hooks above still run
+  // (they're cheap no-ops without a user), so the conditional return is
+  // safe per the rules-of-hooks. The OAuth start endpoint lives at
+  // /api/auth/google and is a hard navigation, so the gate doesn't block
+  // sign-in.
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-[var(--color-text-dim)] text-sm">
+        {t('common.loading')}
+      </div>
+    )
+  }
+  if (!user) {
+    return <SignInScreen />
+  }
+
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-30 backdrop-blur bg-[var(--color-bg)]/85 border-b border-[var(--color-border)]">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 flex items-center gap-4">
           <Link to="/" className="hover:opacity-90">
             <span
               className="block leading-none"
@@ -101,20 +118,16 @@ export function Layout() {
               BIRCEFLIX
             </span>
           </Link>
-          <nav className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
-            <TabLink to="/">{t('nav.movies')}</TabLink>
-            <TabLink to="/tv">{t('nav.tv')}</TabLink>
+          <nav className="contents">
+            <TabLink to="/">{t('nav.discover')}</TabLink>
             <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
             <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
             <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
             {user && <TabLink to="/lists">{t('nav.lists')}</TabLink>}
-            {user && <TabLink to="/stats">{t('nav.stats')}</TabLink>}
             {user && <TabLink to="/import">{t('nav.import')}</TabLink>}
           </nav>
-          <div className="flex items-center gap-2">
-            <PreferencesMenu />
-            <AuthButton />
-          </div>
+          <PreferencesMenu className="ml-auto" />
+          <AuthButton />
         </div>
       </header>
       <main className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6">

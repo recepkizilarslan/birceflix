@@ -1,9 +1,25 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { COUNTRIES, LANGUAGES, SORT_OPTIONS } from '../lib/constants'
+import { listTvGenres, listTvProviders } from '../lib/tv'
+import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+
+/**
+ * UI-level media category. Maps to a TMDB endpoint + forced params at the
+ * call site:
+ *   movie → /discover/movie
+ *   tv    → /discover/tv
+ *   doc   → /discover/movie with_genres=99 (Documentary, forced)
+ */
+export type MediaType = 'movie' | 'tv' | 'doc'
+
+/** True when the category uses /discover/tv under the hood (TV genres, TV providers, TV sort, season/episode filters). */
+// eslint-disable-next-line react-refresh/only-export-components
+export function isTvMedia(t: MediaType): boolean {
+  return t === 'tv'
+}
 
 export interface FilterState {
   min_rating: number
@@ -16,6 +32,12 @@ export interface FilterState {
   watch_region: string
   runtime_from: number | ''
   runtime_to: number | ''
+  /** TV-only: total seasons range. Ignored for movies. */
+  seasons_from: number | ''
+  seasons_to: number | ''
+  /** TV-only: total episodes range. Ignored for movies. */
+  episodes_from: number | ''
+  episodes_to: number | ''
   sort_by: string
 }
 
@@ -31,6 +53,10 @@ export const DEFAULT_FILTERS: FilterState = {
   watch_region: getRegion(),
   runtime_from: '',
   runtime_to: '',
+  seasons_from: '',
+  seasons_to: '',
+  episodes_from: '',
+  episodes_to: '',
   sort_by: 'popularity.desc',
 }
 
@@ -39,23 +65,31 @@ interface Props {
   onChange: (next: FilterState) => void
   onReset: () => void
   activeCount: number
+  /** Drives which genres / providers / sort options the panel loads. Defaults to movies. */
+  mediaType?: MediaType
+  /** When provided, the panel renders a media-type selector section at the top. */
+  onMediaTypeChange?: (m: MediaType) => void
 }
 
-export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
+export function FilterPanel({ value, onChange, onReset, activeCount, mediaType = 'movie', onMediaTypeChange }: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
 
-  useEffect(() => {
-    listGenres().then(setGenres).catch(() => {})
-  }, [])
+  const tvMode = isTvMedia(mediaType)
 
   useEffect(() => {
-    listProviders(value.watch_region).then((p) => {
+    const loader = tvMode ? listTvGenres : listGenres
+    loader().then(setGenres).catch(() => {})
+  }, [tvMode])
+
+  useEffect(() => {
+    const loader = tvMode ? listTvProviders : listProviders
+    loader(value.watch_region).then((p) => {
       const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
       setProviders(top)
     }).catch(() => setProviders([]))
-  }, [value.watch_region])
+  }, [tvMode, value.watch_region])
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
@@ -79,6 +113,22 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
           </button>
         )}
       </div>
+
+      {onMediaTypeChange && (
+        <Section title={t('filters.mediaType')} defaultOpen>
+          <div className="flex flex-wrap gap-1.5">
+            <button onClick={() => onMediaTypeChange('movie')} className={chipCls(mediaType === 'movie')}>
+              🎬 {t('filters.mediaTypes.movie')}
+            </button>
+            <button onClick={() => onMediaTypeChange('tv')} className={chipCls(mediaType === 'tv')}>
+              📺 {t('filters.mediaTypes.tv')}
+            </button>
+            <button onClick={() => onMediaTypeChange('doc')} className={chipCls(mediaType === 'doc')}>
+              🎥 {t('filters.mediaTypes.doc')}
+            </button>
+          </div>
+        </Section>
+      )}
 
       <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
         <div className="mb-2">
@@ -109,12 +159,6 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={t('filters.sort')} defaultOpen>
-        <Select value={value.sort_by} onChange={(v) => onChange({ ...value, sort_by: v })}>
-          {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{t(s.labelKey)}</option>)}
-        </Select>
-      </Section>
-
       <Section title={`${t('filters.minRating')} ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
         <input
           type="range" min={0} max={10} step={0.5}
@@ -130,22 +174,26 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
-          {genres.map((g) => {
-            const active = value.with_genres.includes(g.id)
-            return (
-              <button
-                key={g.id}
-                onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
-                className={chipCls(active)}
-              >
-                {g.name}
-              </button>
-            )
-          })}
-        </div>
-      </Section>
+      {/* Documentary mode forces with_genres=99 at the call site, so the
+          genre chip section here would be misleading — hide it. */}
+      {mediaType !== 'doc' && (
+        <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
+          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+            {genres.map((g) => {
+              const active = value.with_genres.includes(g.id)
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => onChange({ ...value, with_genres: toggle(value.with_genres, g.id) })}
+                  className={chipCls(active)}
+                >
+                  {g.name}
+                </button>
+              )
+            })}
+          </div>
+        </Section>
+      )}
 
       <Section title={`${t('filters.language')} ${value.original_language ? '•' : ''}`}>
         <Select value={value.original_language} onChange={(v) => onChange({ ...value, original_language: v })}>
@@ -176,7 +224,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
         </div>
       </Section>
 
-      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last>
+      <Section title={`${t('filters.runtime')} ${value.runtime_from || value.runtime_to ? '•' : ''}`} last={!tvMode}>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {RUNTIME_PRESETS.map((preset) => {
             const active = value.runtime_from === preset.from && value.runtime_to === preset.to
@@ -206,6 +254,72 @@ export function FilterPanel({ value, onChange, onReset, activeCount }: Props) {
           />
         </div>
       </Section>
+
+      {tvMode && (
+        <Section title={`${t('filters.seasons')} ${value.seasons_from || value.seasons_to ? '•' : ''}`}>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {SEASONS_PRESETS.map((preset) => {
+              const active = value.seasons_from === preset.from && value.seasons_to === preset.to
+              return (
+                <button
+                  key={preset.labelKey}
+                  onClick={() => onChange({ ...value, seasons_from: preset.from, seasons_to: preset.to })}
+                  className={chipCls(active)}
+                >
+                  {t(preset.labelKey)}
+                </button>
+              )
+            })}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number" min={0} max={100} placeholder={t('filters.seasonsFromPlaceholder')}
+              value={value.seasons_from}
+              onChange={(e) => onChange({ ...value, seasons_from: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+            <input
+              type="number" min={0} max={100} placeholder={t('filters.seasonsToPlaceholder')}
+              value={value.seasons_to}
+              onChange={(e) => onChange({ ...value, seasons_to: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+          </div>
+        </Section>
+      )}
+
+      {tvMode && (
+        <Section title={`${t('filters.episodes')} ${value.episodes_from || value.episodes_to ? '•' : ''}`} last>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {EPISODES_PRESETS.map((preset) => {
+              const active = value.episodes_from === preset.from && value.episodes_to === preset.to
+              return (
+                <button
+                  key={preset.labelKey}
+                  onClick={() => onChange({ ...value, episodes_from: preset.from, episodes_to: preset.to })}
+                  className={chipCls(active)}
+                >
+                  {t(preset.labelKey)}
+                </button>
+              )
+            })}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number" min={0} max={5000} placeholder={t('filters.episodesFromPlaceholder')}
+              value={value.episodes_from}
+              onChange={(e) => onChange({ ...value, episodes_from: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+            <input
+              type="number" min={0} max={5000} placeholder={t('filters.episodesToPlaceholder')}
+              value={value.episodes_to}
+              onChange={(e) => onChange({ ...value, episodes_to: e.target.value ? Number(e.target.value) : '' })}
+              className={inputCls}
+            />
+          </div>
+        </Section>
+      )}
     </div>
   )
 }
@@ -222,7 +336,12 @@ export function countActiveFilters(f: FilterState): number {
   if (f.with_watch_providers.length) n++
   if (f.runtime_from !== '') n++
   if (f.runtime_to !== '') n++
-  if (f.sort_by !== DEFAULT_FILTERS.sort_by) n++
+  if (f.seasons_from !== '') n++
+  if (f.seasons_to !== '') n++
+  if (f.episodes_from !== '') n++
+  if (f.episodes_to !== '') n++
+  // Note: sort_by is intentionally NOT counted — sorting lives outside
+  // the filter panel (in the results toolbar) and isn't a "filter".
   return n
 }
 
@@ -231,6 +350,18 @@ const RUNTIME_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[
   { labelKey: 'filters.runtimePresets.medium',    from: 90,  to: 120 },
   { labelKey: 'filters.runtimePresets.long',      from: 120, to: 150 },
   { labelKey: 'filters.runtimePresets.veryLong',  from: 150, to: '' },
+]
+
+const SEASONS_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[] = [
+  { labelKey: 'filters.seasonsPresets.limited', from: 1, to: 1 },
+  { labelKey: 'filters.seasonsPresets.short',   from: 2, to: 5 },
+  { labelKey: 'filters.seasonsPresets.long',    from: 6, to: '' },
+]
+
+const EPISODES_PRESETS: { labelKey: string; from: number | ''; to: number | '' }[] = [
+  { labelKey: 'filters.episodesPresets.few',    from: '',  to: 20 },
+  { labelKey: 'filters.episodesPresets.medium', from: 20,  to: 100 },
+  { labelKey: 'filters.episodesPresets.many',   from: 100, to: '' },
 ]
 
 function Section({ title, children, defaultOpen, last }: { title: string; children: React.ReactNode; defaultOpen?: boolean; last?: boolean }) {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getWatched, updateWatchedMeta } from '../lib/watched'
 
 interface Props {
@@ -15,6 +16,7 @@ type Saving = 'idle' | 'saving' | 'saved' | 'error'
  * Auto-saves with a 600ms debounce.
  */
 export function PersonalNote({ tmdbId, watched }: Props) {
+  const { t } = useTranslation()
   const [rating, setRating] = useState<number | null>(null)
   const [notes, setNotes] = useState<string>('')
   const [hover, setHover] = useState<number | null>(null)
@@ -23,7 +25,6 @@ export function PersonalNote({ tmdbId, watched }: Props) {
   const saveTimer = useRef<number | null>(null)
   const dirty = useRef(false)
 
-  // Load current values
   useEffect(() => {
     if (!watched) { setLoaded(false); return }
     let mounted = true
@@ -39,7 +40,6 @@ export function PersonalNote({ tmdbId, watched }: Props) {
     return () => { mounted = false }
   }, [tmdbId, watched])
 
-  // Debounced auto-save when rating/notes change after initial load
   useEffect(() => {
     if (!loaded || !dirty.current) return
     if (saveTimer.current) window.clearTimeout(saveTimer.current)
@@ -59,13 +59,13 @@ export function PersonalNote({ tmdbId, watched }: Props) {
   if (!watched) {
     return (
       <div className="text-sm text-[var(--color-text-dim)]">
-        Önce "İzledim" olarak işaretle, sonra buradan puan ver ve not ekle.
+        {t('personalNote.markFirst')}
       </div>
     )
   }
 
   if (!loaded) {
-    return <div className="text-sm text-[var(--color-text-dim)]">Yükleniyor…</div>
+    return <div className="text-sm text-[var(--color-text-dim)]">{t('common.loading')}</div>
   }
 
   const onPick = (n: number) => {
@@ -77,7 +77,7 @@ export function PersonalNote({ tmdbId, watched }: Props) {
     <div className="space-y-3">
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-[var(--color-text-dim)]">Senin puanın</span>
+          <span className="text-xs text-[var(--color-text-dim)]">{t('personalNote.yourRating')}</span>
           <span className="text-xs tabular-nums text-[var(--color-text-dim)]">
             {(hover ?? rating) != null ? `${hover ?? rating}/10` : '—'}
           </span>
@@ -89,7 +89,7 @@ export function PersonalNote({ tmdbId, watched }: Props) {
               <button
                 key={n}
                 type="button"
-                aria-label={`${n} puan`}
+                aria-label={t('personalNote.ratePoint', { n })}
                 onMouseEnter={() => setHover(n)}
                 onClick={() => onPick(n)}
                 className={`h-7 flex-1 rounded transition ${
@@ -105,22 +105,22 @@ export function PersonalNote({ tmdbId, watched }: Props) {
 
       <div>
         <label className="block text-xs text-[var(--color-text-dim)] mb-1.5" htmlFor="my-note">
-          Notların
+          {t('personalNote.yourNotes')}
         </label>
         <textarea
           id="my-note"
           value={notes}
           maxLength={2000}
           rows={4}
-          placeholder="Bu filmle ilgili kendi notların… (otomatik kaydedilir)"
+          placeholder={t('personalNote.notesPlaceholder')}
           onChange={(e) => { dirty.current = true; setNotes(e.target.value) }}
           className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-accent)] resize-y"
         />
         <div className="flex items-center justify-between mt-1 text-[10px] text-[var(--color-text-dim)]">
           <span>
-            {saving === 'saving' && '…kaydediliyor'}
-            {saving === 'saved' && '✓ kaydedildi'}
-            {saving === 'error' && <span className="text-red-400">kaydedilemedi</span>}
+            {saving === 'saving' && t('common.saving')}
+            {saving === 'saved' && t('common.saved')}
+            {saving === 'error' && <span className="text-red-400">{t('common.savingFailed')}</span>}
             {saving === 'idle' && <span>&nbsp;</span>}
           </span>
           <span className="tabular-nums">{notes.length}/2000</span>

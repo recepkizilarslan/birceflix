@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { MovieCard } from '../components/MovieCard'
 import { deleteList, getList, removeFromList, updateList, type ListWithItems } from '../lib/lists'
@@ -7,6 +8,7 @@ import type { TmdbMovie } from '../lib/api'
 
 export function ListDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
 
@@ -36,14 +38,14 @@ export function ListDetailPage() {
   if (!user) {
     return (
       <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
-        <div className="text-lg mb-2">Bu listeyi görmek için giriş yap</div>
-        <div className="text-sm text-[var(--color-text-dim)]">Sağ üstten Google ile giriş yapabilirsin.</div>
+        <div className="text-lg mb-2">{t('lists.signInToView')}</div>
+        <div className="text-sm text-[var(--color-text-dim)]">{t('auth.signInHint')}</div>
       </div>
     )
   }
 
   if (err) return <div className="text-red-400">{err}</div>
-  if (!list) return <div className="py-16 text-center text-[var(--color-text-dim)]">Yükleniyor…</div>
+  if (!list) return <div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div>
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +66,7 @@ export function ListDetailPage() {
   }
 
   const onDelete = async () => {
-    if (!confirm(`"${list.name}" listesini silmek istediğine emin misin?`)) return
+    if (!confirm(t('lists.confirmDelete', { name: list.name }))) return
     try {
       await deleteList(list.id)
       navigate('/lists')
@@ -106,7 +108,7 @@ export function ListDetailPage() {
           onClick={() => navigate('/lists')}
           className="text-sm text-[var(--color-text-dim)] hover:text-white mb-3"
         >
-          ← Listelerime dön
+          {t('lists.back')}
         </button>
         {!editing ? (
           <div className="flex items-start justify-between gap-3">
@@ -116,10 +118,10 @@ export function ListDetailPage() {
                 <p className="text-sm text-[var(--color-text-dim)] mt-2 leading-relaxed">{list.description}</p>
               )}
               <div className="flex items-center gap-2 mt-3 text-xs text-[var(--color-text-dim)]">
-                <span>{list.items.length} film</span>
+                <span>{t('lists.filmCount', { count: list.items.length })}</span>
                 {list.is_public && (
                   <span className="px-2 py-0.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/40">
-                    public
+                    {t('lists.publicBadge')}
                   </span>
                 )}
               </div>
@@ -132,7 +134,7 @@ export function ListDetailPage() {
                     onClick={() => navigator.clipboard.writeText(shareUrl)}
                     className="text-[var(--color-accent)] hover:underline"
                   >
-                    kopyala
+                    {t('common.copy')}
                   </button>
                 </div>
               )}
@@ -142,20 +144,20 @@ export function ListDetailPage() {
                 onClick={() => setEditing(true)}
                 className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
               >
-                Düzenle
+                {t('lists.edit')}
               </button>
               <button
                 onClick={onDelete}
                 className="text-sm px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
               >
-                Sil
+                {t('lists.delete')}
               </button>
             </div>
           </div>
         ) : (
           <form onSubmit={onSave} className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4 space-y-3">
             <label className="block">
-              <span className="text-xs text-[var(--color-text-dim)]">İsim</span>
+              <span className="text-xs text-[var(--color-text-dim)]">{t('lists.listName')}</span>
               <input
                 type="text"
                 value={name}
@@ -166,7 +168,7 @@ export function ListDetailPage() {
               />
             </label>
             <label className="block">
-              <span className="text-xs text-[var(--color-text-dim)]">Açıklama</span>
+              <span className="text-xs text-[var(--color-text-dim)]">{t('lists.description')}</span>
               <textarea
                 value={desc}
                 rows={3}
@@ -182,7 +184,7 @@ export function ListDetailPage() {
                 onChange={(e) => setIsPublic(e.target.checked)}
                 className="accent-[var(--color-accent)]"
               />
-              <span>Public yap (paylaşılabilir bir bağlantı oluşur)</span>
+              <span>{t('lists.publicToggle')}</span>
             </label>
             <div className="flex gap-2 pt-1">
               <button
@@ -190,14 +192,14 @@ export function ListDetailPage() {
                 disabled={busy}
                 className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90 disabled:opacity-50"
               >
-                {busy ? 'Kaydediliyor…' : 'Kaydet'}
+                {busy ? t('common.saving') : t('common.save')}
               </button>
               <button
                 type="button"
                 onClick={() => { setEditing(false); setErr(null); refresh() }}
                 className="text-sm px-4 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
               >
-                İptal
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -206,7 +208,7 @@ export function ListDetailPage() {
 
       {cards.length === 0 ? (
         <div className="text-sm text-[var(--color-text-dim)]">
-          Bu listede henüz film yok. Bir filmin detay sayfasında "+ Listeye ekle" diyebilirsin.
+          {t('lists.emptyDetail')}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
@@ -222,7 +224,7 @@ export function ListDetailPage() {
               <button
                 onClick={() => onRemoveItem(m.id)}
                 className="absolute top-2 right-2 hidden group-hover:flex items-center justify-center w-7 h-7 rounded-full bg-black/70 text-white hover:bg-red-500/80 text-sm"
-                title="Listeden çıkar"
+                title={t('lists.removeItem')}
               >
                 ✕
               </button>

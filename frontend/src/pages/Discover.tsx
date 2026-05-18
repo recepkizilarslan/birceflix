@@ -1,19 +1,48 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
-import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, type FilterState } from '../components/FilterPanel'
+import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, isTvMedia, type FilterState, type MediaType } from '../components/FilterPanel'
 import { SearchBar } from '../components/SearchBar'
 import { MovieCard } from '../components/MovieCard'
-import { discover, search, type TmdbMovie } from '../lib/api'
+import { discover, search, poster, type TmdbMovie } from '../lib/api'
+import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
+import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 
+// Combined movie + TV discover. The media-type segmented control at the top
+// toggles which TMDB endpoint we hit; the FilterPanel re-loads its genre and
+// provider lists when mediaType changes (it already keys on the prop). Filters
+// that don't translate across media types (genre IDs, provider IDs, sort)
+// reset when the user flips the toggle.
 export function Discover() {
+  const { t } = useTranslation()
   const { user, watchedIds, toggleWatched } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const mediaType: MediaType = parseMediaType(searchParams.get('type'))
+  const setMediaType = (next: MediaType) => {
+    // Only reset filters that don't translate when we cross the movie↔TV
+    // boundary. Switching within the same family (movie↔doc, tv↔mini)
+    // keeps the user's genre/provider/sort choices intact.
+    if (isTvMedia(next) !== isTvMedia(mediaType)) {
+      setFilters((f) => ({
+        ...f,
+        with_genres: [],
+        with_watch_providers: [],
+        sort_by: DEFAULT_FILTERS.sort_by,
+      }))
+    }
+    setSearchQuery(null)
+    setResults([])
+    setPage(1)
+    setSearchParams(next === 'movie' ? {} : { type: next }, { replace: true })
+  }
 
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const [results, setResults] = useState<TmdbMovie[]>([])
+  const [results, setResults] = useState<(TmdbMovie | TmdbTvShow)[]>([])
   const [searchQuery, setSearchQuery] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -23,46 +52,74 @@ export function Discover() {
   const runDiscover = useCallback(async (f: FilterState, p = 1) => {
     setLoading(true); setErr(null); setSearchQuery(null)
     try {
-      const data = await discover({
-        min_rating: f.min_rating || undefined,
-        original_language: f.original_language || undefined,
-        origin_country: f.origin_country || undefined,
-        with_genres: f.with_genres.length ? f.with_genres : undefined,
-        year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
-        year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
-        with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
-        watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
-        runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
-        runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
-        sort_by: f.sort_by,
-        page: p,
-      })
-      setResults(data.results)
-      setPage(data.page)
-      setTotalPages(Math.min(data.total_pages, 500))
+      if (isTvMedia(mediaType)) {
+        const data = await discoverTv({
+          min_rating: f.min_rating || undefined,
+          original_language: f.original_language || undefined,
+          origin_country: f.origin_country || undefined,
+          with_genres: f.with_genres.length ? f.with_genres : undefined,
+          year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
+          year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
+          with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
+          watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
+          runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
+          runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+          seasons_from: typeof f.seasons_from === 'number' ? f.seasons_from : undefined,
+          seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
+          episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
+          episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
+          sort_by: f.sort_by,
+          page: p,
+        })
+        setResults(data.results)
+        setPage(data.page)
+        setTotalPages(Math.min(data.total_pages, 500))
+      } else {
+        // Documentary category forces genre=99 and ignores the user's
+        // genre chip selections — the FilterPanel hides the genre
+        // section in this mode so that's not confusing.
+        const genres = mediaType === 'doc' ? [99] : (f.with_genres.length ? f.with_genres : undefined)
+        const data = await discover({
+          min_rating: f.min_rating || undefined,
+          original_language: f.original_language || undefined,
+          origin_country: f.origin_country || undefined,
+          with_genres: genres,
+          year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
+          year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
+          with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
+          watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
+          runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
+          runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+          sort_by: f.sort_by,
+          page: p,
+        })
+        setResults(data.results)
+        setPage(data.page)
+        setTotalPages(Math.min(data.total_pages, 500))
+      }
     } catch (e: any) { setErr(e.message) }
     finally { setLoading(false) }
-  }, [])
+  }, [mediaType])
 
   const runSearch = useCallback(async (q: string, p = 1) => {
     setLoading(true); setErr(null); setSearchQuery(q)
     try {
-      const data = await search(q, p)
+      const data = isTvMedia(mediaType) ? await searchTv(q, p) : await search(q, p)
       setResults(data.results)
       setPage(data.page)
       setTotalPages(Math.min(data.total_pages, 500))
     } catch (e: any) { setErr(e.message) }
     finally { setLoading(false) }
-  }, [])
+  }, [mediaType])
 
   useEffect(() => {
     if (!searchQuery) {
-      const t = setTimeout(() => runDiscover(filters, 1), 250)
-      return () => clearTimeout(t)
+      const tid = setTimeout(() => runDiscover(filters, 1), 250)
+      return () => clearTimeout(tid)
     }
   }, [filters, runDiscover, searchQuery])
 
-  const onReset = () => setFilters(DEFAULT_FILTERS)
+  const onReset = () => setFilters({ ...DEFAULT_FILTERS, watch_region: filters.watch_region })
   const activeCount = countActiveFilters(filters)
 
   return (
@@ -83,11 +140,18 @@ export function Discover() {
         `}
       >
         <div className="lg:hidden flex justify-between items-center p-4 border-b border-[var(--color-border)]">
-          <span className="font-semibold">Filtreler</span>
+          <span className="font-semibold">{t('filters.title')}</span>
           <button onClick={() => setMobileOpen(false)} className="text-xl px-2">✕</button>
         </div>
         <div className="p-4 lg:p-0">
-          <FilterPanel value={filters} onChange={setFilters} onReset={onReset} activeCount={activeCount} />
+          <FilterPanel
+            value={filters}
+            onChange={setFilters}
+            onReset={onReset}
+            activeCount={activeCount}
+            mediaType={mediaType}
+            onMediaTypeChange={setMediaType}
+          />
         </div>
       </aside>
 
@@ -98,41 +162,110 @@ export function Discover() {
           onClear={() => { setSearchQuery(null); runDiscover(filters, 1) }}
         />
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center gap-2"
           >
-            <span>⚙</span> Filtreler
+            <span>⚙</span> {t('filters.title')}
             {activeCount > 0 && <span className="text-xs px-1.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>}
           </button>
           {searchQuery && (
-            <div className="text-sm text-[var(--color-text-dim)]">"{searchQuery}" için sonuçlar</div>
+            <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
-          <div className="text-xs text-[var(--color-text-dim)] ml-auto">
-            {results.length > 0 && !loading && `${results.length} sonuç • sayfa ${page}`}
+          <div className="flex items-center gap-3 ml-auto">
+            {results.length > 0 && !loading && (
+              <div className="text-xs text-[var(--color-text-dim)]">
+                {t('discover.results', { count: results.length, page })}
+              </div>
+            )}
+            {/* Sort lives next to the results count, not in the filter sidebar —
+                sorting is a view concern, not a filter. */}
+            <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
+              <span className="hidden sm:inline">{t('sort.label')}</span>
+              <span className="sm:hidden">⇅</span>
+              <select
+                value={filters.sort_by}
+                onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] min-w-[160px]"
+              >
+                {(isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS).map((s) => (
+                  <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
         {err && <div className="text-red-400 text-sm">{err}</div>}
-        {loading && <div className="text-center text-[var(--color-text-dim)] py-10">Yükleniyor…</div>}
+        {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
         {!loading && results.length === 0 && (
           <div className="text-center text-[var(--color-text-dim)] py-10">
-            Sonuç bulunamadı. {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">Filtreleri temizle</button>}
+            {t('common.noResults')}{' '}
+            {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">{t('discover.clearFilters')}</button>}
           </div>
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
-          {results.map((m) => (
-            <MovieCard
-              key={m.id}
-              movie={m}
-              watched={watchedIds.has(m.id)}
-              canMark={!!user}
-              onToggleWatched={toggleWatched}
-              onOpen={(mv) => navigate(`/movie/${mv.id}`)}
-            />
-          ))}
+          {!isTvMedia(mediaType)
+            ? (results as TmdbMovie[]).map((m) => (
+                <MovieCard
+                  key={m.id}
+                  movie={m}
+                  watched={watchedIds.has(m.id)}
+                  canMark={!!user}
+                  onToggleWatched={toggleWatched}
+                  onOpen={(mv) => navigate(`/movie/${mv.id}`)}
+                />
+              ))
+            : (results as TmdbTvShow[]).map((s) => {
+                const year = s.first_air_date?.slice(0, 4) ?? ''
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => navigate(`/tv/${s.id}`)}
+                    className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition text-left"
+                  >
+                    <div className="aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
+                      {poster(s.poster_path) ? (
+                        <img
+                          src={poster(s.poster_path)!}
+                          alt={s.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
+                          {t('card.noPoster')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-sm font-medium leading-snug line-clamp-2">{s.name}</h3>
+                        <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]">
+                          ★ {s.vote_average.toFixed(1)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-1.5">
+                        {year && <span>{year}</span>}
+                        {s.number_of_seasons != null && (
+                          <>
+                            {year && <span>·</span>}
+                            <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
+                          </>
+                        )}
+                        {s.number_of_episodes != null && (
+                          <>
+                            <span>·</span>
+                            <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
         </div>
 
         {results.length > 0 && totalPages > 1 && (
@@ -141,13 +274,13 @@ export function Discover() {
               const p = page - 1
               if (searchQuery) runSearch(searchQuery, p)
               else runDiscover(filters, p)
-            }}>← Önceki</PageBtn>
-            <div className="text-sm text-[var(--color-text-dim)]">Sayfa {page} / {totalPages}</div>
+            }}>{t('common.previous')}</PageBtn>
+            <div className="text-sm text-[var(--color-text-dim)]">{t('common.pageOf', { page, total: totalPages })}</div>
             <PageBtn disabled={page >= totalPages} onClick={() => {
               const p = page + 1
               if (searchQuery) runSearch(searchQuery, p)
               else runDiscover(filters, p)
-            }}>Sonraki →</PageBtn>
+            }}>{t('common.next')}</PageBtn>
           </div>
         )}
       </div>
@@ -165,4 +298,13 @@ function PageBtn({ disabled, onClick, children }: { disabled?: boolean; onClick:
       {children}
     </button>
   )
+}
+
+/** Whitelist the `?type=` URL param so unknown values fall back to movie. */
+function parseMediaType(raw: string | null): MediaType {
+  switch (raw) {
+    case 'tv': return 'tv'
+    case 'doc': return 'doc'
+    default: return 'movie'
+  }
 }
