@@ -147,7 +147,7 @@ export function SignInScreen() {
           className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium transition"
         >
           <GoogleIcon />
-          {t('auth.continueWithGoogle')}
+          {mode === 'login' ? t('auth.signInWithGoogle') : t('auth.signUpWithGoogle')}
         </button>
 
         {/* Mode toggle */}
