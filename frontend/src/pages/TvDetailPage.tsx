@@ -1,0 +1,279 @@
+import { useEffect, useState } from 'react'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import type { LayoutContext } from '../Layout'
+import { tvDetail, tvSeason, type TvDetail, type TvSeasonDetail } from '../lib/tv'
+import { poster } from '../lib/api'
+import {
+  listWatchedEpisodes,
+  markEpisode,
+  markSeason,
+  unmarkEpisode,
+  unmarkSeason,
+} from '../lib/episodes'
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function episodeKey(s: number, e: number): string {
+  return `${s}.${e}`
+}
+
+export function TvDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { user } = useOutletContext<LayoutContext>()
+
+  const [show, setShow] = useState<TvDetail | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  /** Set of watched-episode keys ("season.episode") — fast .has() during render. */
+  const [watchedKeys, setWatchedKeys] = useState<Set<string>>(new Set())
+
+  // Per-season loaded episodes — lazy: load on accordion open.
+  const [seasons, setSeasons] = useState<Map<number, TvSeasonDetail>>(new Map())
+  const [openSeason, setOpenSeason] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    setShow(null); setErr(null); setWatchedKeys(new Set()); setSeasons(new Map()); setOpenSeason(null)
+    const showId = Number(id)
+    tvDetail(showId).then(setShow).catch((e) => setErr(e.message))
+    if (user) {
+      listWatchedEpisodes(showId)
+        .then((rows) => setWatchedKeys(new Set(rows.map((r) => episodeKey(r.season_number, r.episode_number)))))
+        .catch(() => {})
+    }
+  }, [id, user])
+
+  const loadSeason = async (n: number) => {
+    if (!show || seasons.has(n)) {
+      setOpenSeason((cur) => (cur === n ? null : n))
+      return
+    }
+    try {
+      const data = await tvSeason(show.id, n)
+      setSeasons((prev) => new Map(prev).set(n, data))
+      setOpenSeason(n)
+    } catch (e: any) {
+      setErr(e.message ?? 'sezon yüklenemedi')
+    }
+  }
+
+  const toggleEpisode = async (s: number, ep: { episode_number: number; name?: string | null }) => {
+    if (!show || !user) return
+    const key = episodeKey(s, ep.episode_number)
+    const wasWatched = watchedKeys.has(key)
+    // Optimistic update
+    setWatchedKeys((prev) => {
+      const next = new Set(prev)
+      if (wasWatched) next.delete(key); else next.add(key)
+      return next
+    })
+    try {
+      if (wasWatched) {
+        await unmarkEpisode(show.id, s, ep.episode_number)
+      } else {
+        await markEpisode({
+          show_id: show.id,
+          show_name: show.name,
+          show_poster_path: show.poster_path,
+          season_number: s,
+          episode_number: ep.episode_number,
+          episode_name: ep.name ?? null,
+        })
+      }
+    } catch (e: any) {
+      // Roll back on error
+      setWatchedKeys((prev) => {
+        const next = new Set(prev)
+        if (wasWatched) next.add(key); else next.delete(key)
+        return next
+      })
+      alert(e.message ?? 'işlem başarısız')
+    }
+  }
+
+  const toggleSeason = async (season: TvSeasonDetail) => {
+    if (!show || !user) return
+    const allMarked = season.episodes.every((e) => watchedKeys.has(episodeKey(season.season_number, e.episode_number)))
+    if (allMarked) {
+      if (!confirm(`Sezon ${season.season_number}'in tüm izleme kayıtlarını silmek istediğine emin misin?`)) return
+      try {
+        await unmarkSeason(show.id, season.season_number)
+        setWatchedKeys((prev) => {
+          const next = new Set(prev)
+          season.episodes.forEach((e) => next.delete(episodeKey(season.season_number, e.episode_number)))
+          return next
+        })
+      } catch (e: any) { alert(e.message) }
+    } else {
+      try {
+        await markSeason(
+          { show_id: show.id, show_name: show.name, show_poster_path: show.poster_path },
+          season.season_number,
+          season.episodes.map((e) => ({ number: e.episode_number, name: e.name })),
+        )
+        setWatchedKeys((prev) => {
+          const next = new Set(prev)
+          season.episodes.forEach((e) => next.add(episodeKey(season.season_number, e.episode_number)))
+          return next
+        })
+      } catch (e: any) { alert(e.message) }
+    }
+  }
+
+  if (err) return <div className="text-red-400">{err}</div>
+  if (!show) return <div className="py-16 text-center text-[var(--color-text-dim)]">Yükleniyor…</div>
+
+  // Filter out the optional "Specials" season (season 0) unless TMDB includes only that.
+  const seasonList = (show.seasons ?? []).filter((s) => s.season_number > 0 || (show.seasons?.length ?? 0) === 1)
+  const year = show.first_air_date?.slice(0, 4) ?? ''
+  const watchedCount = watchedKeys.size
+
+  return (
+    <div>
+      {show.backdrop_path && (
+        <div className="relative -mx-4 sm:rounded-2xl sm:mx-0 overflow-hidden mb-6 aspect-[16/7] bg-[var(--color-surface)]">
+          <img
+            src={`https://image.tmdb.org/t/p/original${show.backdrop_path}`}
+            alt=""
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
+          <button
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/tv'))}
+            className="absolute top-4 left-4 px-3 py-1.5 text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
+          >
+            ← Geri
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+        {poster(show.poster_path, 'w342') && (
+          <img src={poster(show.poster_path, 'w342')!} alt="" className="w-40 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0" />
+        )}
+        <div className="flex-1 space-y-3">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{show.name}</h1>
+            {show.original_name !== show.name && (
+              <div className="text-sm text-[var(--color-text-dim)] mt-1">{show.original_name}</div>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {year && <Pill>{year}</Pill>}
+            {show.number_of_seasons != null && <Pill>{show.number_of_seasons} sezon</Pill>}
+            {show.number_of_episodes != null && <Pill>{show.number_of_episodes} bölüm</Pill>}
+            <Pill>★ TMDB {show.vote_average.toFixed(1)}</Pill>
+            {user && watchedCount > 0 && (
+              <Pill>✓ {watchedCount} izlenen</Pill>
+            )}
+          </div>
+          {show.genres && (
+            <div className="flex flex-wrap gap-1.5">
+              {show.genres.map((g) => <Pill key={g.id}>{g.name}</Pill>)}
+            </div>
+          )}
+          {show.overview && <p className="text-sm leading-relaxed pt-2">{show.overview}</p>}
+        </div>
+      </div>
+
+      <section>
+        <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-3">Sezonlar</h2>
+        {!user && (
+          <p className="text-sm text-[var(--color-text-dim)] mb-3">
+            Bölümleri "izledim" olarak işaretlemek için giriş yap.
+          </p>
+        )}
+        <div className="space-y-2">
+          {seasonList.map((s) => {
+            const detail = seasons.get(s.season_number)
+            const isOpen = openSeason === s.season_number
+            const eps = detail?.episodes ?? []
+            const allMarked = eps.length > 0 && eps.every((e) => watchedKeys.has(episodeKey(s.season_number, e.episode_number)))
+            const markedInSeason = eps.filter((e) => watchedKeys.has(episodeKey(s.season_number, e.episode_number))).length
+
+            return (
+              <div key={s.season_number} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+                <button
+                  onClick={() => loadSeason(s.season_number)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--color-surface-2)]/50 transition text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {poster(s.poster_path, 'w185') && (
+                      <img src={poster(s.poster_path, 'w185')!} alt="" className="w-10 h-14 rounded object-cover shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{s.name}</div>
+                      <div className="text-xs text-[var(--color-text-dim)]">
+                        {s.episode_count} bölüm
+                        {detail && markedInSeason > 0 && ` · ${markedInSeason}/${eps.length} izlendi`}
+                        {s.air_date && ` · ${fmtDate(s.air_date)}`}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`text-xs text-[var(--color-text-dim)] transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                </button>
+
+                {isOpen && detail && (
+                  <div className="border-t border-[var(--color-border)] divide-y divide-[var(--color-border)]">
+                    {user && eps.length > 0 && (
+                      <div className="px-4 py-2 bg-[var(--color-surface-2)]/40 flex justify-end">
+                        <button
+                          onClick={() => toggleSeason(detail)}
+                          className="text-xs px-3 py-1 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
+                        >
+                          {allMarked ? '✕ Tüm sezonu kaldır' : '✓ Tüm sezonu işaretle'}
+                        </button>
+                      </div>
+                    )}
+                    {eps.map((ep) => {
+                      const k = episodeKey(s.season_number, ep.episode_number)
+                      const watched = watchedKeys.has(k)
+                      return (
+                        <div key={ep.id} className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-2)]/30">
+                          <div className="text-xs text-[var(--color-text-dim)] tabular-nums w-10 shrink-0 pt-0.5">
+                            S{s.season_number}E{ep.episode_number}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{ep.name}</div>
+                            <div className="text-xs text-[var(--color-text-dim)] mt-0.5">
+                              {ep.air_date && fmtDate(ep.air_date)}
+                              {ep.runtime != null && ` · ${ep.runtime}dk`}
+                            </div>
+                            {ep.overview && (
+                              <div className="text-xs text-[var(--color-text-dim)] mt-1 line-clamp-2">{ep.overview}</div>
+                            )}
+                          </div>
+                          <button
+                            disabled={!user}
+                            onClick={() => toggleEpisode(s.season_number, ep)}
+                            className={`shrink-0 text-xs px-2.5 py-1 rounded-md transition ${
+                              !user
+                                ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
+                                : watched
+                                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                                : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)] border border-transparent'
+                            }`}
+                            title={user ? '' : 'Giriş yapınca işaretleyebilirsin'}
+                          >
+                            {watched ? '✓ İzledim' : 'İzledim'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return <span className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-xs">{children}</span>
+}

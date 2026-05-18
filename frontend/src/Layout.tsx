@@ -96,7 +96,8 @@ export function Layout() {
             </span>
           </Link>
           <nav className="flex items-center gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-1">
-            <TabLink to="/">Keşfet</TabLink>
+            <TabLink to="/">Filmler</TabLink>
+            <TabLink to="/tv">Diziler</TabLink>
             <TabLink to="/watchlist">Listem {user && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</TabLink>
             <TabLink to="/watched">İzlediklerim {user && watchedIds.size > 0 ? `(${watchedIds.size})` : ''}</TabLink>
             {user && <TabLink to="/stats">İstatistik</TabLink>}
