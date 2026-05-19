@@ -25,6 +25,8 @@ import { savedFiltersRoutes } from './routes/savedFilters.js'
 import { webhookRoutes } from './routes/webhooks.js'
 import { calendarRoutes } from './routes/calendar.js'
 import { exportRoutes } from './routes/export.js'
+import { imdbTopRoutes } from './routes/imdbTop.js'
+import { startImdbTopRefresh } from './lib/imdbTopCache.js'
 
 async function build() {
   const app = Fastify({
@@ -69,6 +71,7 @@ async function build() {
   await app.register(webhookRoutes)
   await app.register(calendarRoutes)
   await app.register(exportRoutes)
+  await app.register(imdbTopRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
 
@@ -77,6 +80,11 @@ async function build() {
 
 async function main() {
   const app = await build()
+  // Warm the IMDb-top snapshot for the default region before accepting
+  // traffic so the first request to /api/imdb-top is hot. Failures here are
+  // swallowed inside the cache module (logged + retried on demand) so a
+  // transient TMDB hiccup never blocks boot.
+  await startImdbTopRefresh(app.log)
   try {
     await app.listen({ host: env.HOST, port: env.PORT })
   } catch (err) {

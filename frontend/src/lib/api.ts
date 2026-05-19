@@ -125,3 +125,29 @@ export function listProviders(region = 'TR') {
 export function listGenres() {
   return get<Genre[]>('/api/genres')
 }
+
+export interface ImdbTopProvider {
+  provider_id: number
+  provider_name: string
+  logo_path: string
+}
+
+export interface ImdbTopMovie {
+  rank: number
+  id: number
+  title: string
+  poster_path: string | null
+  vote_average: number
+  year: string | null
+  providers: ImdbTopProvider[]
+}
+
+export interface ImdbTopSnapshot {
+  updated_at: string
+  source: { list_id: number; list_name: string }
+  movies: ImdbTopMovie[]
+}
+
+export function imdbTop(region = 'TR') {
+  return get<ImdbTopSnapshot>('/api/imdb-top', { region })
+}

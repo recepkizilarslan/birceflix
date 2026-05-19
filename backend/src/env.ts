@@ -32,6 +32,12 @@ const schema = z.object({
 
   // Defaults
   DEFAULT_WATCH_REGION: z.string().length(2).default('TR'),
+
+  // IMDb-top page. Backed by a public TMDB list (community-maintained mirror
+  // of IMDb's top movies). Override the list id to swap the source if it
+  // ever goes stale.
+  IMDB_TOP_LIST_ID: z.coerce.number().int().positive().default(522),
+  IMDB_TOP_LIMIT: z.coerce.number().int().positive().max(500).default(200),
 })
 
 export type Env = z.infer<typeof schema>
