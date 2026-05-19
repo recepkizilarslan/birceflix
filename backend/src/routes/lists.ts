@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { listItems, lists, users } from '../db/schema.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const idParam = z.object({ id: z.string().uuid() })
 const slugParam = z.object({ slug: z.string().min(8).max(64) })
@@ -62,7 +63,7 @@ function serialiseItem(i: typeof listItems.$inferSelect) {
 
 export async function listsRoutes(app: FastifyInstance) {
   // -------- Own lists ----------------------------------------------------
-  app.get('/api/lists', async (req) => {
+  app.get('/api/lists', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select({
@@ -78,7 +79,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Create -------------------------------------------------------
-  app.post('/api/lists', async (req) => {
+  app.post('/api/lists', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = createBody.parse(req.body)
     const [row] = await db
@@ -95,7 +96,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Detail (own list with items) ---------------------------------
-  app.get('/api/lists/:id', async (req, reply) => {
+  app.get('/api/lists/:id', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const [row] = await db
@@ -115,7 +116,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Update -------------------------------------------------------
-  app.patch('/api/lists/:id', async (req, reply) => {
+  app.patch('/api/lists/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = updateBody.parse(req.body)
@@ -151,7 +152,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Delete -------------------------------------------------------
-  app.delete('/api/lists/:id', async (req, reply) => {
+  app.delete('/api/lists/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const result = await db
@@ -163,7 +164,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: add ---------------------------------------------------
-  app.post('/api/lists/:id/items', async (req, reply) => {
+  app.post('/api/lists/:id/items', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = addItemBody.parse(req.body)
@@ -199,7 +200,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: remove -----------------------------------------------
-  app.delete('/api/lists/:id/items/:tmdbId', async (req, reply) => {
+  app.delete('/api/lists/:id/items/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id, tmdbId } = itemParam.parse(req.params)
 

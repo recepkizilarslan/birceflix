@@ -5,6 +5,7 @@ import { and, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedEpisodes, watchedMovies, watchHistory, webhookTokens } from '../db/schema.js'
 import { parseJellyfin, parsePlex, type ScrobbleEvent } from '../lib/scrobblers.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const createBody = z.object({
   label: z.string().min(1).max(120),
@@ -98,7 +99,7 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
 
 export async function webhookRoutes(app: FastifyInstance) {
   // -------- Token CRUD (auth required) ----------------------------------
-  app.get('/api/webhooks', async (req) => {
+  app.get('/api/webhooks', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select()
@@ -109,7 +110,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     return rows.map((r) => serialise(r, false))
   })
 
-  app.post('/api/webhooks', async (req) => {
+  app.post('/api/webhooks', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { label } = createBody.parse(req.body)
     const token = newToken()
@@ -121,7 +122,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     return serialise(row!, true)
   })
 
-  app.delete('/api/webhooks/:id', async (req) => {
+  app.delete('/api/webhooks/:id', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     await db

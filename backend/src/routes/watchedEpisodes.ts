@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedEpisodes } from '../db/schema.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const markBody = z.object({
   show_id: z.number().int().positive(),
@@ -35,7 +36,7 @@ const episodeKey = z.object({
 
 export async function watchedEpisodeRoutes(app: FastifyInstance) {
   // List all watched episodes for one show (current user)
-  app.get('/api/watched-episodes/:showId', async (req) => {
+  app.get('/api/watched-episodes/:showId', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId } = showIdParam.parse(req.params)
     const rows = await db
@@ -47,7 +48,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Per-show counts — used by the watched-shows summary list
-  app.get('/api/watched-episodes', async (req) => {
+  app.get('/api/watched-episodes', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select({
@@ -65,7 +66,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Mark a single episode
-  app.post('/api/watched-episodes', async (req) => {
+  app.post('/api/watched-episodes', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = markBody.parse(req.body)
     await db
@@ -100,7 +101,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Mark a whole season at once — used by the "tüm sezon" toggle
-  app.post('/api/watched-episodes/bulk', async (req) => {
+  app.post('/api/watched-episodes/bulk', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = bulkBody.parse(req.body)
     const rows = body.episodes.map((e) => ({
@@ -127,7 +128,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Unmark a single episode
-  app.delete('/api/watched-episodes/:showId/:season/:episode', async (req) => {
+  app.delete('/api/watched-episodes/:showId/:season/:episode', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId, season, episode } = episodeKey.parse(req.params)
     await db
@@ -144,7 +145,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Unmark an entire season
-  app.delete('/api/watched-episodes/:showId/:season', async (req) => {
+  app.delete('/api/watched-episodes/:showId/:season', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId, season } = z
       .object({ showId: z.coerce.number().int().positive(), season: z.coerce.number().int().min(0) })
