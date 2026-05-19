@@ -2,6 +2,16 @@
   <img src="assets/logo.svg" alt="Birceflix" width="520">
 </p>
 
+<p align="center">
+  <a href="https://github.com/recepkizilarslan/birceflix/actions/workflows/ci.yml"><img src="https://github.com/recepkizilarslan/birceflix/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/recepkizilarslan/birceflix/actions/workflows/codeql.yml"><img src="https://github.com/recepkizilarslan/birceflix/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL"></a>
+  <a href="https://github.com/recepkizilarslan/birceflix/actions/workflows/deploy.yml"><img src="https://github.com/recepkizilarslan/birceflix/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/recepkizilarslan/birceflix?color=blue" alt="License: MIT"></a>
+  <a href="https://github.com/recepkizilarslan/birceflix/releases"><img src="https://img.shields.io/github/v/release/recepkizilarslan/birceflix?include_prereleases&sort=semver&display_name=tag" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white" alt="TypeScript strict">
+  <img src="https://img.shields.io/badge/Node-20-339933?logo=node.js&logoColor=white" alt="Node 20">
+</p>
+
 Discover movies, filter them (language, country, genre, platform, rating, year, runtime), sign in with Google, and track what you've watched.
 
 **Self-hosted** — runs on your own server with Docker Compose. No third-party BaaS.
