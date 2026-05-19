@@ -22,6 +22,7 @@ import { SORT_OPTIONS, TV_SORT_OPTIONS } from './constants'
  *   sf|st  number 0..100           seasons from/to (TV only)
  *   ef|et  number 0..5000          episodes from/to (TV only)
  *   sort   TMDB sort key           omitted when default
+ *   top    "1"                      top-rated-only mode (movies + tv only)
  */
 
 export interface DiscoverUrlState {
@@ -50,6 +51,7 @@ const KEY = {
   episodesFrom: 'ef',
   episodesTo: 'et',
   sort: 'sort',
+  top: 'top',
 } as const
 
 function parseMediaType(raw: string | null): MediaType {
@@ -122,6 +124,8 @@ export function parseDiscoverUrl(sp: URLSearchParams, defaultRegion: string): Di
     episodes_from: tv ? parseIntInRange(sp.get(KEY.episodesFrom), 0, 5000) : '',
     episodes_to: tv ? parseIntInRange(sp.get(KEY.episodesTo), 0, 5000) : '',
     sort_by: parseSort(sp.get(KEY.sort), mediaType),
+    // top-mode flag, ignored for doc since there's no /doc top_rated.
+    top_only: sp.get(KEY.top) === '1' && mediaType !== 'doc',
   }
 
   const rawQuery = sp.get(KEY.q)
@@ -171,6 +175,10 @@ export function serializeDiscoverUrl(state: DiscoverUrlState): URLSearchParams {
   }
 
   if (f.sort_by && f.sort_by !== DEFAULT_FILTERS.sort_by) sp.set(KEY.sort, f.sort_by)
+
+  // top-only flag never applies to /doc (no top_rated endpoint), so drop
+  // it from the URL even if a stale state would have set it.
+  if (f.top_only && mediaType !== 'doc') sp.set(KEY.top, '1')
 
   return sp
 }

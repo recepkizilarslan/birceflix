@@ -10,7 +10,6 @@ import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
 import { CalendarPage } from './pages/Calendar'
-import { ImdbTopPage } from './pages/ImdbTop'
 import { PWAUpdateToast } from './components/PWAUpdateToast'
 import { RequireAuth } from './components/RequireAuth'
 import { SignInScreen } from './components/SignInScreen'
@@ -37,7 +36,6 @@ function App() {
           <Route element={<RequireAuth />}>
             <Route index element={<RedirectToDiscover />} />
             <Route path="discover" element={<Discover />} />
-            <Route path="imdb-top" element={<ImdbTopPage />} />
             <Route path="watched" element={<Watched />} />
             <Route path="watchlist" element={<Watchlist />} />
             <Route path="import" element={<ImportPage />} />
