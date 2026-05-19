@@ -111,7 +111,7 @@ export function SignInScreen() {
           <input
             type="password"
             required
-            minLength={mode === 'register' ? 8 : 1}
+            minLength={mode === 'register' ? 10 : 1}
             placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -119,6 +119,11 @@ export function SignInScreen() {
             disabled={busy}
             className={inputCls}
           />
+          {mode === 'register' && password.length > 0 && !isStrongEnough(password) && (
+            <div className="text-[11px] text-[var(--color-text-dim)] pt-0.5">
+              {t('auth.errors.weak_password')}
+            </div>
+          )}
 
           {errCode && (
             <div className="text-xs text-red-400 text-center pt-1">
@@ -319,6 +324,21 @@ function integrationBrands(): { key: string; name: string; node: React.ReactNode
 }
 
 const inputCls = 'w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text)] placeholder-[var(--color-text-dim)] focus:outline-none focus:border-[var(--color-text-dim)] disabled:opacity-60'
+
+/**
+ * Client-side mirror of backend/src/auth/passwordPolicy.ts — kept simple
+ * so the strength hint can update on every keystroke. The server is the
+ * source of truth; this is only for instant UX feedback.
+ */
+function isStrongEnough(pw: string): boolean {
+  if (pw.length < 10) return false
+  const classes =
+    (/[a-z0-9]/.test(pw) ? 1 : 0) +
+    (/[A-Z]/.test(pw) ? 1 : 0) +
+    (/[0-9]/.test(pw) ? 1 : 0) +
+    (/[^A-Za-z0-9]/.test(pw) ? 1 : 0)
+  return classes >= 3
+}
 
 /** Inline Google "G" logo so we don't pull in another asset. */
 function GoogleIcon() {

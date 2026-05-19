@@ -27,7 +27,9 @@
     "errors": {
       "email_taken": "Bu e-posta zaten kayıtlı.",
       "invalid_credentials": "E-posta veya şifre hatalı.",
-      "invalid_input": "Geçersiz bilgi. Şifre en az 8 karakter olmalı.",
+      "invalid_input": "Geçersiz bilgi. Şifre en az 10 karakter olmalı.",
+      "weak_password": "Şifre çok zayıf. En az 10 karakter; büyük/küçük harf, rakam ve sembolden en az üçünü içermeli.",
+      "rate_limited": "Çok fazla deneme yaptın. Lütfen birkaç dakika sonra tekrar dene.",
       "request_failed": "Bir şeyler ters gitti, tekrar dene."
     }
   },

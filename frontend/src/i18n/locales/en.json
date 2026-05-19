@@ -27,7 +27,9 @@
     "errors": {
       "email_taken": "That email is already registered.",
       "invalid_credentials": "Wrong email or password.",
-      "invalid_input": "Invalid input. Password must be at least 8 characters.",
+      "invalid_input": "Invalid input. Password must be at least 10 characters.",
+      "weak_password": "Password is too weak. Use at least 10 characters and mix three of: lowercase, uppercase, digit, symbol.",
+      "rate_limited": "Too many attempts. Please try again in a few minutes.",
       "request_failed": "Something went wrong, please try again."
     }
   },
