@@ -144,6 +144,21 @@ Movie ratings, posters and metadata are courtesy of:
 - [The Movie Database (TMDB)](https://www.themoviedb.org/)
 - [OMDb API](https://www.omdbapi.com/)
 
+## Notice
+
+Birceflix is an independent, non-commercial, open-source personal project. It is **not affiliated with, endorsed by, or sponsored by Netflix, Inc.** or any other streaming service.
+
+The `-flix` suffix is a generic English word used by many unrelated open-source projects (e.g. [MovieFlix](https://github.com/shalenMathew/MovieFlix_App), [FilmFlix](https://github.com/AliAsgharSWE/FilmFlix), [Myflix](https://github.com/farfalleflickan/Myflix), [OpenFLIXR](https://github.com/cyberlooper/OpenFLIXR2.Wizard)) and commercial products, and is not exclusively associated with Netflix.
+
+The project's visual identity is intentionally distinct from Netflix's brand assets:
+
+| | Netflix | Birceflix |
+|---|---|---|
+| Primary color | `#E50914` | `#FF3B47` (lighter, pink-shifted) |
+| Wordmark font | Impact / condensed display | Inter (humanist sans-serif) |
+
+If you fork or redistribute this project under the MIT license, please keep this notice and avoid adopting Netflix's exact brand color or wordmark style in your derivative work.
+
 ## License
 
 [MIT](LICENSE) © Recep Kızılarslan
