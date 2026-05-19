@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './Layout'
 import { Discover } from './pages/Discover'
 import { Watched } from './pages/Watched'
@@ -28,15 +28,20 @@ function App() {
               there's no session. */}
           <Route path="public/lists/:slug" element={<PublicListPage />} />
 
-          {/* Everything below requires a session */}
+          {/* Everything below requires a session. Discover is the homepage,
+              but it lives at /discover so it can be linked, bookmarked, and
+              shared explicitly. Root redirects there while preserving any
+              query string (old shared `/?type=tv` style links still resolve
+              to the right state). */}
           <Route element={<RequireAuth />}>
-            <Route index element={<Discover />} />
+            <Route index element={<RedirectToDiscover />} />
+            <Route path="discover" element={<Discover />} />
             <Route path="watched" element={<Watched />} />
             <Route path="watchlist" element={<Watchlist />} />
             <Route path="import" element={<ImportPage />} />
             <Route path="movie/:id" element={<MovieDetailPage />} />
             {/* /tv is the old separate TV discover route — redirect into the unified discover */}
-            <Route path="tv" element={<Navigate to="/?type=tv" replace />} />
+            <Route path="tv" element={<Navigate to="/discover?type=tv" replace />} />
             <Route path="tv/:id" element={<TvDetailPage />} />
             <Route path="lists" element={<ListsPage />} />
             <Route path="lists/:id" element={<ListDetailPage />} />
@@ -47,6 +52,13 @@ function App() {
       <PWAUpdateToast />
     </BrowserRouter>
   )
+}
+
+/** Preserves the query string while redirecting `/` → `/discover` so legacy
+ *  links like `/?type=tv&g=18` keep working after the route move. */
+function RedirectToDiscover() {
+  const { search } = useLocation()
+  return <Navigate to={{ pathname: '/discover', search }} replace />
 }
 
 export default App

@@ -67,7 +67,7 @@ export function Layout() {
   useEffect(() => { refreshWatchlist() }, [refreshWatchlist])
 
   const toggleWatched = useCallback(async (m: MediaRef) => {
-    if (!user) { navigate('/'); return }
+    if (!user) { navigate('/discover'); return }
     const k = mediaKey(m.media_type, m.id)
     try {
       if (watchedKeys.has(k)) await unmarkWatched(m.id, m.media_type)
@@ -77,7 +77,7 @@ export function Layout() {
   }, [user, watchedKeys, refreshWatched, navigate])
 
   const toggleWatchlist = useCallback(async (m: MediaRef) => {
-    if (!user) { navigate('/'); return }
+    if (!user) { navigate('/discover'); return }
     const k = mediaKey(m.media_type, m.id)
     try {
       if (watchlistKeys.has(k)) await removeFromWatchlist(m.id, m.media_type)
@@ -125,7 +125,7 @@ export function Layout() {
             </button>
           )}
 
-          <Link to="/" className="hover:opacity-90 shrink-0">
+          <Link to="/discover" className="hover:opacity-90 shrink-0">
             <span
               className="block leading-none"
               style={{
@@ -143,7 +143,7 @@ export function Layout() {
           {/* Desktop nav */}
           {showNav && (
             <nav className="hidden lg:flex items-center gap-1">
-              <TabLink to="/">{t('nav.discover')}</TabLink>
+              <TabLink to="/discover">{t('nav.discover')}</TabLink>
               <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
               <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
               <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
@@ -190,7 +190,7 @@ export function Layout() {
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-              <DrawerLink to="/"          onSelect={() => setMenuOpen(false)} icon="🔍">{t('nav.discover')}</DrawerLink>
+              <DrawerLink to="/discover"  onSelect={() => setMenuOpen(false)} icon="🔍">{t('nav.discover')}</DrawerLink>
               <DrawerLink to="/calendar"  onSelect={() => setMenuOpen(false)} icon="📅">{t('nav.calendar')}</DrawerLink>
               <DrawerLink to="/watchlist" onSelect={() => setMenuOpen(false)} icon="🔖" badge={watchlistCount}>{t('nav.watchlist')}</DrawerLink>
               <DrawerLink to="/watched"   onSelect={() => setMenuOpen(false)} icon="✓"  badge={watchedCount}>{t('nav.watched')}</DrawerLink>
@@ -216,7 +216,7 @@ export function Layout() {
           aria-label="Primary"
         >
           <div className="grid grid-cols-5 h-14">
-            <BottomTab to="/"          label={t('nav.discover')}  icon={DiscoverIcon} />
+            <BottomTab to="/discover"  label={t('nav.discover')}  icon={DiscoverIcon} />
             <BottomTab to="/calendar"  label={t('nav.calendar')}  icon={CalendarIcon} />
             <BottomTab to="/watchlist" label={t('nav.watchlist')} icon={BookmarkIcon} badge={watchlistCount} />
             <BottomTab to="/watched"   label={t('nav.watched')}   icon={CheckIcon}    badge={watchedCount} />

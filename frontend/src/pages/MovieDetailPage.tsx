@@ -42,7 +42,7 @@ export function MovieDetailPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
           <button
-            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/discover'))}
             aria-label={t('common.back')}
             className="absolute top-3 left-3 sm:top-4 sm:left-4 h-9 px-3 inline-flex items-center text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
@@ -53,7 +53,7 @@ export function MovieDetailPage() {
 
       {!d.backdrop_path && (
         <button
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/discover'))}
           className="mb-4 text-sm text-[var(--color-text-dim)] hover:text-white"
         >
           {t('common.back')}
@@ -227,7 +227,7 @@ export function MovieDetailPage() {
       </div>
 
       <div className="mt-12 text-center">
-        <Link to="/" className="text-sm text-[var(--color-accent)] hover:underline">{t('movie.backToDiscover')}</Link>
+        <Link to="/discover" className="text-sm text-[var(--color-accent)] hover:underline">{t('movie.backToDiscover')}</Link>
       </div>
     </div>
   )

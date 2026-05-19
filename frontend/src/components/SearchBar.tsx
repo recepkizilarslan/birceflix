@@ -1,14 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
+  /** Optional controlled value. When provided, the input mirrors it so shared
+   *  URLs and back/forward navigation populate the field. The user can still
+   *  type freely; the parent re-syncs only when `value` itself changes. */
+  value?: string
   onSearch: (q: string) => void
   onClear: () => void
 }
 
-export function SearchBar({ onSearch, onClear }: Props) {
+export function SearchBar({ value, onSearch, onClear }: Props) {
   const { t } = useTranslation()
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(value ?? '')
+
+  // Resync local input when the external value changes (e.g., user navigates
+  // back to a different `?q=`, or clicks a shared link). We don't strictly
+  // control the input so the user's in-progress typing isn't clobbered by
+  // an unrelated re-render.
+  useEffect(() => {
+    if (value !== undefined) setQ(value)
+  }, [value])
 
   const clear = () => { setQ(''); onClear() }
 
