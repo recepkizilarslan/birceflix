@@ -128,7 +128,7 @@ export function ImdbTopPage() {
           )}
 
           <p className="text-[11px] text-[var(--color-text-dim)] text-center pb-4">
-            {t('imdbTop.attribution', { listName: data.source.list_name })}
+            {t('imdbTop.attribution', { source: data.source.name })}
           </p>
         </>
       )}
