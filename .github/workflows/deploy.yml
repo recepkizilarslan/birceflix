@@ -22,6 +22,7 @@ jobs:
   build-and-push:
     name: Build & push images to GHCR
     runs-on: ubuntu-latest
+    environment: production
     outputs:
       image_tag: ${{ steps.meta.outputs.tag }}
       owner: ${{ steps.owner.outputs.value }}
@@ -75,7 +76,6 @@ jobs:
     name: Roll out to Hetzner
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
       GHCR_OWNER: ${{ needs.build-and-push.outputs.owner }}
