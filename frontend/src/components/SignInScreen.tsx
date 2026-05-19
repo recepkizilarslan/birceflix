@@ -67,7 +67,8 @@ export function SignInScreen() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] pt-safe pl-safe pr-safe pb-safe">
+    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] pt-safe pl-safe pr-safe pb-safe relative">
+      <GithubStarBadge />
       {/* Hero: logo + tagline. Tightens up on mobile. */}
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 sm:py-12">
         <div className="w-full max-w-sm">
@@ -204,6 +205,63 @@ export function SignInScreen() {
         <BrandMarquee providers={providers} />
       </section>
     </div>
+  )
+}
+
+/**
+ * Top-right pill linking to the GitHub repo with a live star count.
+ * Signals to visitors that this is an open-source project. Fetches the
+ * count once on mount; if the API is unreachable (offline / rate-limited)
+ * the badge falls back to a star-less "GitHub" pill instead of hiding,
+ * so the open-source signal is always visible.
+ */
+function GithubStarBadge() {
+  const repoUrl = 'https://github.com/recepkizilarslan/birceflix'
+  const [stars, setStars] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('https://api.github.com/repos/recepkizilarslan/birceflix')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.stargazers_count === 'number') {
+          setStars(data.stargazers_count)
+        }
+      })
+      .catch(() => { /* keep null, badge still renders */ })
+    return () => { cancelled = true }
+  }, [])
+
+  return (
+    <a
+      href={repoUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View Birceflix on GitHub"
+      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 inline-flex items-center gap-1.5 h-8 sm:h-9 pl-2 pr-2.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] text-[11px] sm:text-xs font-medium shadow-sm hover:border-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] transition active:scale-[0.98]"
+    >
+      <GithubIcon />
+      <span>GitHub</span>
+      <span className="mx-1 h-3.5 w-px bg-[var(--color-border)]" />
+      <StarIcon />
+      <span className="tabular-nums">{stars ?? '...'}</span>
+    </a>
+  )
+}
+
+function GithubIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 .5C5.73.5.66 5.57.66 11.84c0 5.02 3.25 9.27 7.76 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.82-1.52-3.82-1.52-.52-1.32-1.27-1.67-1.27-1.67-1.03-.71.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.02 1.74 2.66 1.24 3.31.95.1-.74.4-1.24.72-1.53-2.52-.29-5.17-1.26-5.17-5.62 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.03 0 0 .96-.31 3.13 1.17a10.9 10.9 0 0 1 5.7 0c2.17-1.48 3.13-1.17 3.13-1.17.62 1.58.23 2.74.11 3.03.73.8 1.17 1.82 1.17 3.06 0 4.37-2.66 5.32-5.19 5.61.41.35.77 1.05.77 2.12 0 1.53-.01 2.77-.01 3.14 0 .3.21.66.79.55 4.5-1.5 7.75-5.75 7.75-10.77C23.34 5.57 18.27.5 12 .5Z"/>
+    </svg>
+  )
+}
+
+function StarIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="#F5C518" stroke="#F5C518" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
   )
 }
 
