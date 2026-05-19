@@ -7,7 +7,6 @@
   <a href="https://github.com/recepkizilarslan/birceflix/actions/workflows/codeql.yml"><img src="https://github.com/recepkizilarslan/birceflix/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL"></a>
   <a href="https://github.com/recepkizilarslan/birceflix/actions/workflows/deploy.yml"><img src="https://github.com/recepkizilarslan/birceflix/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/recepkizilarslan/birceflix?color=blue" alt="License: MIT"></a>
-  <a href="https://github.com/recepkizilarslan/birceflix/releases"><img src="https://img.shields.io/github/v/release/recepkizilarslan/birceflix?include_prereleases&sort=semver&display_name=tag" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white" alt="TypeScript strict">
   <img src="https://img.shields.io/badge/Node-20-339933?logo=node.js&logoColor=white" alt="Node 20">
 </p>
@@ -56,18 +55,7 @@ Birceflix uses the TMDB API but is not endorsed or certified by TMDB. Movie post
 
 ## Notice
 
-Birceflix is an independent, non-commercial, open-source personal project. It is **not affiliated with, endorsed by, or sponsored by Netflix, Inc.** or any other streaming service.
-
-The `-flix` suffix is a generic English word used by many unrelated open-source projects (e.g. [MovieFlix](https://github.com/shalenMathew/MovieFlix_App), [FilmFlix](https://github.com/AliAsgharSWE/FilmFlix), [Myflix](https://github.com/farfalleflickan/Myflix), [OpenFLIXR](https://github.com/cyberlooper/OpenFLIXR2.Wizard)) and commercial products, and is not exclusively associated with Netflix.
-
-The project's visual identity is intentionally distinct from Netflix's brand assets:
-
-| | Netflix | Birceflix |
-|---|---|---|
-| Primary color | `#E50914` | `#FF3B47` (lighter, pink-shifted) |
-| Wordmark font | Impact / condensed display | Inter (humanist sans-serif) |
-
-If you fork or redistribute this project under the MIT license, please keep this notice and avoid adopting Netflix's exact brand color or wordmark style in your derivative work.
+Birceflix is an independent, non-commercial, open-source personal project.
 
 ## License
 
