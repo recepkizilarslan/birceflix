@@ -33,13 +33,13 @@ export function PreferencesMenu({ className = '' }: { className?: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-label={t('prefs.open')}
         title={t('prefs.title')}
-        className="px-2.5 py-1.5 text-sm rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)]"
+        className="h-9 px-2.5 text-xs sm:text-sm rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] inline-flex items-center"
       >
         <span className="tabular-nums">{lang.toUpperCase()} · {region}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 z-30 top-full mt-2 min-w-[240px] rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl p-3 space-y-3">
+        <div className="fixed sm:absolute right-2 sm:right-0 z-50 top-14 sm:top-full sm:mt-2 w-[calc(100vw-1rem)] sm:w-auto sm:min-w-[240px] max-w-sm rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl p-3 space-y-3">
           <div>
             <div className="text-xs text-[var(--color-text-dim)] mb-1.5">{t('prefs.language')}</div>
             <div className="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">

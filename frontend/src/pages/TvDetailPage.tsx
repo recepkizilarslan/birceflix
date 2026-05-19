@@ -138,7 +138,7 @@ export function TvDetailPage() {
   return (
     <div>
       {show.backdrop_path && (
-        <div className="relative -mx-4 sm:rounded-2xl sm:mx-0 overflow-hidden mb-6 aspect-[16/7] bg-[var(--color-surface)]">
+        <div className="relative -mx-3 sm:-mx-0 sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 aspect-[16/9] sm:aspect-[16/7] bg-[var(--color-surface)]">
           <img
             src={`https://image.tmdb.org/t/p/original${show.backdrop_path}`}
             alt=""
@@ -147,20 +147,21 @@ export function TvDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
           <button
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/tv'))}
-            className="absolute top-4 left-4 px-3 py-1.5 text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
+            aria-label={t('common.back')}
+            className="absolute top-3 left-3 sm:top-4 sm:left-4 h-9 px-3 inline-flex items-center text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
             {t('common.back')}
           </button>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6 sm:mb-8">
         {poster(show.poster_path, 'w342') && (
-          <img src={poster(show.poster_path, 'w342')!} alt="" className="w-40 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0" />
+          <img src={poster(show.poster_path, 'w342')!} alt="" className="w-32 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0" />
         )}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 min-w-0">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{show.name}</h1>
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{show.name}</h1>
             {show.original_name !== show.name && (
               <div className="text-sm text-[var(--color-text-dim)] mt-1">{show.original_name}</div>
             )}
@@ -190,10 +191,10 @@ export function TvDetailPage() {
             const inWatchlist = showWatchlistKeys.has(k)
             const ref = { id: show.id, media_type: 'tv' as const, title: show.name, poster_path: show.poster_path }
             return (
-              <div className="flex flex-wrap gap-2 pt-3">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3">
                 <button
                   onClick={() => toggleWatched(ref)}
-                  className={`text-sm px-4 py-2 rounded-lg transition ${
+                  className={`text-sm h-11 sm:h-auto sm:px-4 sm:py-2 px-3 rounded-lg transition active:scale-[0.98] ${
                     isWatched
                       ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
                       : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
@@ -203,7 +204,7 @@ export function TvDetailPage() {
                 </button>
                 <button
                   onClick={() => toggleWatchlist(ref)}
-                  className={`text-sm px-4 py-2 rounded-lg transition ${
+                  className={`text-sm h-11 sm:h-auto sm:px-4 sm:py-2 px-3 rounded-lg transition active:scale-[0.98] ${
                     inWatchlist
                       ? 'bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/30'
                       : 'bg-transparent border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
@@ -287,7 +288,7 @@ export function TvDetailPage() {
                           <button
                             disabled={!user}
                             onClick={() => toggleEpisode(s.season_number, ep)}
-                            className={`shrink-0 text-xs px-2.5 py-1 rounded-md transition ${
+                            className={`shrink-0 text-xs px-3 h-9 sm:h-auto sm:py-1 inline-flex items-center rounded-md transition active:scale-[0.96] ${
                               !user
                                 ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
                                 : watched

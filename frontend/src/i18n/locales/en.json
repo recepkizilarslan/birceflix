@@ -7,7 +7,8 @@
     "watchlist": "Watchlist",
     "watched": "Watched",
     "lists": "Lists",
-    "import": "Import / Export"
+    "import": "Import / Export",
+    "menu": "Menu"
   },
   "auth": {
     "signIn": "Sign in with Google",
@@ -24,6 +25,9 @@
     "namePlaceholder": "Full name (optional)",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "legalHint": "By continuing you agree to our terms.",
     "errors": {
       "email_taken": "That email is already registered.",
       "invalid_credentials": "Wrong email or password.",
@@ -112,7 +116,9 @@
       "medium": "20–100",
       "many": "100+ episodes"
     },
-    "all": "All"
+    "all": "All",
+    "apply": "Apply",
+    "applyCount": "Show {{count}} results"
   },
   "sort": {
     "label": "Sort"

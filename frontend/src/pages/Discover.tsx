@@ -41,7 +41,8 @@ export function Discover() {
   }
 
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [sortSheetOpen, setSortSheetOpen] = useState(false)
 
   const [results, setResults] = useState<(TmdbMovie | TmdbTvShow)[]>([])
   const [searchQuery, setSearchQuery] = useState<string | null>(null)
@@ -49,6 +50,16 @@ export function Discover() {
   const [err, setErr] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+
+  // Lock body scroll while a bottom sheet is open so the page underneath
+  // doesn't move when the user pans the sheet.
+  useEffect(() => {
+    const anyOpen = filterSheetOpen || sortSheetOpen
+    if (!anyOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [filterSheetOpen, sortSheetOpen])
 
   const runDiscover = useCallback(async (f: FilterState, p = 1) => {
     setLoading(true); setErr(null); setSearchQuery(null)
@@ -122,55 +133,76 @@ export function Discover() {
 
   const onReset = () => setFilters({ ...DEFAULT_FILTERS, watch_region: filters.watch_region })
   const activeCount = countActiveFilters(filters)
+  const sortOptions = isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-      {/* Mobile drawer overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setMobileOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`
-          lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto
-          fixed lg:static inset-y-0 left-0 z-50 w-[300px] lg:w-auto
-          bg-[var(--color-bg)] lg:bg-transparent
-          transform transition-transform duration-200
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
-        `}
-      >
-        <div className="lg:hidden flex justify-between items-center p-4 border-b border-[var(--color-border)]">
-          <span className="font-semibold">{t('filters.title')}</span>
-          <button onClick={() => setMobileOpen(false)} className="text-xl px-2">✕</button>
-        </div>
-        <div className="p-4 lg:p-0">
-          <FilterPanel
-            value={filters}
-            onChange={setFilters}
-            onReset={onReset}
-            activeCount={activeCount}
-            mediaType={mediaType}
-            onMediaTypeChange={setMediaType}
-          />
-        </div>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+        <FilterPanel
+          value={filters}
+          onChange={setFilters}
+          onReset={onReset}
+          activeCount={activeCount}
+          mediaType={mediaType}
+          onMediaTypeChange={setMediaType}
+        />
       </aside>
 
       {/* Content */}
-      <div className="space-y-5 min-w-0">
+      <div className="space-y-4 min-w-0">
         <SearchBar
           onSearch={(q) => runSearch(q, 1)}
           onClear={() => { setSearchQuery(null); runDiscover(filters, 1) }}
         />
 
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="lg:hidden text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center gap-2"
-          >
-            <span>⚙</span> {t('filters.title')}
-            {activeCount > 0 && <span className="text-xs px-1.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>}
-          </button>
+        {/* Mobile media-type segmented control — quick switch between Film/Dizi/Belgesel. */}
+        <div className="lg:hidden flex gap-1.5 p-1 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+          {(['movie', 'tv', 'doc'] as MediaType[]).map((mt) => {
+            const active = mediaType === mt
+            return (
+              <button
+                key={mt}
+                onClick={() => setMediaType(mt)}
+                className={`flex-1 text-sm py-2 rounded-lg transition font-medium ${
+                  active
+                    ? 'bg-[var(--color-accent)] text-black'
+                    : 'text-[var(--color-text-dim)] hover:text-white'
+                }`}
+              >
+                {t(`filters.mediaTypes.${mt}`)}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Mobile toolbar — sticky Filtrele / Sırala buttons (e-commerce style). */}
+        <div className="lg:hidden sticky top-14 z-20 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-[var(--color-bg)]/95 backdrop-blur border-b border-[var(--color-border)]">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilterSheetOpen(true)}
+              className="flex-1 inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-sm font-medium active:scale-[0.98] transition"
+            >
+              <FilterIcon />
+              {t('filters.title')}
+              {activeCount > 0 && (
+                <span className="text-[11px] px-1.5 min-w-[18px] h-[18px] rounded-full bg-[var(--color-accent)] text-black font-semibold inline-flex items-center justify-center">
+                  {activeCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setSortSheetOpen(true)}
+              className="flex-1 inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-sm font-medium active:scale-[0.98] transition"
+            >
+              <SortIcon />
+              {t('sort.label')}
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop toolbar: results count + sort. */}
+        <div className="hidden lg:flex items-center justify-between gap-3 flex-wrap">
           {searchQuery && (
             <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
@@ -180,22 +212,29 @@ export function Discover() {
                 {t('discover.results', { count: results.length, page })}
               </div>
             )}
-            {/* Sort lives next to the results count, not in the filter sidebar —
-                sorting is a view concern, not a filter. */}
             <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
-              <span className="hidden sm:inline">{t('sort.label')}</span>
-              <span className="sm:hidden">⇅</span>
+              <span>{t('sort.label')}</span>
               <select
                 value={filters.sort_by}
                 onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
                 className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] min-w-[160px]"
               >
-                {(isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS).map((s) => (
+                {sortOptions.map((s) => (
                   <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
                 ))}
               </select>
             </label>
           </div>
+        </div>
+
+        {/* Mobile result count + search query line — outside sticky so it scrolls away. */}
+        <div className="lg:hidden flex items-center justify-between text-xs text-[var(--color-text-dim)]">
+          {searchQuery
+            ? <span className="truncate">{t('discover.searchResults', { query: searchQuery })}</span>
+            : <span />}
+          {results.length > 0 && !loading && (
+            <span className="shrink-0 ml-2">{t('discover.results', { count: results.length, page })}</span>
+          )}
         </div>
 
         {err && <div className="text-red-400 text-sm">{err}</div>}
@@ -207,7 +246,7 @@ export function Discover() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4">
           {(isTvMedia(mediaType)
             ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
                 id: s.id,
@@ -268,6 +307,71 @@ export function Discover() {
           </div>
         )}
       </div>
+
+      {/* ───────── Mobile filter bottom-sheet ───────── */}
+      {filterSheetOpen && (
+        <BottomSheet
+          title={t('filters.title')}
+          onClose={() => setFilterSheetOpen(false)}
+          footer={
+            <div className="flex gap-2">
+              <button
+                onClick={() => { onReset() }}
+                disabled={activeCount === 0}
+                className="flex-1 h-12 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] text-sm font-medium disabled:opacity-40"
+              >
+                {t('filters.clear')}
+              </button>
+              <button
+                onClick={() => setFilterSheetOpen(false)}
+                className="flex-[2] h-12 rounded-xl bg-[var(--color-accent)] text-black text-sm font-semibold active:scale-[0.98] transition"
+              >
+                {results.length > 0
+                  ? t('filters.applyCount', { count: results.length, defaultValue: t('filters.apply') })
+                  : t('filters.apply')}
+              </button>
+            </div>
+          }
+        >
+          <FilterPanel
+            value={filters}
+            onChange={setFilters}
+            onReset={onReset}
+            activeCount={activeCount}
+            mediaType={mediaType}
+            onMediaTypeChange={setMediaType}
+          />
+        </BottomSheet>
+      )}
+
+      {/* ───────── Mobile sort bottom-sheet ───────── */}
+      {sortSheetOpen && (
+        <BottomSheet
+          title={t('sort.label')}
+          onClose={() => setSortSheetOpen(false)}
+        >
+          <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
+            {sortOptions.map((s) => {
+              const active = filters.sort_by === s.value
+              return (
+                <button
+                  key={s.value}
+                  onClick={() => {
+                    setFilters({ ...filters, sort_by: s.value })
+                    setSortSheetOpen(false)
+                  }}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left text-sm border-b border-[var(--color-border)] last:border-b-0 transition ${
+                    active ? 'text-[var(--color-text)] bg-[var(--color-surface-2)]' : 'text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)]/60'
+                  }`}
+                >
+                  <span>{t(s.labelKey)}</span>
+                  {active && <span className="text-[var(--color-accent)] text-base">✓</span>}
+                </button>
+              )
+            })}
+          </div>
+        </BottomSheet>
+      )}
     </div>
   )
 }
@@ -277,10 +381,83 @@ function PageBtn({ disabled, onClick, children }: { disabled?: boolean; onClick:
     <button
       disabled={disabled}
       onClick={onClick}
-      className="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] disabled:opacity-40 hover:border-[var(--color-accent)]"
+      className="text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] disabled:opacity-40 hover:border-[var(--color-accent)]"
     >
       {children}
     </button>
+  )
+}
+
+/** Mobile bottom-sheet modal (lg:hidden) — covers ~90vh, scrollable body,
+ *  optional sticky footer for primary actions (Apply / Clear). */
+function BottomSheet({
+  title, children, footer, onClose,
+}: {
+  title: string
+  children: React.ReactNode
+  footer?: React.ReactNode
+  onClose: () => void
+}) {
+  return (
+    <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center">
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fadeIn"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full max-h-[90vh] flex flex-col bg-[var(--color-bg)] rounded-t-2xl border-t border-[var(--color-border)] shadow-2xl animate-slideUp"
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Drag handle */}
+        <div className="pt-2 pb-1 flex justify-center">
+          <div className="h-1.5 w-12 rounded-full bg-[var(--color-border)]" />
+        </div>
+        <div className="flex items-center justify-between px-4 pb-3 border-b border-[var(--color-border)]">
+          <h2 className="text-base font-semibold">{title}</h2>
+          <button
+            onClick={onClose}
+            aria-label="close"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg hover:bg-[var(--color-surface)] text-base"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          {children}
+        </div>
+        {footer && (
+          <div className="border-t border-[var(--color-border)] p-3 pb-safe bg-[var(--color-bg)]">
+            {footer}
+          </div>
+        )}
+      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+        .animate-fadeIn { animation: fadeIn .18s ease-out }
+        .animate-slideUp { animation: slideUp .24s cubic-bezier(.2,.8,.2,1) }
+      `}</style>
+    </div>
+  )
+}
+
+function FilterIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  )
+}
+function SortIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6"  x2="13" y2="6" />
+      <line x1="3" y1="12" x2="11" y2="12" />
+      <line x1="3" y1="18" x2="9"  y2="18" />
+      <polyline points="17 6 17 18 21 14" />
+      <line x1="17" y1="6" x2="17" y2="18" />
+    </svg>
   )
 }
 

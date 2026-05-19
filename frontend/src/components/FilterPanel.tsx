@@ -136,7 +136,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
             {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
           </Select>
         </div>
-        <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
+        <div className="grid grid-cols-2 gap-1.5 max-h-72 sm:max-h-56 overflow-y-auto">
           {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
           {providers.map((p) => {
             const active = value.with_watch_providers.includes(p.provider_id)
@@ -144,15 +144,15 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
               <button
                 key={p.provider_id}
                 onClick={() => onChange({ ...value, with_watch_providers: toggle(value.with_watch_providers, p.provider_id) })}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-left transition ${
+                className={`flex items-center gap-2 px-2 py-2 sm:py-1 rounded-md border text-left transition ${
                   active
                     ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
-                    : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
+                    : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)] active:scale-[0.98]'
                 }`}
                 title={p.provider_name}
               >
-                {p.logo_path && <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt="" className="h-5 w-5 rounded shrink-0" />}
-                <span className="text-[11px] truncate">{p.provider_name}</span>
+                {p.logo_path && <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt="" className="h-6 w-6 sm:h-5 sm:w-5 rounded shrink-0" />}
+                <span className="text-[12px] sm:text-[11px] truncate">{p.provider_name}</span>
               </button>
             )
           })}
@@ -164,7 +164,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
           type="range" min={0} max={10} step={0.5}
           value={value.min_rating}
           onChange={(e) => onChange({ ...value, min_rating: Number(e.target.value) })}
-          className="w-full accent-[var(--color-accent)]"
+          className="w-full h-2 accent-[var(--color-accent)]"
         />
         <div className="flex justify-between text-[10px] text-[var(--color-text-dim)] mt-1">
           <span>0</span><span>5</span><span>10</span>
@@ -178,7 +178,7 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
           genre chip section here would be misleading — hide it. */}
       {mediaType !== 'doc' && (
         <Section title={`${t('filters.genres')} ${value.with_genres.length > 0 ? `(${value.with_genres.length})` : ''}`} defaultOpen>
-          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+          <div className="flex flex-wrap gap-1.5 max-h-72 sm:max-h-56 overflow-y-auto">
             {genres.map((g) => {
               const active = value.with_genres.includes(g.id)
               return (
@@ -370,7 +370,7 @@ function Section({ title, children, defaultOpen, last }: { title: string; childr
     <div className={last ? '' : 'border-b border-[var(--color-border)]'}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-[var(--color-surface-2)]/40 transition text-left"
+        className="w-full flex items-center justify-between px-4 py-3.5 sm:py-3 hover:bg-[var(--color-surface-2)]/40 transition text-left min-h-[48px]"
       >
         <span className="text-sm font-medium">{title}</span>
         <span className={`text-xs text-[var(--color-text-dim)] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
@@ -388,6 +388,6 @@ function Select({ value, onChange, children }: { value: string; onChange: (v: st
   )
 }
 
-const inputCls = 'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]'
+const inputCls = 'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 sm:py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]'
 const chipCls = (active: boolean) =>
-  `px-2.5 py-1 rounded-full text-xs border transition ${active ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]' : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'}`
+  `px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-xs border transition ${active ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]' : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)] active:scale-[0.97]'}`

@@ -34,7 +34,7 @@ export function MovieDetailPage() {
   return (
     <div>
       {d.backdrop_path && (
-        <div className="relative -mx-4 sm:rounded-2xl sm:mx-0 overflow-hidden mb-6 aspect-[16/7] bg-[var(--color-surface)]">
+        <div className="relative -mx-3 sm:-mx-0 sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 aspect-[16/9] sm:aspect-[16/7] bg-[var(--color-surface)]">
           <img
             src={`https://image.tmdb.org/t/p/original${d.backdrop_path}`}
             alt=""
@@ -43,7 +43,8 @@ export function MovieDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
           <button
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-            className="absolute top-4 left-4 px-3 py-1.5 text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
+            aria-label={t('common.back')}
+            className="absolute top-3 left-3 sm:top-4 sm:left-4 h-9 px-3 inline-flex items-center text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
             {t('common.back')}
           </button>
@@ -59,17 +60,17 @@ export function MovieDetailPage() {
         </button>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6 sm:mb-8">
         {poster(d.poster_path, 'w342') && (
           <img
             src={poster(d.poster_path, 'w342')!}
             alt=""
-            className="w-40 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0"
+            className="w-32 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0"
           />
         )}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 min-w-0">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{d.title}</h1>
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{d.title}</h1>
             {d.original_title !== d.title && (
               <div className="text-sm text-[var(--color-text-dim)] mt-1">{d.original_title}</div>
             )}
@@ -92,11 +93,11 @@ export function MovieDetailPage() {
               </a>
             </div>
           )}
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-2">
             <button
               disabled={!user}
               onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition ${
+              className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition active:scale-[0.98] ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
                   : watched
@@ -110,7 +111,7 @@ export function MovieDetailPage() {
             <button
               disabled={!user}
               onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition border ${
+              className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition border active:scale-[0.98] ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'
                   : inWatchlist
@@ -121,7 +122,11 @@ export function MovieDetailPage() {
             >
               {inWatchlist ? t('movie.watchlistRemove') : t('movie.watchlistAdd')}
             </button>
-            {user && <AddToListMenu tmdbId={d.id} title={d.title} posterPath={d.poster_path} />}
+            {user && (
+              <div className="col-span-2 sm:col-auto">
+                <AddToListMenu tmdbId={d.id} title={d.title} posterPath={d.poster_path} />
+              </div>
+            )}
           </div>
         </div>
       </div>
