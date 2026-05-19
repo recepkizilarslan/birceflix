@@ -5,6 +5,7 @@ import { listTvGenres, listTvProviders } from '../lib/tv'
 import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+import type { SavedFilter } from '../lib/savedFilters'
 
 /**
  * UI-level media category. Maps to a TMDB endpoint + forced params at the
@@ -69,9 +70,25 @@ interface Props {
   mediaType?: MediaType
   /** When provided, the panel renders a media-type selector section at the top. */
   onMediaTypeChange?: (m: MediaType) => void
+  /** Saved filter set support — all four must be passed together. */
+  savedFilters?: SavedFilter[]
+  onSaveCurrent?: () => void
+  onApplySaved?: (s: SavedFilter) => void
+  onDeleteSaved?: (s: SavedFilter) => void
 }
 
-export function FilterPanel({ value, onChange, onReset, activeCount, mediaType = 'movie', onMediaTypeChange }: Props) {
+export function FilterPanel({
+  value,
+  onChange,
+  onReset,
+  activeCount,
+  mediaType = 'movie',
+  onMediaTypeChange,
+  savedFilters,
+  onSaveCurrent,
+  onApplySaved,
+  onDeleteSaved,
+}: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
@@ -107,12 +124,58 @@ export function FilterPanel({ value, onChange, onReset, activeCount, mediaType =
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>
           )}
         </div>
-        {activeCount > 0 && (
-          <button onClick={onReset} className="text-xs text-[var(--color-text-dim)] hover:text-[var(--color-accent)]">
-            {t('filters.clear')}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {activeCount > 0 && onSaveCurrent && (
+            <button
+              onClick={onSaveCurrent}
+              className="text-xs text-[var(--color-accent)] hover:underline font-medium"
+            >
+              {t('savedFilters.saveButton')}
+            </button>
+          )}
+          {activeCount > 0 && (
+            <button onClick={onReset} className="text-xs text-[var(--color-text-dim)] hover:text-[var(--color-accent)]">
+              {t('filters.clear')}
+            </button>
+          )}
+        </div>
       </div>
+
+      {savedFilters && savedFilters.length > 0 && onApplySaved && (
+        <Section title={`${t('savedFilters.sectionTitle')} (${savedFilters.length})`} defaultOpen>
+          <div className="space-y-1.5">
+            {savedFilters.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-start gap-2 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] px-2.5 py-2 group"
+              >
+                <button
+                  onClick={() => onApplySaved(s)}
+                  className="flex-1 min-w-0 text-left"
+                  title={s.description ?? undefined}
+                >
+                  <div className="text-sm font-medium truncate">{s.name}</div>
+                  {s.description && (
+                    <div className="text-[11px] text-[var(--color-text-dim)] truncate">{s.description}</div>
+                  )}
+                  <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">
+                    {t(`filters.mediaTypes.${s.media_type}`)}
+                  </div>
+                </button>
+                {onDeleteSaved && (
+                  <button
+                    onClick={() => onDeleteSaved(s)}
+                    className="shrink-0 text-[var(--color-text-dim)] hover:text-red-400 text-xs px-1 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
+                    title={t('common.delete')}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {onMediaTypeChange && (
         <Section title={t('filters.mediaType')} defaultOpen>
