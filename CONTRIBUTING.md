@@ -150,7 +150,8 @@ All four should pass.
 2. Keep the diff focused — one logical change per PR.
 3. Update docs if behavior or setup changes.
 4. Don't commit secrets or `.env*` files (gitignored — please don't disable that).
-5. Open a PR with a short description of *what* changed and *why*.
+5. Visual changes (icons, themes, logo) should keep the project's identity distinct from streaming services — avoid Netflix's exact red `#E50914` or condensed display wordmarks (Impact / Arial Black). See the [Notice](README.md#notice) in the README for context.
+6. Open a PR with a short description of *what* changed and *why*.
 
 ## Database migrations
 

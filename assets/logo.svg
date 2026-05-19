@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" width="720" height="200" fill="none">
   <defs>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.35"/>
     </filter>
   </defs>
 
   <text
-    x="360" y="155"
+    x="360" y="140"
     text-anchor="middle"
-    font-family="Impact, 'Arial Black', 'Helvetica Neue Condensed Bold', 'Bebas Neue', sans-serif"
-    font-size="170"
+    font-family="'Inter', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
+    font-size="110"
     font-weight="900"
-    fill="#E50914"
-    letter-spacing="2"
+    fill="#FF3B47"
+    letter-spacing="3"
     filter="url(#shadow)"
   >BIRCEFLIX</text>
 </svg>
