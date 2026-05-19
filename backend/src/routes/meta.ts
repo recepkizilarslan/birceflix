@@ -10,20 +10,28 @@ interface ProviderRow {
   display_priority: number
 }
 
+const genresQuery = z.object({
+  ui_language: z.string().default('en-US'),
+})
+
 export async function metaRoutes(app: FastifyInstance) {
-  app.get('/api/genres', async () => {
+  app.get('/api/genres', async (req) => {
+    const { ui_language } = genresQuery.parse(req.query)
     const data = await tmdb<{ genres: { id: number; name: string }[] }>('/genre/movie/list', {
-      language: 'en-US',
+      language: ui_language,
     })
     return data.genres
   })
 
   app.get('/api/providers', async (req) => {
-    const { region } = z
-      .object({ region: z.string().length(2).default(env.DEFAULT_WATCH_REGION) })
+    const { region, ui_language } = z
+      .object({
+        region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
+        ui_language: z.string().default('en-US'),
+      })
       .parse(req.query)
     const data = await tmdb<{ results: ProviderRow[] }>('/watch/providers/movie', {
-      language: 'en-US',
+      language: ui_language,
       watch_region: region,
     })
     return data.results

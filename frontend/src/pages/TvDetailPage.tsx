@@ -20,7 +20,7 @@ function episodeKey(s: number, e: number): string {
 
 export function TvDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const {
     user,
@@ -49,7 +49,7 @@ export function TvDetailPage() {
         .then((rows) => setWatchedKeys(new Set(rows.map((r) => episodeKey(r.season_number, r.episode_number)))))
         .catch(() => {})
     }
-  }, [id, user])
+  }, [id, user, i18n.language])
 
   const loadSeason = async (n: number) => {
     if (!show || seasons.has(n)) {

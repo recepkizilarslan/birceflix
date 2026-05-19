@@ -26,7 +26,7 @@ import {
 // re-serializes the merged state back to search params. Filters that don't
 // translate across the movie↔TV boundary are stripped when the user crosses it.
 export function Discover() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -132,7 +132,7 @@ export function Discover() {
     }, 250)
     return () => { ctrl.cancelled = true; clearTimeout(tid) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlKey])
+  }, [urlKey, i18n.language])
 
   const onReset = () => update({
     filters: { ...DEFAULT_FILTERS, watch_region: filters.watch_region },

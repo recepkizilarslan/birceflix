@@ -46,6 +46,15 @@ const discoverQuery = z.object({
 
 const providersQuery = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
+  ui_language: z.string().default('en-US'),
+})
+
+const genresQuery = z.object({
+  ui_language: z.string().default('en-US'),
+})
+
+const detailQuery = z.object({
+  ui_language: z.string().default('en-US'),
 })
 
 interface ProviderRow {
@@ -59,17 +68,19 @@ export async function tvRoutes(app: FastifyInstance) {
   // TV show detail (with credits + external ids in case we want IMDB later)
   app.get('/api/tv/:id', async (req) => {
     const { id } = idParam.parse(req.params)
+    const { ui_language } = detailQuery.parse(req.query)
     return tmdb(`/tv/${id}`, {
       append_to_response: 'credits,external_ids,videos',
-      language: 'en-US',
+      language: ui_language,
     })
   })
 
   // Single season — TMDB returns episode list with air_date, runtime, etc.
   app.get('/api/tv/:id/season/:season', async (req) => {
     const { id, season } = seasonParam.parse(req.params)
+    const { ui_language } = detailQuery.parse(req.query)
     return tmdb(`/tv/${id}/season/${season}`, {
-      language: 'en-US',
+      language: ui_language,
     })
   })
 
@@ -147,18 +158,19 @@ export async function tvRoutes(app: FastifyInstance) {
 
   // TV genre list — IDs differ from /genre/movie/list so the filter UI
   // needs a separate fetch.
-  app.get('/api/tv/genres', async () => {
+  app.get('/api/tv/genres', async (req) => {
+    const { ui_language } = genresQuery.parse(req.query)
     const data = await tmdb<{ genres: { id: number; name: string }[] }>('/genre/tv/list', {
-      language: 'en-US',
+      language: ui_language,
     })
     return data.genres
   })
 
   // TV watch providers per region (Netflix, Disney+, etc).
   app.get('/api/tv/providers', async (req) => {
-    const { region } = providersQuery.parse(req.query)
+    const { region, ui_language } = providersQuery.parse(req.query)
     const data = await tmdb<{ results: ProviderRow[] }>('/watch/providers/tv', {
-      language: 'en-US',
+      language: ui_language,
       watch_region: region,
     })
     return data.results

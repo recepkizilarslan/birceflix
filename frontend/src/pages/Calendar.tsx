@@ -34,7 +34,7 @@ function groupByDate(movies: TmdbMovie[]): { date: string; items: TmdbMovie[] }[
 
 export function CalendarPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, watchedKeys, toggleWatched } = useOutletContext<LayoutContext>()
   const [tab, setTab] = useState<Tab>('upcoming')
   const [region, setRegion] = useRegion()
@@ -56,7 +56,7 @@ export function CalendarPage() {
     }
   }, [])
 
-  useEffect(() => { load(tab, 1, region) /* eslint-disable-line react-hooks/exhaustive-deps */ }, [tab, region])
+  useEffect(() => { load(tab, 1, region) /* eslint-disable-line react-hooks/exhaustive-deps */ }, [tab, region, i18n.language])
 
   const totalPages = data ? Math.min(data.total_pages, 500) : 1
   const groups = data ? groupByDate(data.results) : []
