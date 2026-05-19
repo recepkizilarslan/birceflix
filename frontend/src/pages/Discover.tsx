@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
@@ -9,46 +9,58 @@ import { discover, search, type TmdbMovie } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
 import { mediaKey } from '../lib/watched'
 import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
+import { parseDiscoverUrl, serializeDiscoverUrl, type DiscoverUrlState } from '../lib/discoverUrl'
+import { useRegion } from '../lib/preferences'
 
-// Combined movie + TV discover. The media-type segmented control at the top
-// toggles which TMDB endpoint we hit; the FilterPanel re-loads its genre and
-// provider lists when mediaType changes (it already keys on the prop). Filters
-// that don't translate across media types (genre IDs, provider IDs, sort)
-// reset when the user flips the toggle.
+// Combined movie + TV discover. The URL is the single source of truth for
+// every user-visible knob (media type, filters, search query, page) so links
+// are shareable e-commerce-style. State updates go through `update()` which
+// re-serializes the merged state back to search params. Filters that don't
+// translate across the movie↔TV boundary are stripped when the user crosses it.
 export function Discover() {
   const { t } = useTranslation()
   const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [region] = useRegion()
 
-  const mediaType: MediaType = parseMediaType(searchParams.get('type'))
+  // Derive all user-facing state from the URL. `searchParams.toString()` is
+  // the stable identity we react to; the parsed object itself is fresh each
+  // render but only the string drives effects.
+  const urlKey = searchParams.toString()
+  const parsed = useMemo<DiscoverUrlState>(
+    () => parseDiscoverUrl(searchParams, region),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [urlKey, region],
+  )
+  const { mediaType, filters, query: searchQuery, page } = parsed
+
+  const update = (next: Partial<DiscoverUrlState>) => {
+    setSearchParams(serializeDiscoverUrl({ ...parsed, ...next }), { replace: true })
+  }
+
   const setMediaType = (next: MediaType) => {
     // Only reset filters that don't translate when we cross the movie↔TV
-    // boundary. Switching within the same family (movie↔doc, tv↔mini)
-    // keeps the user's genre/provider/sort choices intact.
+    // boundary. Switching within the same family (movie↔doc) keeps the
+    // user's genre/provider/sort choices intact.
+    let nextFilters = filters
     if (isTvMedia(next) !== isTvMedia(mediaType)) {
-      setFilters((f) => ({
-        ...f,
+      nextFilters = {
+        ...filters,
         with_genres: [],
         with_watch_providers: [],
         sort_by: DEFAULT_FILTERS.sort_by,
-      }))
+      }
     }
-    setSearchQuery(null)
-    setResults([])
-    setPage(1)
-    setSearchParams(next === 'movie' ? {} : { type: next }, { replace: true })
+    update({ mediaType: next, filters: nextFilters, query: null, page: 1 })
   }
 
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [sortSheetOpen, setSortSheetOpen] = useState(false)
 
   const [results, setResults] = useState<(TmdbMovie | TmdbTvShow)[]>([])
-  const [searchQuery, setSearchQuery] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
   // Lock body scroll while a bottom sheet is open so the page underneath
@@ -61,77 +73,35 @@ export function Discover() {
     return () => { document.body.style.overflow = prev }
   }, [filterSheetOpen, sortSheetOpen])
 
-  const runDiscover = useCallback(async (f: FilterState, p = 1) => {
-    setLoading(true); setErr(null); setSearchQuery(null)
-    try {
-      if (isTvMedia(mediaType)) {
-        const data = await discoverTv({
-          min_rating: f.min_rating || undefined,
-          original_language: f.original_language || undefined,
-          origin_country: f.origin_country || undefined,
-          with_genres: f.with_genres.length ? f.with_genres : undefined,
-          year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
-          year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
-          with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
-          watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
-          runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
-          runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
-          seasons_from: typeof f.seasons_from === 'number' ? f.seasons_from : undefined,
-          seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
-          episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
-          episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
-          sort_by: f.sort_by,
-          page: p,
-        })
-        setResults(data.results)
-        setPage(data.page)
-        setTotalPages(Math.min(data.total_pages, 500))
-      } else {
-        // Documentary category forces genre=99 and ignores the user's
-        // genre chip selections — the FilterPanel hides the genre
-        // section in this mode so that's not confusing.
-        const genres = mediaType === 'doc' ? [99] : (f.with_genres.length ? f.with_genres : undefined)
-        const data = await discover({
-          min_rating: f.min_rating || undefined,
-          original_language: f.original_language || undefined,
-          origin_country: f.origin_country || undefined,
-          with_genres: genres,
-          year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
-          year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
-          with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
-          watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
-          runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
-          runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
-          sort_by: f.sort_by,
-          page: p,
-        })
-        setResults(data.results)
-        setPage(data.page)
-        setTotalPages(Math.min(data.total_pages, 500))
-      }
-    } catch (e: any) { setErr(e.message) }
-    finally { setLoading(false) }
-  }, [mediaType])
-
-  const runSearch = useCallback(async (q: string, p = 1) => {
-    setLoading(true); setErr(null); setSearchQuery(q)
-    try {
-      const data = isTvMedia(mediaType) ? await searchTv(q, p) : await search(q, p)
-      setResults(data.results)
-      setPage(data.page)
-      setTotalPages(Math.min(data.total_pages, 500))
-    } catch (e: any) { setErr(e.message) }
-    finally { setLoading(false) }
-  }, [mediaType])
-
+  // Fetch results whenever the URL changes. Debounced so rapid filter edits
+  // (year-input typing, range slider drags) coalesce into one request. The
+  // controller short-circuits stale responses if a newer URL change arrives
+  // before the in-flight request resolves.
   useEffect(() => {
-    if (!searchQuery) {
-      const tid = setTimeout(() => runDiscover(filters, 1), 250)
-      return () => clearTimeout(tid)
-    }
-  }, [filters, runDiscover, searchQuery])
+    const ctrl = { cancelled: false }
+    const tid = setTimeout(async () => {
+      setLoading(true); setErr(null)
+      try {
+        const data = searchQuery
+          ? await (isTvMedia(mediaType) ? searchTv(searchQuery, page) : search(searchQuery, page))
+          : await runDiscoverRequest(mediaType, filters, page)
+        if (ctrl.cancelled) return
+        setResults(data.results)
+        setTotalPages(Math.min(data.total_pages, 500))
+      } catch (e: any) {
+        if (!ctrl.cancelled) setErr(e?.message ?? String(e))
+      } finally {
+        if (!ctrl.cancelled) setLoading(false)
+      }
+    }, 250)
+    return () => { ctrl.cancelled = true; clearTimeout(tid) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlKey])
 
-  const onReset = () => setFilters({ ...DEFAULT_FILTERS, watch_region: filters.watch_region })
+  const onReset = () => update({
+    filters: { ...DEFAULT_FILTERS, watch_region: filters.watch_region },
+    page: 1,
+  })
   const activeCount = countActiveFilters(filters)
   const sortOptions = isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS
 
@@ -141,7 +111,7 @@ export function Discover() {
       <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
         <FilterPanel
           value={filters}
-          onChange={setFilters}
+          onChange={(next) => update({ filters: next, page: 1 })}
           onReset={onReset}
           activeCount={activeCount}
           mediaType={mediaType}
@@ -152,8 +122,9 @@ export function Discover() {
       {/* Content */}
       <div className="space-y-4 min-w-0">
         <SearchBar
-          onSearch={(q) => runSearch(q, 1)}
-          onClear={() => { setSearchQuery(null); runDiscover(filters, 1) }}
+          value={searchQuery ?? ''}
+          onSearch={(q) => update({ query: q, page: 1 })}
+          onClear={() => update({ query: null, page: 1 })}
         />
 
         {/* Mobile media-type segmented control — quick switch between Film/Dizi/Belgesel. */}
@@ -216,7 +187,7 @@ export function Discover() {
               <span>{t('sort.label')}</span>
               <select
                 value={filters.sort_by}
-                onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
+                onChange={(e) => update({ filters: { ...filters, sort_by: e.target.value }, page: 1 })}
                 className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] min-w-[160px]"
               >
                 {sortOptions.map((s) => (
@@ -293,17 +264,13 @@ export function Discover() {
 
         {results.length > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 py-6">
-            <PageBtn disabled={page <= 1} onClick={() => {
-              const p = page - 1
-              if (searchQuery) runSearch(searchQuery, p)
-              else runDiscover(filters, p)
-            }}>{t('common.previous')}</PageBtn>
+            <PageBtn disabled={page <= 1} onClick={() => update({ page: page - 1 })}>
+              {t('common.previous')}
+            </PageBtn>
             <div className="text-sm text-[var(--color-text-dim)]">{t('common.pageOf', { page, total: totalPages })}</div>
-            <PageBtn disabled={page >= totalPages} onClick={() => {
-              const p = page + 1
-              if (searchQuery) runSearch(searchQuery, p)
-              else runDiscover(filters, p)
-            }}>{t('common.next')}</PageBtn>
+            <PageBtn disabled={page >= totalPages} onClick={() => update({ page: page + 1 })}>
+              {t('common.next')}
+            </PageBtn>
           </div>
         )}
       </div>
@@ -335,7 +302,7 @@ export function Discover() {
         >
           <FilterPanel
             value={filters}
-            onChange={setFilters}
+            onChange={(next) => update({ filters: next, page: 1 })}
             onReset={onReset}
             activeCount={activeCount}
             mediaType={mediaType}
@@ -357,7 +324,7 @@ export function Discover() {
                 <button
                   key={s.value}
                   onClick={() => {
-                    setFilters({ ...filters, sort_by: s.value })
+                    update({ filters: { ...filters, sort_by: s.value }, page: 1 })
                     setSortSheetOpen(false)
                   }}
                   className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left text-sm border-b border-[var(--color-border)] last:border-b-0 transition ${
@@ -461,11 +428,46 @@ function SortIcon() {
   )
 }
 
-/** Whitelist the `?type=` URL param so unknown values fall back to movie. */
-function parseMediaType(raw: string | null): MediaType {
-  switch (raw) {
-    case 'tv': return 'tv'
-    case 'doc': return 'doc'
-    default: return 'movie'
+/** Build and dispatch a /discover request for the given media type. Movies vs
+ *  TV hit different TMDB endpoints with different optional params; the
+ *  documentary category re-uses /discover/movie with genre 99 forced. */
+async function runDiscoverRequest(mediaType: MediaType, f: FilterState, page: number) {
+  if (isTvMedia(mediaType)) {
+    return discoverTv({
+      min_rating: f.min_rating || undefined,
+      original_language: f.original_language || undefined,
+      origin_country: f.origin_country || undefined,
+      with_genres: f.with_genres.length ? f.with_genres : undefined,
+      year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
+      year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
+      with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
+      watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
+      runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
+      runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+      seasons_from: typeof f.seasons_from === 'number' ? f.seasons_from : undefined,
+      seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
+      episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
+      episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
+      sort_by: f.sort_by,
+      page,
+    })
   }
+  // Documentary category forces genre 99 and ignores the user's genre chip
+  // selections — the FilterPanel hides the genre section in this mode so
+  // that's not confusing.
+  const genres = mediaType === 'doc' ? [99] : (f.with_genres.length ? f.with_genres : undefined)
+  return discover({
+    min_rating: f.min_rating || undefined,
+    original_language: f.original_language || undefined,
+    origin_country: f.origin_country || undefined,
+    with_genres: genres,
+    year_from: typeof f.year_from === 'number' ? f.year_from : undefined,
+    year_to: typeof f.year_to === 'number' ? f.year_to : undefined,
+    with_watch_providers: f.with_watch_providers.length ? f.with_watch_providers : undefined,
+    watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
+    runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
+    runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+    sort_by: f.sort_by,
+    page,
+  })
 }
