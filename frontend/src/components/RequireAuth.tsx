@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
 
@@ -8,11 +8,17 @@ import { useAuth } from '../hooks/useAuth'
  * meant to go after signing in. The loading splash is rendered here
  * (rather than inside Layout) so we never show authed chrome before
  * the session probe has resolved.
+ *
+ * Sits between Layout's <Outlet context={ctx}> and the leaf pages, so
+ * we must forward the parent outlet context — otherwise our own <Outlet />
+ * shadows it with `undefined` and every page that reads
+ * useOutletContext<LayoutContext>() blows up at render.
  */
 export function RequireAuth() {
   const { t } = useTranslation()
   const { user, loading } = useAuth()
   const location = useLocation()
+  const parentContext = useOutletContext()
 
   if (loading) {
     return (
@@ -28,5 +34,5 @@ export function RequireAuth() {
     return <Navigate to={`/login${qs}`} replace />
   }
 
-  return <Outlet />
+  return <Outlet context={parentContext} />
 }
