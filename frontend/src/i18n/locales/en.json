@@ -28,6 +28,7 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "legalHint": "By continuing you agree to our terms.",
+    "integrations": "Integrations",
     "errors": {
       "email_taken": "That email is already registered.",
       "invalid_credentials": "Wrong email or password.",

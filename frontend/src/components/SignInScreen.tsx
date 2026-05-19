@@ -201,6 +201,11 @@ export function SignInScreen() {
       {/* Brand marquee — anchored to bottom of viewport so the form area
           stays vertically centered above it on tall screens. */}
       <section className="w-full max-w-5xl mx-auto pb-2">
+        <div className="flex items-center gap-3 px-3.5 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+          <span>{t('auth.integrations')}</span>
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+        </div>
         <BrandMarquee providers={providers} />
       </section>
     </div>

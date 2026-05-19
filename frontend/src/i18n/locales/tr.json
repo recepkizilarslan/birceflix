@@ -28,6 +28,7 @@
     "showPassword": "Şifreyi göster",
     "hidePassword": "Şifreyi gizle",
     "legalHint": "Devam ederek şartlarımızı kabul etmiş olursun.",
+    "integrations": "Entegrasyonlar",
     "errors": {
       "email_taken": "Bu e-posta zaten kayıtlı.",
       "invalid_credentials": "E-posta veya şifre hatalı.",
