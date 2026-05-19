@@ -307,9 +307,7 @@
     "unknownDate": "Unknown date"
   },
   "pwa": {
-    "newVersion": "A new version is ready. Reload now?",
     "offlineReady": "Ready to use offline.",
-    "refresh": "Refresh",
     "dismiss": "Dismiss"
   },
   "search": {
