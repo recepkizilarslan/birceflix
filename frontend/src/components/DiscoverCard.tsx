@@ -1,6 +1,15 @@
 import { useTranslation } from 'react-i18next'
-import { poster } from '../lib/api'
+import { logo, poster } from '../lib/api'
 import type { MediaType } from '../lib/watched'
+
+/** Minimal shape used by the optional corner banner. We don't reuse the
+ * full WatchProvider type from api.ts so callers can hand in any source
+ * (TMDB list snapshot, /movie detail, etc.) without contortions. */
+export interface ProviderBadge {
+  provider_id: number
+  provider_name: string
+  logo_path: string
+}
 
 /**
  * Card item shape — accepts either a TmdbMovie or TmdbTvShow normalised to
@@ -33,6 +42,11 @@ interface Props {
   inWatchlist: boolean
   /** When set, shown as a corner badge — used on the Watched page. */
   myRating?: number | null
+  /** Optional streaming providers shown as a bottom-left banner. Up to
+   * three logos are rendered; an empty array renders nothing (treated as
+   * "no flatrate platform" which the consumer may or may not want to
+   * surface). */
+  providerBanner?: ProviderBadge[]
 }
 
 /**
@@ -48,6 +62,7 @@ export function DiscoverCard({
   onToggleWatchlist,
   inWatchlist,
   myRating,
+  providerBanner,
 }: Props) {
   const { t } = useTranslation()
   const year = item.date?.slice(0, 4) ?? ''
@@ -85,6 +100,32 @@ export function DiscoverCard({
               ★ {myRating}
             </div>
           )}
+          {/* Streaming-provider banner: up to 3 logos stacked at the
+              bottom-left of the poster. Bottom-right stays free for the
+              watchlist heart. */}
+          {providerBanner && providerBanner.length > 0 && (
+            <div
+              className="absolute bottom-1.5 left-1.5 flex items-center gap-1 px-1.5 py-1 rounded-md bg-black/65 backdrop-blur"
+              aria-label={providerBanner.map((p) => p.provider_name).join(', ')}
+            >
+              {providerBanner.slice(0, 3).map((p) => (
+                <img
+                  key={p.provider_id}
+                  src={logo(p.logo_path, 'w45') ?? ''}
+                  alt={p.provider_name}
+                  title={p.provider_name}
+                  loading="lazy"
+                  className="h-5 w-5 rounded-sm object-cover"
+                />
+              ))}
+              {providerBanner.length > 3 && (
+                <span className="text-[10px] font-semibold text-white/85 tabular-nums pl-0.5">
+                  +{providerBanner.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Watchlist quick-add: heart icon, sits over the poster bottom-left
               like an e-commerce favorite. Hidden on hover-less mobile? No —
               the goal is one-tap save without opening the detail page. */}

@@ -144,6 +144,7 @@ export function Layout() {
           {showNav && (
             <nav className="hidden lg:flex items-center gap-1">
               <TabLink to="/discover">{t('nav.discover')}</TabLink>
+              <TabLink to="/imdb-top">{t('nav.imdbTop')}</TabLink>
               <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
               <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
               <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
@@ -191,6 +192,7 @@ export function Layout() {
             </div>
             <nav className="flex-1 overflow-y-auto p-3 space-y-1">
               <DrawerLink to="/discover"  onSelect={() => setMenuOpen(false)} icon="🔍">{t('nav.discover')}</DrawerLink>
+              <DrawerLink to="/imdb-top"  onSelect={() => setMenuOpen(false)} icon="⭐">{t('nav.imdbTop')}</DrawerLink>
               <DrawerLink to="/calendar"  onSelect={() => setMenuOpen(false)} icon="📅">{t('nav.calendar')}</DrawerLink>
               <DrawerLink to="/watchlist" onSelect={() => setMenuOpen(false)} icon="🔖" badge={watchlistCount}>{t('nav.watchlist')}</DrawerLink>
               <DrawerLink to="/watched"   onSelect={() => setMenuOpen(false)} icon="✓"  badge={watchedCount}>{t('nav.watched')}</DrawerLink>

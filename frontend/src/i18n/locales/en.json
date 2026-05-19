@@ -1,6 +1,7 @@
 {
   "nav": {
     "discover": "Discover",
+    "imdbTop": "IMDb Top",
     "movies": "Movies",
     "tv": "TV",
     "calendar": "Calendar",
@@ -325,5 +326,12 @@
   "search": {
     "placeholder": "Search movies…",
     "clear": "clear"
+  },
+  "imdbTop": {
+    "title": "IMDb Top movies",
+    "subtitle": "Shows which streaming platforms have each title in {{region}}.",
+    "updatedHoursAgo": "Updated {{hours}}h ago",
+    "loadFailed": "Couldn't load the list.",
+    "attribution": "List source: {{listName}} (TMDB). Provider data from JustWatch."
   }
 }
