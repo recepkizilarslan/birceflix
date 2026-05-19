@@ -13,6 +13,16 @@
 
 Birceflix is a self-hostable movie & TV tracker. Search the TMDB catalogue with deep filters, sign in with Google or email, and track what you've watched and what you want to watch. The whole stack runs in containers; one `docker compose up -d` brings it up.
 
+## A note from the author
+
+Birceflix started as a way to solve a recurring household problem. My wife and I subscribe to a handful of streaming platforms, and every time we sat down for a movie night the same thing happened: we couldn't decide what to watch. Each platform's filters felt built to push us toward what they wanted us to see, not what we actually wanted. We'd open three apps in turn, hunting for the right combination of language, country, year, rating, runtime, and availability, and end up giving up.
+
+So I built one place that pulls metadata from TMDB, layers awards and IMDB ratings from OMDb, shows which platforms are streaming each title in our region, and lets us filter the way we actually think. The "watched" list keeps us from re-discovering films we already saw. The watchlist keeps the "let's save this for later" idea from disappearing the moment we closed the app.
+
+The project is named after my daughter, **Birce**. It is open source under the MIT license, fully self-hostable, and has no commercial intent. It was coded end-to-end with [Claude Sonnet 4.7](https://www.anthropic.com/claude) as the pair programmer; every commit on `main` started life in a Claude Code session.
+
+If any of this resonates with you, the docs below explain how to run your own copy in five minutes, how to self-host it on your own server, and how the pieces fit together under the hood.
+
 ## Documentation
 
 1. [**Quick start**](docs/QUICKSTART.md). Run Birceflix on your laptop in about five minutes. Prereqs, env files, `npm start`, common gotchas.
