@@ -56,10 +56,13 @@ If any of this resonates with you, the docs below explain how to run your own co
 
 ## Attribution
 
-Birceflix uses the TMDB API but is not endorsed or certified by TMDB. Movie posters, metadata, and ratings are courtesy of:
+<p>
+  <a href="https://www.themoviedb.org/">
+    <img src="assets/tmdb-logo.svg" alt="The Movie Database (TMDB)" height="20">
+  </a>
+</p>
 
-- [The Movie Database (TMDB)](https://www.themoviedb.org/)
-- [OMDb API](https://www.omdbapi.com/)
+This product uses the TMDB API but is not endorsed or certified by TMDB. Movie and TV metadata, posters, watch-provider data, and reviews come from [The Movie Database (TMDB)](https://www.themoviedb.org/). Awards data and IMDB ratings come from the [OMDb API](https://www.omdbapi.com/). All trademarks, logos, and artwork are property of their respective owners.
 
 ## Notice
 
