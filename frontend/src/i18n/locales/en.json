@@ -226,6 +226,16 @@
     "createLink": "Create a list",
     "filmCount": "{{count}} films"
   },
+  "savedFilters": {
+    "sectionTitle": "Saved",
+    "saveButton": "Save",
+    "dialogTitle": "Save this filter",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Long Korean movies on Netflix",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "What this filter is for…",
+    "confirmDelete": "Delete saved filter \"{{name}}\"?"
+  },
   "tv": {
     "popular": "Popular TV shows",
     "searchResults": "Results for \"{{query}}\"",

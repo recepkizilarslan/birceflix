@@ -21,6 +21,7 @@ import { integrationsRoutes } from './routes/integrations.js'
 import { tvRoutes } from './routes/tv.js'
 import { watchedEpisodeRoutes } from './routes/watchedEpisodes.js'
 import { listsRoutes } from './routes/lists.js'
+import { savedFiltersRoutes } from './routes/savedFilters.js'
 import { webhookRoutes } from './routes/webhooks.js'
 import { calendarRoutes } from './routes/calendar.js'
 import { exportRoutes } from './routes/export.js'
@@ -64,6 +65,7 @@ async function build() {
   await app.register(tvRoutes)
   await app.register(watchedEpisodeRoutes)
   await app.register(listsRoutes)
+  await app.register(savedFiltersRoutes)
   await app.register(webhookRoutes)
   await app.register(calendarRoutes)
   await app.register(exportRoutes)
