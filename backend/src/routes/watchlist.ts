@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchlist } from '../db/schema.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const mediaTypeEnum = z.enum(['movie', 'tv']).default('movie')
 
@@ -18,7 +19,7 @@ const idParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const mediaTypeQuery = z.object({ media_type: mediaTypeEnum })
 
 export async function watchlistRoutes(app: FastifyInstance) {
-  app.get('/api/watchlist', async (req) => {
+  app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select()
@@ -37,7 +38,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     }))
   })
 
-  app.post('/api/watchlist', async (req) => {
+  app.post('/api/watchlist', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
 
@@ -63,7 +64,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.delete('/api/watchlist/:tmdbId', async (req) => {
+  app.delete('/api/watchlist/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)

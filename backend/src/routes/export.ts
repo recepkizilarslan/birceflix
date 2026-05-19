@@ -10,6 +10,7 @@ import {
   watchHistory,
   watchlist,
 } from '../db/schema.js'
+import { rlRead } from '../lib/rateLimit.js'
 
 /** Wrap a field in quotes if it contains a comma, quote, or newline; double internal quotes. */
 function csvField(v: string | number | null | undefined): string {
@@ -43,7 +44,7 @@ export async function exportRoutes(app: FastifyInstance) {
    * Excludes secrets (Trakt tokens, webhook tokens) by design — a backup
    * should never carry credentials.
    */
-  app.get('/api/export/json', async (req, reply) => {
+  app.get('/api/export/json', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
 
     const [profile] = await db
@@ -163,7 +164,7 @@ export async function exportRoutes(app: FastifyInstance) {
    *     emitting one undated entry (Letterboxd will still import it as a
    *     diary-less watch).
    */
-  app.get('/api/export/letterboxd-diary.csv', async (req, reply) => {
+  app.get('/api/export/letterboxd-diary.csv', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
 
     const [wmRows, whRows] = await Promise.all([

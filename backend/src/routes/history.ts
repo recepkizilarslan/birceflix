@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchHistory } from '../db/schema.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const tmdbParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const idParam = z.object({ id: z.string().uuid() })
@@ -43,7 +44,7 @@ function parseWatchedAt(s: string | undefined): Date | undefined {
 }
 
 export async function historyRoutes(app: FastifyInstance) {
-  app.get('/api/history/:tmdbId', async (req) => {
+  app.get('/api/history/:tmdbId', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = tmdbParam.parse(req.params)
     const rows = await db
@@ -54,7 +55,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
-  app.post('/api/history', async (req) => {
+  app.post('/api/history', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
     const watchedAt = parseWatchedAt(body.watched_at)
@@ -72,7 +73,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row!)
   })
 
-  app.patch('/api/history/:id', async (req, reply) => {
+  app.patch('/api/history/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = patchBody.parse(req.body)
@@ -104,7 +105,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row)
   })
 
-  app.delete('/api/history/:id', async (req, reply) => {
+  app.delete('/api/history/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const deleted = await db

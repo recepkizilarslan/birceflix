@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedMovies } from '../db/schema.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 const mediaTypeEnum = z.enum(['movie', 'tv']).default('movie')
 
@@ -25,7 +26,7 @@ const idParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const mediaTypeQuery = z.object({ media_type: mediaTypeEnum })
 
 export async function watchedRoutes(app: FastifyInstance) {
-  app.get('/api/watched', async (req) => {
+  app.get('/api/watched', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select()
@@ -47,7 +48,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     }))
   })
 
-  app.post('/api/watched', async (req) => {
+  app.post('/api/watched', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = upsertBody.parse(req.body)
 
@@ -77,7 +78,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.get('/api/watched/:tmdbId', async (req, reply) => {
+  app.get('/api/watched/:tmdbId', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
@@ -105,7 +106,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     }
   })
 
-  app.patch('/api/watched/:tmdbId', async (req, reply) => {
+  app.patch('/api/watched/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
@@ -135,7 +136,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.delete('/api/watched/:tmdbId', async (req) => {
+  app.delete('/api/watched/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
