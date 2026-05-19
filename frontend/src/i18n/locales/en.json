@@ -1,7 +1,6 @@
 {
   "nav": {
     "discover": "Discover",
-    "imdbTop": "IMDb Top",
     "movies": "Movies",
     "tv": "TV",
     "calendar": "Calendar",
@@ -89,6 +88,10 @@
     "platforms": "Platforms",
     "platformLoading": "Loading…",
     "platformNone": "No platforms for this region.",
+    "top": "Top 250",
+    "topToggle": "Show only Top 250",
+    "topHintMovie": "Filter within TMDB's 250 highest-rated movies. Cards show streaming platforms.",
+    "topHintTv": "Filter within TMDB's 250 highest-rated TV shows. Cards show streaming platforms.",
     "language": "Language",
     "originCountry": "Country of origin",
     "year": "Year",
@@ -326,12 +329,5 @@
   "search": {
     "placeholder": "Search movies…",
     "clear": "clear"
-  },
-  "imdbTop": {
-    "title": "IMDb Top movies",
-    "subtitle": "Shows which streaming platforms have each title in {{region}}.",
-    "updatedHoursAgo": "Updated {{hours}}h ago",
-    "loadFailed": "Couldn't load the list.",
-    "attribution": "List source: {{listName}} (TMDB). Provider data from JustWatch."
   }
 }

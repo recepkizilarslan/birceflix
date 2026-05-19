@@ -7,7 +7,7 @@ import { ProviderStrip } from '../components/ProviderStrip'
 import { SaveFilterDialog } from '../components/SaveFilterDialog'
 import { SearchBar } from '../components/SearchBar'
 import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
-import { discover, search, type TmdbMovie } from '../lib/api'
+import { discover, search, top, type TmdbMovie, type TopItem } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
 import { mediaKey } from '../lib/watched'
 import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
@@ -60,6 +60,11 @@ export function Discover() {
         sort_by: DEFAULT_FILTERS.sort_by,
       }
     }
+    // /doc has no top_rated endpoint. Force-clear top_only when crossing
+    // into doc so the user doesn't end up with a phantom filter.
+    if (next === 'doc' && nextFilters.top_only) {
+      nextFilters = { ...nextFilters, top_only: false }
+    }
     update({ mediaType: next, filters: nextFilters, query: null, page: 1 })
   }
 
@@ -69,6 +74,10 @@ export function Discover() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
 
   const [results, setResults] = useState<(TmdbMovie | TmdbTvShow)[]>([])
+  /** When non-null, the page is rendering top-rated results (with provider
+   * banners) sliced client-side instead of /discover results. Cleared the
+   * moment top_only flips off or the user starts searching. */
+  const [topResults, setTopResults] = useState<TopItem[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(1)
@@ -92,6 +101,23 @@ export function Discover() {
     const tid = setTimeout(async () => {
       setLoading(true); setErr(null)
       try {
+        // Top mode short-circuits both discover and search — its base list
+        // (TMDB top_rated for the current media type, prefetched server-side)
+        // is what every other filter narrows. Search re-enables the normal
+        // flow because querying within the 250 is rarely what users want.
+        if (filters.top_only && !searchQuery && mediaType !== 'doc') {
+          const snap = await top(isTvMedia(mediaType) ? 'tv' : 'movie', filters.watch_region)
+          if (ctrl.cancelled) return
+          const filtered = applyTopFilters(snap.items, filters)
+          const pageSize = 50
+          const total = Math.max(1, Math.ceil(filtered.length / pageSize))
+          const slice = filtered.slice((page - 1) * pageSize, page * pageSize)
+          setTopResults(slice)
+          setResults([])
+          setTotalPages(total)
+          return
+        }
+        setTopResults(null)
         const data = searchQuery
           ? await (isTvMedia(mediaType) ? searchTv(searchQuery, page) : search(searchQuery, page))
           : await runDiscoverRequest(mediaType, filters, page)
@@ -240,9 +266,12 @@ export function Discover() {
             <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
           <div className="flex items-center gap-3 ml-auto">
-            {results.length > 0 && !loading && (
+            {!loading && (topResults?.length ?? results.length) > 0 && (
               <div className="text-xs text-[var(--color-text-dim)]">
-                {t('discover.results', { count: results.length, page })}
+                {t('discover.results', {
+                  count: topResults?.length ?? results.length,
+                  page,
+                })}
               </div>
             )}
             <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
@@ -265,14 +294,19 @@ export function Discover() {
           {searchQuery
             ? <span className="truncate">{t('discover.searchResults', { query: searchQuery })}</span>
             : <span />}
-          {results.length > 0 && !loading && (
-            <span className="shrink-0 ml-2">{t('discover.results', { count: results.length, page })}</span>
+          {!loading && (topResults?.length ?? results.length) > 0 && (
+            <span className="shrink-0 ml-2">
+              {t('discover.results', {
+                count: topResults?.length ?? results.length,
+                page,
+              })}
+            </span>
           )}
         </div>
 
         {err && <div className="text-red-400 text-sm">{err}</div>}
         {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
-        {!loading && results.length === 0 && (
+        {!loading && (topResults ? topResults.length === 0 : results.length === 0) && (
           <div className="text-center text-[var(--color-text-dim)] py-10">
             {t('common.noResults')}{' '}
             {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">{t('discover.clearFilters')}</button>}
@@ -280,51 +314,76 @@ export function Discover() {
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4">
-          {(isTvMedia(mediaType)
-            ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
-                id: s.id,
-                media_type: 'tv',
-                title: s.name,
-                poster_path: s.poster_path,
-                vote_average: s.vote_average,
-                date: s.first_air_date ?? null,
-                meta: (
-                  <>
-                    {s.number_of_seasons != null && (
-                      <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
-                    )}
-                    {s.number_of_seasons != null && s.number_of_episodes != null && <span>·</span>}
-                    {s.number_of_episodes != null && (
-                      <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
-                    )}
-                  </>
-                ),
-              }))
-            : (results as TmdbMovie[]).map((m): DiscoverCardItem => ({
-                id: m.id,
-                media_type: 'movie',
-                title: m.title,
-                poster_path: m.poster_path,
-                vote_average: m.vote_average,
-                date: m.release_date ?? null,
-              }))
-          ).map((item) => {
-            const k = mediaKey(item.media_type, item.id)
-            return (
-              <DiscoverCard
-                key={k}
-                item={item}
-                onOpen={(it) => navigate(it.media_type === 'tv' ? `/tv/${it.id}` : `/movie/${it.id}`)}
-                onToggleWatched={user ? toggleWatched : null}
-                watched={watchedKeys.has(k)}
-                onToggleWatchlist={user ? toggleWatchlist : null}
-                inWatchlist={watchlistKeys.has(k)}
-              />
-            )
-          })}
+          {topResults
+            ? topResults.map((it) => {
+                const cardItem: DiscoverCardItem = {
+                  id: it.id,
+                  media_type: isTvMedia(mediaType) ? 'tv' : 'movie',
+                  title: it.title,
+                  poster_path: it.poster_path,
+                  vote_average: it.vote_average,
+                  date: it.year ? `${it.year}-01-01` : null,
+                  meta: <span className="font-semibold text-[var(--color-text)]">#{it.rank}</span>,
+                }
+                const k = mediaKey(cardItem.media_type, cardItem.id)
+                return (
+                  <DiscoverCard
+                    key={k}
+                    item={cardItem}
+                    onOpen={(c) => navigate(c.media_type === 'tv' ? `/tv/${c.id}` : `/movie/${c.id}`)}
+                    onToggleWatched={user ? toggleWatched : null}
+                    watched={watchedKeys.has(k)}
+                    onToggleWatchlist={user ? toggleWatchlist : null}
+                    inWatchlist={watchlistKeys.has(k)}
+                    providerBanner={it.providers}
+                  />
+                )
+              })
+            : (isTvMedia(mediaType)
+                ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
+                    id: s.id,
+                    media_type: 'tv',
+                    title: s.name,
+                    poster_path: s.poster_path,
+                    vote_average: s.vote_average,
+                    date: s.first_air_date ?? null,
+                    meta: (
+                      <>
+                        {s.number_of_seasons != null && (
+                          <span>{t('tv.seasonsLabel', { count: s.number_of_seasons })}</span>
+                        )}
+                        {s.number_of_seasons != null && s.number_of_episodes != null && <span>·</span>}
+                        {s.number_of_episodes != null && (
+                          <span>{t('tv.episodesLabel', { count: s.number_of_episodes })}</span>
+                        )}
+                      </>
+                    ),
+                  }))
+                : (results as TmdbMovie[]).map((m): DiscoverCardItem => ({
+                    id: m.id,
+                    media_type: 'movie',
+                    title: m.title,
+                    poster_path: m.poster_path,
+                    vote_average: m.vote_average,
+                    date: m.release_date ?? null,
+                  }))
+              ).map((item) => {
+                const k = mediaKey(item.media_type, item.id)
+                return (
+                  <DiscoverCard
+                    key={k}
+                    item={item}
+                    onOpen={(it) => navigate(it.media_type === 'tv' ? `/tv/${it.id}` : `/movie/${it.id}`)}
+                    onToggleWatched={user ? toggleWatched : null}
+                    watched={watchedKeys.has(k)}
+                    onToggleWatchlist={user ? toggleWatchlist : null}
+                    inWatchlist={watchlistKeys.has(k)}
+                  />
+                )
+              })}
         </div>
 
-        {results.length > 0 && totalPages > 1 && (
+        {(topResults?.length ?? results.length) > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 py-6">
             <PageBtn disabled={page <= 1} onClick={() => update({ page: page - 1 })}>
               {t('common.previous')}
@@ -498,6 +557,22 @@ function SortIcon() {
       <line x1="17" y1="6" x2="17" y2="18" />
     </svg>
   )
+}
+
+/** Filter the prefetched top-rated list client-side. The top snapshot only
+ *  carries enough fields to apply rating / year / genre / provider filters
+ *  — runtime, language and country are not in TMDB's top_rated response so
+ *  those filters silently no-op when Top mode is on. The sort selector is
+ *  ignored too: top mode is implicitly ranked by TMDB rating. */
+function applyTopFilters(items: TopItem[], f: FilterState): TopItem[] {
+  return items.filter((it) => {
+    if (f.min_rating > 0 && it.vote_average < f.min_rating) return false
+    if (typeof f.year_from === 'number' && (it.year == null || Number(it.year) < f.year_from)) return false
+    if (typeof f.year_to === 'number' && (it.year == null || Number(it.year) > f.year_to)) return false
+    if (f.with_genres.length > 0 && !it.genre_ids.some((g) => f.with_genres.includes(g))) return false
+    if (f.with_watch_providers.length > 0 && !it.providers.some((p) => f.with_watch_providers.includes(p.provider_id))) return false
+    return true
+  })
 }
 
 /** Build and dispatch a /discover request for the given media type. Movies vs
