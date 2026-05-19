@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
-const SW_UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000
+const SW_UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000
 
 /**
  * Service-worker lifecycle surface.
@@ -15,10 +15,18 @@ const SW_UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000
  * refresh. Auto-activating means every navigation lands on the freshest
  * code without the user having to know a deploy happened.
  *
+ * To minimise the gap between a deploy and the user seeing it, we also
+ * call registration.update() whenever the tab becomes visible, regains
+ * focus, or reconnects. Those are the moments a user is about to
+ * interact with stale code, so checking right then catches the deploy
+ * without waiting for the periodic poll. The 5-minute interval is the
+ * fallback for tabs that stay focused for long stretches.
+ *
  * The offline-ready confirmation still surfaces once as a toast.
  */
 export function PWAUpdateToast() {
   const { t } = useTranslation()
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null)
   const {
     needRefresh: [needRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -27,9 +35,8 @@ export function PWAUpdateToast() {
     onRegisteredSW(swUrl, registration) {
       // eslint-disable-next-line no-console
       console.debug('[pwa] sw registered at', swUrl)
-      // A tab left open across a deploy won't see the new SW unless we
-      // poll — useRegisterSW only checks on initial load.
       if (registration) {
+        registrationRef.current = registration
         setInterval(() => { registration.update() }, SW_UPDATE_CHECK_INTERVAL_MS)
       }
     },
@@ -38,6 +45,24 @@ export function PWAUpdateToast() {
       console.warn('[pwa] sw register failed', err)
     },
   })
+
+  useEffect(() => {
+    const check = () => {
+      const reg = registrationRef.current
+      // Gate on visibility so visibilitychange->hidden and background
+      // focus events don't fire an unnecessary network request.
+      if (!reg || document.visibilityState !== 'visible') return
+      reg.update().catch(() => { /* network blip; next event retries */ })
+    }
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    window.addEventListener('online', check)
+    return () => {
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+      window.removeEventListener('online', check)
+    }
+  }, [])
 
   useEffect(() => {
     if (needRefresh) updateServiceWorker(true)
