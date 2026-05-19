@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { listTvGenres, listTvProviders } from '../lib/tv'
+import { listGenres, type Genre } from '../lib/api'
+import { listTvGenres } from '../lib/tv'
 import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+import { useProviders } from '../lib/useProviders'
 import type { SavedFilter } from '../lib/savedFilters'
 
 /**
@@ -91,8 +92,7 @@ export function FilterPanel({
 }: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
-  const [providers, setProviders] = useState<ProviderListItem[]>([])
-  const [providersLoading, setProvidersLoading] = useState(false)
+  const { providers, loading: providersLoading } = useProviders(mediaType, value.watch_region)
 
   const tvMode = isTvMedia(mediaType)
 
@@ -100,15 +100,6 @@ export function FilterPanel({
     const loader = tvMode ? listTvGenres : listGenres
     loader().then(setGenres).catch(() => {})
   }, [tvMode])
-
-  useEffect(() => {
-    const loader = tvMode ? listTvProviders : listProviders
-    setProvidersLoading(true)
-    loader(value.watch_region).then((p) => {
-      const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
-      setProviders(top)
-    }).catch(() => setProviders([])).finally(() => setProvidersLoading(false))
-  }, [tvMode, value.watch_region])
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
