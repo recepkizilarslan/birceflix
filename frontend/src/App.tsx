@@ -11,24 +11,32 @@ import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
 import { CalendarPage } from './pages/Calendar'
 import { PWAUpdateToast } from './components/PWAUpdateToast'
+import { RequireAuth } from './components/RequireAuth'
+import { SignInScreen } from './components/SignInScreen'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Discover />} />
-          <Route path="watched" element={<Watched />} />
-          <Route path="watchlist" element={<Watchlist />} />
-          <Route path="import" element={<ImportPage />} />
-          <Route path="movie/:id" element={<MovieDetailPage />} />
-          {/* /tv is the old separate TV discover route — redirect into the unified discover */}
-          <Route path="tv" element={<Navigate to="/?type=tv" replace />} />
-          <Route path="tv/:id" element={<TvDetailPage />} />
-          <Route path="lists" element={<ListsPage />} />
-          <Route path="lists/:id" element={<ListDetailPage />} />
-          <Route path="public/lists/:slug" element={<PublicListPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
+        {/* Public — auth-less so deep links to the sign-in page stay shareable */}
+        <Route path="/login" element={<SignInScreen />} />
+
+        {/* Everything else sits behind the auth gate */}
+        <Route element={<RequireAuth />}>
+          <Route element={<Layout />}>
+            <Route index element={<Discover />} />
+            <Route path="watched" element={<Watched />} />
+            <Route path="watchlist" element={<Watchlist />} />
+            <Route path="import" element={<ImportPage />} />
+            <Route path="movie/:id" element={<MovieDetailPage />} />
+            {/* /tv is the old separate TV discover route — redirect into the unified discover */}
+            <Route path="tv" element={<Navigate to="/?type=tv" replace />} />
+            <Route path="tv/:id" element={<TvDetailPage />} />
+            <Route path="lists" element={<ListsPage />} />
+            <Route path="lists/:id" element={<ListDetailPage />} />
+            <Route path="public/lists/:slug" element={<PublicListPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+          </Route>
         </Route>
       </Routes>
       <PWAUpdateToast />

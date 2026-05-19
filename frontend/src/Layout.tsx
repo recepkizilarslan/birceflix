@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
-import { SignInScreen } from './components/SignInScreen'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedKeySet, listWatched, markWatched, mediaKey, unmarkWatched, type MediaType, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
@@ -33,7 +32,7 @@ export interface LayoutContext {
 
 export function Layout() {
   const { t } = useTranslation()
-  const { user, loading: authLoading } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [watchedKeys, setWatchedKeys] = useState<Set<string>>(new Set())
   const [watchedRows, setWatchedRows] = useState<WatchedRow[]>([])
@@ -98,21 +97,11 @@ export function Layout() {
   const watchlistSuffix = watchlistCount > 0 ? ` (${watchlistCount})` : ''
   const watchedSuffix = watchedCount > 0 ? ` (${watchedCount})` : ''
 
-  // Auth gate: the whole app sits behind login. The hooks above still run
-  // (they're cheap no-ops without a user), so the conditional return is
-  // safe per the rules-of-hooks. The OAuth start endpoint lives at
-  // /api/auth/google and is a hard navigation, so the gate doesn't block
-  // sign-in.
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-[var(--color-text-dim)] text-sm">
-        {t('common.loading')}
-      </div>
-    )
-  }
-  if (!user) {
-    return <SignInScreen />
-  }
+  // Auth gating lives in RequireAuth at the route level. By the time
+  // Layout renders we already have a session, so the chrome can assume
+  // `user` is non-null for navigation/header purposes (the LayoutContext
+  // type is kept nullable so child pages don't need to widen their
+  // assumptions if that ever changes).
 
   return (
     <div className="min-h-full">
