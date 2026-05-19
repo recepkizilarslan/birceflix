@@ -1,25 +1,54 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { listProviders, type ProviderListItem } from '../lib/api'
 import { getRegion } from '../lib/preferences'
 import { AuthError, loginWithPassword, registerWithPassword } from '../lib/auth'
 
 /**
- * The unauthenticated landing screen. Layout renders this in place of the
- * normal app shell when there's no session — i.e. nobody can navigate to
- * any page without signing in first.
+ * The unauthenticated landing screen. Mounted at `/login` and reached
+ * either directly or via RequireAuth's redirect; the `next` query param
+ * (set by RequireAuth) preserves the URL the user was originally trying
+ * to reach so we can drop them back there once they sign in.
  *
  * The OAuth start endpoint (/api/auth/google) is a full-page navigation
- * away from the SPA, so the gate above doesn't need to do anything
- * special to allow it.
+ * away from the SPA, so it bypasses the SPA-level gate entirely.
  */
 type Mode = 'login' | 'register'
 
+/**
+ * Reject anything that isn't a same-origin pathname. Without this an
+ * attacker could craft /login?next=//evil.example/phish and turn the
+ * post-login redirect into an open-redirect primitive.
+ */
+function safeNext(raw: string | null): string {
+  if (!raw) return '/'
+  try {
+    const url = new URL(raw, window.location.origin)
+    if (url.origin !== window.location.origin) return '/'
+    return url.pathname + url.search + url.hash
+  } catch {
+    return '/'
+  }
+}
+
 export function SignInScreen() {
   const { t } = useTranslation()
-  const { signInWithGoogle } = useAuth()
+  const { user, loading: authLoading, signInWithGoogle } = useAuth()
+  const [searchParams] = useSearchParams()
+  const next = safeNext(searchParams.get('next'))
   const [providers, setProviders] = useState<ProviderListItem[]>([])
+
+  // If an already-authed user lands on /login (e.g. via bookmark or by
+  // hitting "back" after signing in), bounce them straight to `next`.
+  // We hard-navigate for parity with the post-submit path, which avoids
+  // any drift between this redirect and the actual sign-in flow.
+  useEffect(() => {
+    if (!authLoading && user) {
+      window.location.href = next
+    }
+  }, [authLoading, user, next])
 
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
@@ -39,9 +68,10 @@ export function SignInScreen() {
       } else {
         await registerWithPassword({ email, password, name: name.trim() || undefined })
       }
-      // Hard reload so the gate (which has its own useAuth instance)
-      // re-probes /api/auth/me and renders the authed app.
-      window.location.href = '/'
+      // Hard reload so every useAuth() instance re-probes /api/auth/me
+      // and renders the authed app. `next` lands the user back where
+      // they were originally trying to go.
+      window.location.href = next
     } catch (e) {
       const code = e instanceof AuthError ? e.code : 'request_failed'
       setErrCode(code)
@@ -183,7 +213,7 @@ export function SignInScreen() {
           </div>
 
           <button
-            onClick={() => signInWithGoogle()}
+            onClick={() => signInWithGoogle(next)}
             className="w-full inline-flex items-center justify-center gap-2.5 px-5 h-12 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium text-[15px] transition active:scale-[0.99]"
           >
             <GoogleIcon />

@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
-import { SignInScreen } from './components/SignInScreen'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedKeySet, listWatched, markWatched, mediaKey, unmarkWatched, type MediaType, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
@@ -98,21 +97,13 @@ export function Layout() {
   const watchlistSuffix = watchlistCount > 0 ? ` (${watchlistCount})` : ''
   const watchedSuffix = watchedCount > 0 ? ` (${watchedCount})` : ''
 
-  // Auth gate: the whole app sits behind login. The hooks above still run
-  // (they're cheap no-ops without a user), so the conditional return is
-  // safe per the rules-of-hooks. The OAuth start endpoint lives at
-  // /api/auth/google and is a hard navigation, so the gate doesn't block
-  // sign-in.
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-[var(--color-text-dim)] text-sm">
-        {t('common.loading')}
-      </div>
-    )
-  }
-  if (!user) {
-    return <SignInScreen />
-  }
+  // The protected slice of the tree is auth-gated by RequireAuth, but
+  // Layout itself also wraps a handful of public routes (e.g. a shared
+  // public-list link). For those we still want the brand chrome and the
+  // sign-in CTA, but the user-specific nav (watchlist/watched/...) only
+  // makes sense once we have a session. `showNav` collapses the nav
+  // surfaces in the unauthed case so the header stays minimal.
+  const showNav = !authLoading && !!user
 
   return (
     <div className="min-h-full">
@@ -120,17 +111,19 @@ export function Layout() {
       <header className="sticky top-0 z-30 backdrop-blur bg-[var(--color-bg)]/90 border-b border-[var(--color-border)] pt-safe pl-safe pr-safe">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 h-14 sm:h-16 flex items-center gap-3 sm:gap-4">
           {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            aria-label={t('nav.menu')}
-            className="lg:hidden -ml-1 inline-flex items-center justify-center h-10 w-10 rounded-lg hover:bg-[var(--color-surface)] transition"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
+          {showNav && (
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label={t('nav.menu')}
+              className="lg:hidden -ml-1 inline-flex items-center justify-center h-10 w-10 rounded-lg hover:bg-[var(--color-surface)] transition"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+          )}
 
           <Link to="/" className="hover:opacity-90 shrink-0">
             <span
@@ -148,14 +141,16 @@ export function Layout() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1">
-            <TabLink to="/">{t('nav.discover')}</TabLink>
-            <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
-            <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
-            <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
-            <TabLink to="/lists">{t('nav.lists')}</TabLink>
-            <TabLink to="/import">{t('nav.import')}</TabLink>
-          </nav>
+          {showNav && (
+            <nav className="hidden lg:flex items-center gap-1">
+              <TabLink to="/">{t('nav.discover')}</TabLink>
+              <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
+              <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
+              <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
+              <TabLink to="/lists">{t('nav.lists')}</TabLink>
+              <TabLink to="/import">{t('nav.import')}</TabLink>
+            </nav>
+          )}
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <PreferencesMenu />
@@ -165,7 +160,7 @@ export function Layout() {
       </header>
 
       {/* ───────────── Mobile drawer menu ───────────── */}
-      {menuOpen && (
+      {showNav && menuOpen && (
         <>
           <div
             className="lg:hidden fixed inset-0 z-40 bg-black/60"
@@ -215,18 +210,20 @@ export function Layout() {
       </main>
 
       {/* ───────────── Mobile bottom nav (e-commerce style) ───────────── */}
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-bg)]/95 backdrop-blur border-t border-[var(--color-border)] pb-safe"
-        aria-label="Primary"
-      >
-        <div className="grid grid-cols-5 h-14">
-          <BottomTab to="/"          label={t('nav.discover')}  icon={DiscoverIcon} />
-          <BottomTab to="/calendar"  label={t('nav.calendar')}  icon={CalendarIcon} />
-          <BottomTab to="/watchlist" label={t('nav.watchlist')} icon={BookmarkIcon} badge={watchlistCount} />
-          <BottomTab to="/watched"   label={t('nav.watched')}   icon={CheckIcon}    badge={watchedCount} />
-          <BottomTab to="/lists"     label={t('nav.lists')}     icon={ListsIcon} />
-        </div>
-      </nav>
+      {showNav && (
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-bg)]/95 backdrop-blur border-t border-[var(--color-border)] pb-safe"
+          aria-label="Primary"
+        >
+          <div className="grid grid-cols-5 h-14">
+            <BottomTab to="/"          label={t('nav.discover')}  icon={DiscoverIcon} />
+            <BottomTab to="/calendar"  label={t('nav.calendar')}  icon={CalendarIcon} />
+            <BottomTab to="/watchlist" label={t('nav.watchlist')} icon={BookmarkIcon} badge={watchlistCount} />
+            <BottomTab to="/watched"   label={t('nav.watched')}   icon={CheckIcon}    badge={watchedCount} />
+            <BottomTab to="/lists"     label={t('nav.lists')}     icon={ListsIcon} />
+          </div>
+        </nav>
+      )}
     </div>
   )
 }
