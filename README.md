@@ -15,16 +15,14 @@ Birceflix is a self-hostable movie & TV tracker. Search the TMDB catalogue with 
 
 ## Documentation
 
-| Doc | What's in it |
-|---|---|
-| [Quick start](docs/QUICKSTART.md) | Run Birceflix on your laptop in five minutes. |
-| [Development](docs/DEVELOPMENT.md) | Dev flows (HMR vs prod-shaped), project layout, code style, migrations, debugging. |
-| [Self-hosting](docs/INSTALL.md) | Bring the stack up on your own server with a real domain and TLS. |
-| [Configuration](docs/CONFIGURATION.md) | Every env var, every secret, every OAuth client step. |
-| [Deployment](docs/DEPLOYMENT.md) | The GitHub Actions CI/CD pipeline, environments, secrets, rollback. |
-| [Architecture](docs/ARCHITECTURE.md) | Stack, request flow, auth/session model, key decisions. |
-| [Contributing](CONTRIBUTING.md) | Branch naming, commit style, PR process, code review expectations. |
-| [Security](SECURITY.md) | Reporting a vulnerability, secret handling, what's in scope. |
+1. [**Quick start**](docs/QUICKSTART.md). Run Birceflix on your laptop in about five minutes. Prereqs, env files, `npm start`, common gotchas.
+2. [**Development**](docs/DEVELOPMENT.md). The deep walkthrough: two dev flows (HMR vs production-shaped), the project layout, code style, the migration workflow, debugging.
+3. [**Self-hosting**](docs/INSTALL.md). Bring the stack up on your own server with a real domain and a real Let's Encrypt cert. DNS, env config, backups, upgrade procedure, troubleshooting.
+4. [**Configuration**](docs/CONFIGURATION.md). Every environment variable with its example value and effect. Step-by-step setup for Google OAuth, TMDB, OMDb, and the optional Trakt integration.
+5. [**Deployment**](docs/DEPLOYMENT.md). The GitHub Actions CI/CD pipeline: who can deploy, how the rollout works on the server, the GHCR image layout, the secrets it needs, and how to roll back.
+6. [**Architecture**](docs/ARCHITECTURE.md). Stack and request flow, the authentication and session model (and why it's sessions instead of JWTs), the database schema at a glance, the key design decisions.
+7. [**Contributing**](CONTRIBUTING.md). Branch naming, commit style, code style summary, the PR process, the visual-identity ground rules, the migration contract.
+8. [**Security**](SECURITY.md). How to report a vulnerability privately, the scope of what counts, secret handling, the response checklist if you suspect compromise.
 
 ## At a glance
 
