@@ -54,7 +54,15 @@ export function DiscoverCard({
 
   return (
     <div className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition flex flex-col">
-      <button onClick={() => onOpen(item)} className="block w-full text-left">
+      {/* Card body acts like a link, but contains nested controls (heart),
+          so it's a div with role=button instead of a real <button>. */}
+      <div
+        onClick={() => onOpen(item)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(item) } }}
+        role="button"
+        tabIndex={0}
+        className="block w-full text-left cursor-pointer"
+      >
         <div className="relative aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
           {poster(item.poster_path) ? (
             <img
@@ -68,31 +76,46 @@ export function DiscoverCard({
               {t('card.noPoster')}
             </div>
           )}
+          {/* TMDB rating chip — corner badge stays readable over any poster. */}
+          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/65 backdrop-blur text-[10px] sm:text-[11px] font-semibold tabular-nums">
+            ★ {item.vote_average.toFixed(1)}
+          </div>
           {myRating != null && (
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-[var(--color-accent)] text-black text-xs font-semibold shadow">
+            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[var(--color-accent)] text-black text-[10px] sm:text-[11px] font-semibold shadow">
               ★ {myRating}
             </div>
           )}
+          {/* Watchlist quick-add: heart icon, sits over the poster bottom-left
+              like an e-commerce favorite. Hidden on hover-less mobile? No —
+              the goal is one-tap save without opening the detail page. */}
+          {onToggleWatchlist && (
+            <button
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onToggleWatchlist(item) }}
+              aria-label={inWatchlist ? t('card.inWatchlist') : t('card.addToWatchlist')}
+              className={`absolute bottom-1.5 right-1.5 h-9 w-9 inline-flex items-center justify-center rounded-full backdrop-blur shadow active:scale-90 transition ${
+                inWatchlist
+                  ? 'bg-[var(--color-accent)] text-black'
+                  : 'bg-black/55 text-white hover:bg-black/75'
+              }`}
+            >
+              <HeartIcon filled={inWatchlist} />
+            </button>
+          )}
         </div>
-        <div className="p-3">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-medium leading-snug line-clamp-2">{item.title}</h3>
-            <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]">
-              ★ {item.vote_average.toFixed(1)}
-            </span>
-          </div>
-          <div className="text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-1.5">
+        <div className="p-2.5 sm:p-3">
+          <h3 className="text-[13px] sm:text-sm font-medium leading-snug line-clamp-2 min-h-[2.4em]">{item.title}</h3>
+          <div className="text-[11px] sm:text-xs text-[var(--color-text-dim)] mt-1 flex flex-wrap items-center gap-x-1.5">
             {year && <span>{year}</span>}
             {item.meta && <>{year && <span>·</span>}<span>{item.meta}</span></>}
           </div>
         </div>
-      </button>
+      </div>
 
-      <div className="mt-auto px-3 pb-3 space-y-1.5">
-        {onToggleWatched && (
+      {onToggleWatched && (
+        <div className="mt-auto px-2.5 sm:px-3 pb-2.5 sm:pb-3">
           <button
             onClick={() => onToggleWatched(item)}
-            className={`w-full text-sm py-1.5 rounded-lg transition ${
+            className={`w-full text-[13px] sm:text-sm h-9 sm:h-auto sm:py-1.5 rounded-lg transition active:scale-[0.98] ${
               watched
                 ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
                 : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
@@ -100,20 +123,21 @@ export function DiscoverCard({
           >
             {watched ? t('card.watched') : t('card.markWatched')}
           </button>
-        )}
-        {onToggleWatchlist && (
-          <button
-            onClick={() => onToggleWatchlist(item)}
-            className={`w-full text-xs py-1.5 rounded-lg transition ${
-              inWatchlist
-                ? 'bg-[var(--color-accent)]/20 text-[var(--color-text)] border border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/30'
-                : 'bg-transparent border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            {inWatchlist ? t('card.inWatchlist') : t('card.addToWatchlist')}
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      width="18" height="18" viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
   )
 }

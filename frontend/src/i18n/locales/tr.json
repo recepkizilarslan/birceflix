@@ -7,7 +7,8 @@
     "watchlist": "Listem",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
-    "import": "İçe / Dışa aktar"
+    "import": "İçe / Dışa aktar",
+    "menu": "Menü"
   },
   "auth": {
     "signIn": "Google ile giriş",
@@ -24,10 +25,15 @@
     "namePlaceholder": "Ad Soyad (opsiyonel)",
     "noAccount": "Hesabın yok mu?",
     "haveAccount": "Zaten hesabın var mı?",
+    "showPassword": "Şifreyi göster",
+    "hidePassword": "Şifreyi gizle",
+    "legalHint": "Devam ederek şartlarımızı kabul etmiş olursun.",
     "errors": {
       "email_taken": "Bu e-posta zaten kayıtlı.",
       "invalid_credentials": "E-posta veya şifre hatalı.",
-      "invalid_input": "Geçersiz bilgi. Şifre en az 8 karakter olmalı.",
+      "invalid_input": "Geçersiz bilgi. Şifre en az 10 karakter olmalı.",
+      "weak_password": "Şifre çok zayıf. En az 10 karakter; büyük/küçük harf, rakam ve sembolden en az üçünü içermeli.",
+      "rate_limited": "Çok fazla deneme yaptın. Lütfen birkaç dakika sonra tekrar dene.",
       "request_failed": "Bir şeyler ters gitti, tekrar dene."
     }
   },
@@ -110,7 +116,9 @@
       "medium": "20–100",
       "many": "100+ bölüm"
     },
-    "all": "Tümü"
+    "all": "Tümü",
+    "apply": "Uygula",
+    "applyCount": "{{count}} sonucu göster"
   },
   "sort": {
     "label": "Sırala"

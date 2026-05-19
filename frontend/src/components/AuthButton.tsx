@@ -53,17 +53,17 @@ export function AuthButton() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[var(--color-surface-2)] transition"
+        className="flex items-center gap-1.5 sm:gap-2 h-9 px-1.5 sm:px-2 rounded-lg hover:bg-[var(--color-surface-2)] transition"
       >
         <Avatar user={user} size="w-7 h-7" />
         <span className="text-xs text-[var(--color-text)] hidden sm:inline max-w-[140px] truncate">
           {displayName(user)}
         </span>
-        <span className={`text-[10px] text-[var(--color-text-dim)] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+        <span className={`text-[10px] text-[var(--color-text-dim)] transition-transform hidden sm:inline ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-40 w-[260px] rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl">
+        <div className="fixed sm:absolute right-2 sm:right-0 top-14 sm:top-full sm:mt-2 z-50 w-[calc(100vw-1rem)] sm:w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl">
           <div className="flex items-center gap-3 p-4">
             <Avatar user={user} size="w-12 h-12" />
             <div className="min-w-0 flex-1">

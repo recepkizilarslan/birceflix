@@ -51,7 +51,7 @@ export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="px-5 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition"
+        className="w-full sm:w-auto h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition active:scale-[0.98]"
       >
         {t('addToList.button')}
       </button>

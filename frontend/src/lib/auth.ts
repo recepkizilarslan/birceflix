@@ -16,7 +16,8 @@ export async function getMe(): Promise<User | null> {
 
 /**
  * The backend uses stable string codes so the UI can localise the
- * messages: 'email_taken' | 'invalid_credentials' | 'invalid_input'.
+ * messages: 'email_taken' | 'invalid_credentials' | 'invalid_input' |
+ * 'weak_password' | 'rate_limited'.
  */
 export class AuthError extends Error {
   code: string
@@ -34,6 +35,9 @@ async function postAuth(path: string, body: Record<string, unknown>): Promise<vo
     body: JSON.stringify(body),
   })
   if (res.ok) return
+  // 429 comes from @fastify/rate-limit with a generic message — collapse
+  // every shape of it into our stable code so i18n has one key to map.
+  if (res.status === 429) throw new AuthError('rate_limited')
   // Try to read the structured error; fall back to a generic code.
   let code = 'request_failed'
   try {

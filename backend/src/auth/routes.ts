@@ -7,6 +7,7 @@ import { env } from '../env.js'
 import { google, generateState, generateCodeVerifier, fetchGoogleUserInfo, type GoogleUserInfo } from './google.js'
 import { cookieValue, createSession, deleteSession, parseCookie, readSession } from './session.js'
 import { hashPassword, verifyPassword } from './password.js'
+import { checkPasswordPolicy } from './passwordPolicy.js'
 
 const STATE_COOKIE = 'google_oauth_state'
 const VERIFIER_COOKIE = 'google_oauth_verifier'
@@ -132,18 +133,36 @@ export async function authRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  // Tight per-IP throttling for credential endpoints — defends against
+  // brute-force and credential-stuffing without leaning on the global
+  // 300/min limit. Both endpoints share the same window so an attacker
+  // can't bounce between register/login to multiply attempts.
+  const authRateLimit = {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '15 minutes',
+      },
+    },
+  }
+
   // 4) Email + password register
   const registerBody = z.object({
     email: z.string().email().max(200).transform((s) => s.trim().toLowerCase()),
-    password: z.string().min(8).max(200),
+    password: z.string().min(10).max(200),
     name: z.string().trim().max(120).optional(),
   })
-  app.post('/api/auth/register', async (req, reply) => {
+  app.post('/api/auth/register', authRateLimit, async (req, reply) => {
     const parsed = registerBody.safeParse(req.body)
     if (!parsed.success) {
       return reply.code(400).send({ error: 'invalid_input', details: parsed.error.flatten() })
     }
     const { email, password, name } = parsed.data
+
+    const policyError = checkPasswordPolicy(password, email)
+    if (policyError) {
+      return reply.code(400).send({ error: 'weak_password', reason: policyError })
+    }
 
     const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1)
     if (existing) {
@@ -194,7 +213,7 @@ export async function authRoutes(app: FastifyInstance) {
     email: z.string().email().max(200).transform((s) => s.trim().toLowerCase()),
     password: z.string().min(1).max(200),
   })
-  app.post('/api/auth/login', async (req, reply) => {
+  app.post('/api/auth/login', authRateLimit, async (req, reply) => {
     const parsed = loginBody.safeParse(req.body)
     if (!parsed.success) {
       return reply.code(400).send({ error: 'invalid_input' })

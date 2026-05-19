@@ -17,4 +17,41 @@ html, body, #root {
   color: var(--color-text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
+
+body {
+  /* Disables iOS bounce on body while letting overflow regions scroll. */
+  position: relative;
+}
+
+button, [role="button"], a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* iOS Safari zooms in on focused inputs with font-size < 16px.
+   Bump every form control to 16px so the viewport stays put. */
+input, select, textarea {
+  font-size: 16px;
+}
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: 14px;
+  }
+}
+
+/* Utility: hide scrollbar but keep scrolling — for horizontal mobile rails. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Safe-area helpers for iOS notch / Android nav bar. */
+.pt-safe   { padding-top: env(safe-area-inset-top); }
+.pb-safe   { padding-bottom: env(safe-area-inset-bottom); }
+.pl-safe   { padding-left: env(safe-area-inset-left); }
+.pr-safe   { padding-right: env(safe-area-inset-right); }
+.pb-safe-plus-16 { padding-bottom: calc(env(safe-area-inset-bottom) + 4rem); }
+.h-safe-bottom { height: env(safe-area-inset-bottom); }
