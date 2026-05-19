@@ -307,9 +307,7 @@
     "unknownDate": "Tarih bilinmiyor"
   },
   "pwa": {
-    "newVersion": "Yeni sürüm hazır. Şimdi yenilemek ister misin?",
     "offlineReady": "Çevrimdışı kullanıma hazır.",
-    "refresh": "Yenile",
     "dismiss": "Kapat"
   },
   "search": {
