@@ -227,6 +227,16 @@
     "createLink": "Liste oluştur",
     "filmCount": "{{count}} film"
   },
+  "savedFilters": {
+    "sectionTitle": "Kaydedilenler",
+    "saveButton": "Kaydet",
+    "dialogTitle": "Bu filtreyi kaydet",
+    "nameLabel": "Ad",
+    "namePlaceholder": "Örn: Netflix'teki uzun Kore filmleri",
+    "descriptionLabel": "Açıklama (opsiyonel)",
+    "descriptionPlaceholder": "Bu filtre ne için…",
+    "confirmDelete": "\"{{name}}\" filtresini silmek istediğine emin misin?"
+  },
   "tv": {
     "popular": "Popüler diziler",
     "searchResults": "\"{{query}}\" için sonuçlar",

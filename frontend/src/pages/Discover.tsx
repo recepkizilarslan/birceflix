@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, isTvMedia, type FilterState, type MediaType } from '../components/FilterPanel'
+import { SaveFilterDialog } from '../components/SaveFilterDialog'
 import { SearchBar } from '../components/SearchBar'
 import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
 import { discover, search, type TmdbMovie } from '../lib/api'
@@ -11,6 +12,12 @@ import { mediaKey } from '../lib/watched'
 import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
 import { parseDiscoverUrl, serializeDiscoverUrl, type DiscoverUrlState } from '../lib/discoverUrl'
 import { useRegion } from '../lib/preferences'
+import {
+  createSavedFilter,
+  deleteSavedFilter,
+  listSavedFilters,
+  type SavedFilter,
+} from '../lib/savedFilters'
 
 // Combined movie + TV discover. The URL is the single source of truth for
 // every user-visible knob (media type, filters, search query, page) so links
@@ -57,6 +64,8 @@ export function Discover() {
 
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [sortSheetOpen, setSortSheetOpen] = useState(false)
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
 
   const [results, setResults] = useState<(TmdbMovie | TmdbTvShow)[]>([])
   const [loading, setLoading] = useState(false)
@@ -105,6 +114,37 @@ export function Discover() {
   const activeCount = countActiveFilters(filters)
   const sortOptions = isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS
 
+  // Load saved filter snapshots once the user is signed in. The list mutates
+  // locally via the save / delete handlers below — no refetch on every tweak.
+  useEffect(() => {
+    if (!user) {
+      setSavedFilters([])
+      return
+    }
+    listSavedFilters().then(setSavedFilters).catch(() => {})
+  }, [user])
+
+  const handleSaveCurrent = async ({ name, description }: { name: string; description: string | null }) => {
+    const created = await createSavedFilter({
+      name,
+      description,
+      media_type: mediaType,
+      filters,
+    })
+    setSavedFilters((prev) => [created, ...prev])
+  }
+
+  const handleApplySaved = (s: SavedFilter) => {
+    update({ mediaType: s.media_type, filters: s.filters, query: null, page: 1 })
+    setFilterSheetOpen(false)
+  }
+
+  const handleDeleteSaved = async (s: SavedFilter) => {
+    if (!window.confirm(t('savedFilters.confirmDelete', { name: s.name }))) return
+    await deleteSavedFilter(s.id)
+    setSavedFilters((prev) => prev.filter((x) => x.id !== s.id))
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       {/* Desktop sidebar */}
@@ -116,6 +156,10 @@ export function Discover() {
           activeCount={activeCount}
           mediaType={mediaType}
           onMediaTypeChange={setMediaType}
+          savedFilters={user ? savedFilters : undefined}
+          onSaveCurrent={user ? () => setSaveDialogOpen(true) : undefined}
+          onApplySaved={user ? handleApplySaved : undefined}
+          onDeleteSaved={user ? handleDeleteSaved : undefined}
         />
       </aside>
 
@@ -307,9 +351,19 @@ export function Discover() {
             activeCount={activeCount}
             mediaType={mediaType}
             onMediaTypeChange={setMediaType}
+            savedFilters={user ? savedFilters : undefined}
+            onSaveCurrent={user ? () => setSaveDialogOpen(true) : undefined}
+            onApplySaved={user ? handleApplySaved : undefined}
+            onDeleteSaved={user ? handleDeleteSaved : undefined}
           />
         </BottomSheet>
       )}
+
+      <SaveFilterDialog
+        open={saveDialogOpen}
+        onClose={() => setSaveDialogOpen(false)}
+        onSave={handleSaveCurrent}
+      />
 
       {/* ───────── Mobile sort bottom-sheet ───────── */}
       {sortSheetOpen && (

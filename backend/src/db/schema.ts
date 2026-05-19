@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, smallint, boolean, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, smallint, boolean, jsonb, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // ---------------------------------------------------------------------------
@@ -218,8 +218,34 @@ export const webhookTokens = pgTable(
   }),
 )
 
+// ---------------------------------------------------------------------------
+// Saved discover filters — a named snapshot of the discover-page FilterState
+// the user can reapply with one click from the sidebar.
+// ---------------------------------------------------------------------------
+export const savedFilters = pgTable(
+  'saved_filters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    /** 'movie' | 'tv' | 'doc' — keeps the badge consistent when reapplied. */
+    mediaType: text('media_type').notNull(),
+    /** Full serialised FilterState. Shape is owned by the frontend. */
+    filters: jsonb('filters').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index('saved_filters_user_idx').on(t.userId, t.createdAt),
+  }),
+)
+
 export type User = typeof users.$inferSelect
 export type Session = typeof sessions.$inferSelect
 export type WatchedMovie = typeof watchedMovies.$inferSelect
 export type WatchlistItem = typeof watchlist.$inferSelect
 export type WatchHistoryItem = typeof watchHistory.$inferSelect
+export type SavedFilter = typeof savedFilters.$inferSelect
