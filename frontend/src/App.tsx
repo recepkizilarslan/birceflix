@@ -18,12 +18,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public — auth-less so deep links to the sign-in page stay shareable */}
+        {/* Sign-in lives outside Layout so the marquee/hero gets the
+            full viewport without competing with the app chrome. */}
         <Route path="/login" element={<SignInScreen />} />
 
-        {/* Everything else sits behind the auth gate */}
-        <Route element={<RequireAuth />}>
-          <Route element={<Layout />}>
+        <Route element={<Layout />}>
+          {/* Public — shareable links keep working for logged-out
+              visitors. Layout hides the auth-only nav surfaces when
+              there's no session. */}
+          <Route path="public/lists/:slug" element={<PublicListPage />} />
+
+          {/* Everything below requires a session */}
+          <Route element={<RequireAuth />}>
             <Route index element={<Discover />} />
             <Route path="watched" element={<Watched />} />
             <Route path="watchlist" element={<Watchlist />} />
@@ -34,7 +40,6 @@ function App() {
             <Route path="tv/:id" element={<TvDetailPage />} />
             <Route path="lists" element={<ListsPage />} />
             <Route path="lists/:id" element={<ListDetailPage />} />
-            <Route path="public/lists/:slug" element={<PublicListPage />} />
             <Route path="calendar" element={<CalendarPage />} />
           </Route>
         </Route>

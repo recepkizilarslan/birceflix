@@ -213,7 +213,7 @@ export function SignInScreen() {
           </div>
 
           <button
-            onClick={() => signInWithGoogle()}
+            onClick={() => signInWithGoogle(next)}
             className="w-full inline-flex items-center justify-center gap-2.5 px-5 h-12 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium text-[15px] transition active:scale-[0.99]"
           >
             <GoogleIcon />

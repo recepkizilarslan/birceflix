@@ -14,9 +14,13 @@ export function useAuth() {
     return () => { mounted = false }
   }, [])
 
-  const signInWithGoogle = () => {
-    // Backend Google OAuth start endpoint — it 302s to Google then back to us
-    window.location.href = '/api/auth/google'
+  const signInWithGoogle = (next?: string) => {
+    // Backend Google OAuth start endpoint — it 302s to Google then back to us.
+    // `next` is preserved across the round-trip via an httpOnly cookie set by
+    // the backend; we forward it through the query string here. Same-origin
+    // validation happens on both ends.
+    const qs = next ? `?next=${encodeURIComponent(next)}` : ''
+    window.location.href = `/api/auth/google${qs}`
     return Promise.resolve()
   }
 

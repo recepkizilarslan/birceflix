@@ -12,7 +12,23 @@ import { rlAuth } from '../lib/rateLimit.js'
 
 const STATE_COOKIE = 'google_oauth_state'
 const VERIFIER_COOKIE = 'google_oauth_verifier'
+const NEXT_COOKIE = 'google_oauth_next'
 const TEN_MIN = 10 * 60
+
+/**
+ * Restrict the OAuth `next` redirect target to same-origin pathnames so
+ * we can't be coerced into a generic open-redirect. Reject empty values,
+ * absolute URLs, protocol-relative URLs (`//evil.example/...`), and the
+ * `\` variants browsers normalise into the same thing.
+ */
+function safeNextPath(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/')) return null
+  if (raw.startsWith('//') || raw.startsWith('/\\')) return null
+  // Anything that smells like a scheme bail out as a final guard.
+  if (/^\/[a-z][a-z0-9+\-.]*:/i.test(raw)) return null
+  return raw
+}
 
 function sessionCookieOpts() {
   return {
@@ -57,6 +73,13 @@ export async function authRoutes(app: FastifyInstance) {
     const opts = { path: '/', httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'lax' as const, maxAge: TEN_MIN }
     reply.setCookie(STATE_COOKIE, state, opts)
     reply.setCookie(VERIFIER_COOKIE, codeVerifier, opts)
+    // Stash the post-login destination across the Google round-trip.
+    // Frontend already sanitises before it gets here, but we re-validate
+    // both on the way in and out so a hand-crafted call can't smuggle a
+    // hostile redirect through this hop.
+    const nextRaw = (req.query as { next?: string }).next
+    const next = safeNextPath(nextRaw ?? null)
+    if (next) reply.setCookie(NEXT_COOKIE, next, opts)
     reply.redirect(url.toString())
   })
 
@@ -120,7 +143,10 @@ export async function authRoutes(app: FastifyInstance) {
     reply.clearCookie(STATE_COOKIE, { path: '/' })
     reply.clearCookie(VERIFIER_COOKIE, { path: '/' })
     reply.setCookie(env.SESSION_COOKIE_NAME, cookieValue(session.id), sessionCookieOpts())
-    reply.redirect(env.FRONTEND_ORIGIN)
+
+    const next = safeNextPath(req.cookies[NEXT_COOKIE] ?? null)
+    reply.clearCookie(NEXT_COOKIE, { path: '/' })
+    reply.redirect(next ? env.FRONTEND_ORIGIN + next : env.FRONTEND_ORIGIN)
   })
 
   // 3) Logout
