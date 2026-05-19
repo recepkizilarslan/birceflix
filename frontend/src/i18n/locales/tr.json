@@ -87,6 +87,7 @@
     "genres": "Kategori",
     "platforms": "Platform",
     "platformLoading": "Yükleniyor…",
+    "platformNone": "Bu bölge için platform listesi yok.",
     "language": "Dil",
     "originCountry": "Yapım Ülkesi",
     "year": "Yıl",

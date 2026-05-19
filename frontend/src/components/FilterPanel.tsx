@@ -92,6 +92,7 @@ export function FilterPanel({
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const [providers, setProviders] = useState<ProviderListItem[]>([])
+  const [providersLoading, setProvidersLoading] = useState(false)
 
   const tvMode = isTvMedia(mediaType)
 
@@ -102,10 +103,11 @@ export function FilterPanel({
 
   useEffect(() => {
     const loader = tvMode ? listTvProviders : listProviders
+    setProvidersLoading(true)
     loader(value.watch_region).then((p) => {
       const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
       setProviders(top)
-    }).catch(() => setProviders([]))
+    }).catch(() => setProviders([])).finally(() => setProvidersLoading(false))
   }, [tvMode, value.watch_region])
 
   const toggle = (arr: number[], id: number) =>
@@ -200,7 +202,8 @@ export function FilterPanel({
           </Select>
         </div>
         <div className="grid grid-cols-2 gap-1.5 max-h-72 sm:max-h-56 overflow-y-auto">
-          {providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
+          {providersLoading && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
+          {!providersLoading && providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformNone')}</div>}
           {providers.map((p) => {
             const active = value.with_watch_providers.includes(p.provider_id)
             return (
