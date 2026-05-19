@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { listTvGenres, listTvProviders } from '../lib/tv'
+import { listGenres, type Genre } from '../lib/api'
+import { listTvGenres } from '../lib/tv'
 import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+import { useProviders } from '../lib/useProviders'
 import type { SavedFilter } from '../lib/savedFilters'
 
 /**
@@ -91,8 +92,7 @@ export function FilterPanel({
 }: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
-  const [providers, setProviders] = useState<ProviderListItem[]>([])
-  const [providersLoading, setProvidersLoading] = useState(false)
+  const { providers, loading: providersLoading } = useProviders(mediaType, value.watch_region)
 
   const tvMode = isTvMedia(mediaType)
 
@@ -100,15 +100,6 @@ export function FilterPanel({
     const loader = tvMode ? listTvGenres : listGenres
     loader().then(setGenres).catch(() => {})
   }, [tvMode])
-
-  useEffect(() => {
-    const loader = tvMode ? listTvProviders : listProviders
-    setProvidersLoading(true)
-    loader(value.watch_region).then((p) => {
-      const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
-      setProviders(top)
-    }).catch(() => setProviders([])).finally(() => setProvidersLoading(false))
-  }, [tvMode, value.watch_region])
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
@@ -275,17 +266,15 @@ export function FilterPanel({
 
       <Section title={`${t('filters.year')} ${value.year_from || value.year_to ? '•' : ''}`}>
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number" min={1900} max={2100} placeholder={t('filters.yearFrom')}
+          <RangeNumberInput
+            min={1900} max={2100} placeholder={t('filters.yearFrom')}
             value={value.year_from}
-            onChange={(e) => onChange({ ...value, year_from: e.target.value ? Number(e.target.value) : '' })}
-            className={inputCls}
+            onCommit={(v) => onChange({ ...value, year_from: v })}
           />
-          <input
-            type="number" min={1900} max={2100} placeholder={t('filters.yearTo')}
+          <RangeNumberInput
+            min={1900} max={2100} placeholder={t('filters.yearTo')}
             value={value.year_to}
-            onChange={(e) => onChange({ ...value, year_to: e.target.value ? Number(e.target.value) : '' })}
-            className={inputCls}
+            onCommit={(v) => onChange({ ...value, year_to: v })}
           />
         </div>
       </Section>
@@ -306,17 +295,15 @@ export function FilterPanel({
           })}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number" min={0} max={600} placeholder={t('filters.runtimeFromPlaceholder')}
+          <RangeNumberInput
+            min={0} max={600} placeholder={t('filters.runtimeFromPlaceholder')}
             value={value.runtime_from}
-            onChange={(e) => onChange({ ...value, runtime_from: e.target.value ? Number(e.target.value) : '' })}
-            className={inputCls}
+            onCommit={(v) => onChange({ ...value, runtime_from: v })}
           />
-          <input
-            type="number" min={0} max={600} placeholder={t('filters.runtimeToPlaceholder')}
+          <RangeNumberInput
+            min={0} max={600} placeholder={t('filters.runtimeToPlaceholder')}
             value={value.runtime_to}
-            onChange={(e) => onChange({ ...value, runtime_to: e.target.value ? Number(e.target.value) : '' })}
-            className={inputCls}
+            onCommit={(v) => onChange({ ...value, runtime_to: v })}
           />
         </div>
       </Section>
@@ -338,17 +325,15 @@ export function FilterPanel({
             })}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number" min={0} max={100} placeholder={t('filters.seasonsFromPlaceholder')}
+            <RangeNumberInput
+              min={0} max={100} placeholder={t('filters.seasonsFromPlaceholder')}
               value={value.seasons_from}
-              onChange={(e) => onChange({ ...value, seasons_from: e.target.value ? Number(e.target.value) : '' })}
-              className={inputCls}
+              onCommit={(v) => onChange({ ...value, seasons_from: v })}
             />
-            <input
-              type="number" min={0} max={100} placeholder={t('filters.seasonsToPlaceholder')}
+            <RangeNumberInput
+              min={0} max={100} placeholder={t('filters.seasonsToPlaceholder')}
               value={value.seasons_to}
-              onChange={(e) => onChange({ ...value, seasons_to: e.target.value ? Number(e.target.value) : '' })}
-              className={inputCls}
+              onCommit={(v) => onChange({ ...value, seasons_to: v })}
             />
           </div>
         </Section>
@@ -371,17 +356,15 @@ export function FilterPanel({
             })}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number" min={0} max={5000} placeholder={t('filters.episodesFromPlaceholder')}
+            <RangeNumberInput
+              min={0} max={5000} placeholder={t('filters.episodesFromPlaceholder')}
               value={value.episodes_from}
-              onChange={(e) => onChange({ ...value, episodes_from: e.target.value ? Number(e.target.value) : '' })}
-              className={inputCls}
+              onCommit={(v) => onChange({ ...value, episodes_from: v })}
             />
-            <input
-              type="number" min={0} max={5000} placeholder={t('filters.episodesToPlaceholder')}
+            <RangeNumberInput
+              min={0} max={5000} placeholder={t('filters.episodesToPlaceholder')}
               value={value.episodes_to}
-              onChange={(e) => onChange({ ...value, episodes_to: e.target.value ? Number(e.target.value) : '' })}
-              className={inputCls}
+              onCommit={(v) => onChange({ ...value, episodes_to: v })}
             />
           </div>
         </Section>
@@ -443,6 +426,71 @@ function Section({ title, children, defaultOpen, last }: { title: string; childr
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
+  )
+}
+
+/**
+ * Numeric range input that keeps a local string while the user is typing and
+ * only commits the parsed/clamped value on blur or Enter. Necessary because
+ * Discover's URL parser clamps every incoming value into [min, max], so
+ * round-tripping each keystroke through the URL would (for year inputs with
+ * min=1900) replace "2" with "1900" before the user could type "2024".
+ */
+function RangeNumberInput({
+  value,
+  onCommit,
+  min,
+  max,
+  placeholder,
+}: {
+  value: number | ''
+  onCommit: (v: number | '') => void
+  min: number
+  max: number
+  placeholder: string
+}) {
+  const [local, setLocal] = useState<string>(value === '' ? '' : String(value))
+  const focusedRef = useRef(false)
+
+  // Reflect outside-driven changes (reset, preset chip, saved-filter apply)
+  // back into the input, but never overwrite what the user is actively typing.
+  useEffect(() => {
+    if (!focusedRef.current) setLocal(value === '' ? '' : String(value))
+  }, [value])
+
+  const commit = (raw: string) => {
+    const trimmed = raw.trim()
+    if (trimmed === '') {
+      setLocal('')
+      if (value !== '') onCommit('')
+      return
+    }
+    const n = Number.parseInt(trimmed, 10)
+    if (!Number.isFinite(n)) {
+      setLocal(value === '' ? '' : String(value))
+      return
+    }
+    const clamped = Math.min(max, Math.max(min, n))
+    setLocal(String(clamped))
+    if (clamped !== value) onCommit(clamped)
+  }
+
+  return (
+    <input
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      placeholder={placeholder}
+      value={local}
+      onFocus={() => { focusedRef.current = true }}
+      onBlur={(e) => { focusedRef.current = false; commit(e.target.value) }}
+      onChange={(e) => setLocal(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+      }}
+      className={inputCls}
+    />
   )
 }
 

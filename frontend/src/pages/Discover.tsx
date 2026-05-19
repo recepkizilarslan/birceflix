@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { FilterPanel, DEFAULT_FILTERS, countActiveFilters, isTvMedia, type FilterState, type MediaType } from '../components/FilterPanel'
+import { ProviderStrip } from '../components/ProviderStrip'
 import { SaveFilterDialog } from '../components/SaveFilterDialog'
 import { SearchBar } from '../components/SearchBar'
 import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
@@ -145,6 +146,13 @@ export function Discover() {
     setSavedFilters((prev) => prev.filter((x) => x.id !== s.id))
   }
 
+  const toggleProvider = (id: number) => {
+    const nextProviders = filters.with_watch_providers.includes(id)
+      ? filters.with_watch_providers.filter((x) => x !== id)
+      : [...filters.with_watch_providers, id]
+    update({ filters: { ...filters, with_watch_providers: nextProviders }, page: 1 })
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       {/* Desktop sidebar */}
@@ -190,6 +198,16 @@ export function Discover() {
             )
           })}
         </div>
+
+        {/* Platform quick-filter strip — every provider TMDB lists for the
+            active region (sorted by display_priority). Tapping a tile toggles
+            it in the same with_watch_providers URL filter the sidebar uses. */}
+        <ProviderStrip
+          mediaType={mediaType}
+          region={filters.watch_region}
+          selected={filters.with_watch_providers}
+          onToggle={toggleProvider}
+        />
 
         {/* Mobile toolbar — sticky Filtrele / Sırala buttons (e-commerce style). */}
         <div className="lg:hidden sticky top-14 z-20 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-[var(--color-bg)]/95 backdrop-blur border-b border-[var(--color-border)]">
