@@ -32,10 +32,10 @@ Out of scope:
 
 The repo is designed so that no secret is ever committed. The following are git-ignored:
 
-- `.env` — root, used by `docker compose`.
-- `backend/.env` — backend dev environment (Google OAuth, TMDB/OMDb, DB URL, session secret).
+- `.env`: root, used by `docker compose`.
+- `backend/.env`: backend dev environment (Google OAuth, TMDB/OMDb, DB URL, session secret).
 
-Only the `*.example` files (placeholders, no values) live in the repo.
+Only the `*.example` files (placeholders, no values) live in the repo. The full env reference is in [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 ### Server-side API keys
 - `TMDB_API_KEY` and `OMDB_API_KEY` are read from env on the backend only. They are **never** included in the frontend bundle or sent to the browser.
@@ -47,17 +47,17 @@ Only the `*.example` files (placeholders, no values) live in the repo.
 ### Sessions
 - Sessions are server-side rows in the `sessions` table. The cookie carries an opaque id, HMAC-signed with `SESSION_SECRET` (32+ characters, randomly generated: `openssl rand -base64 48`).
 - The cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
-- Logout deletes the session row immediately — no JWT revocation problem.
+- Logout deletes the session row immediately, sidestepping any JWT-style revocation problem.
 - If `SESSION_SECRET` is leaked, rotate it. All existing sessions become invalid (cookies fail HMAC verification), and every user will be signed out.
 
 ### Google OAuth
 - The `state` and PKCE `code_verifier` are stored in short-lived cookies and verified on the callback.
 - Only emails with `email_verified: true` from Google are accepted.
-- Make sure the **Authorized redirect URI** in Google Cloud Console matches `GOOGLE_REDIRECT_URI` exactly — a mismatched/lax whitelist is the most common foot-gun.
+- Make sure the **Authorized redirect URI** in Google Cloud Console matches `GOOGLE_REDIRECT_URI` exactly. A mismatched or lax whitelist is the most common foot-gun.
 
 ### Database
 - The app uses a single Postgres role (`birceflix`). On a public-facing deployment, ensure Postgres is **not** reachable from outside the Docker network (the compose file already keeps it on a private network).
-- All user-scoped queries filter by `req.userId` from the session. There is no separate RLS — authorization lives in the backend code.
+- All user-scoped queries filter by `req.userId` from the session. There is no separate RLS; authorization lives in the backend code.
 
 ### Dependencies
 - Run `npm audit` periodically across all workspaces.
