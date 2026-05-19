@@ -13,7 +13,7 @@
 
 Birceflix is a self-hostable movie & TV tracker. Search the TMDB catalogue with deep filters, sign in with Google or email, and track what you've watched and what you want to watch. The whole stack runs in containers; one `docker compose up -d` brings it up.
 
-## A note from the author
+## Journal
 
 Birceflix started as a way to solve a recurring household problem. My wife and I subscribe to a handful of streaming platforms, and every time we sat down for a movie night the same thing happened: we couldn't decide what to watch. Each platform's filters felt built to push us toward what they wanted us to see, not what we actually wanted. We'd open three apps in turn, hunting for the right combination of language, country, year, rating, runtime, and availability, and end up giving up.
 
