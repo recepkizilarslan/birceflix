@@ -22,6 +22,8 @@ function isPublicPath(url: string): boolean {
   const path = url.split('?')[0] ?? url
   if (path === '/api/health') return true
   if (path.startsWith('/api/auth/')) return true
+  if (path.startsWith('/api/public/')) return true
+  if (path.startsWith('/api/webhooks/scrobble/')) return true
   // The sign-in screen shows a marquee of streaming-service logos. These
   // are TMDB metadata endpoints with tiny, bounded response payloads — no
   // privacy concern in exposing them anonymously, and they don't burn

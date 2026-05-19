@@ -16,3 +16,7 @@ export const rlWrite = {
 export const rlAuth = {
   config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
 } as const
+
+export const rlWebhook = {
+  config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
+} as const

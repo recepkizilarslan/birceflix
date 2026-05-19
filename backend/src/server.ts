@@ -25,6 +25,7 @@ import { savedFiltersRoutes } from './routes/savedFilters.js'
 import { webhookRoutes } from './routes/webhooks.js'
 import { calendarRoutes } from './routes/calendar.js'
 import { exportRoutes } from './routes/export.js'
+import { purgeExpired } from './auth/session.js'
 
 async function build() {
   const app = Fastify({
@@ -79,6 +80,12 @@ async function main() {
   const app = await build()
   try {
     await app.listen({ host: env.HOST, port: env.PORT })
+
+    // Purge expired sessions on boot, and then every 24 hours
+    purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions on boot'))
+    setInterval(() => {
+      purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions'))
+    }, 24 * 60 * 60 * 1000)
   } catch (err) {
     app.log.error(err)
     process.exit(1)
