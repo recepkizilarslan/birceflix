@@ -33,10 +33,9 @@ const schema = z.object({
   // Defaults
   DEFAULT_WATCH_REGION: z.string().length(2).default('TR'),
 
-  // IMDb-top page. Backed by a public TMDB list (community-maintained mirror
-  // of IMDb's top movies). Override the list id to swap the source if it
-  // ever goes stale.
-  IMDB_TOP_LIST_ID: z.coerce.number().int().positive().default(522),
+  // Top-movies page. Sourced from TMDB's `/movie/top_rated` (paginated,
+  // 20 results per page). 200 movies = 10 pages; 500 is the hard cap from
+  // TMDB anyway.
   IMDB_TOP_LIMIT: z.coerce.number().int().positive().max(500).default(200),
 })
 

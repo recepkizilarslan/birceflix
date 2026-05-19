@@ -144,7 +144,7 @@ export interface ImdbTopMovie {
 
 export interface ImdbTopSnapshot {
   updated_at: string
-  source: { list_id: number; list_name: string }
+  source: { name: string }
   movies: ImdbTopMovie[]
 }
 

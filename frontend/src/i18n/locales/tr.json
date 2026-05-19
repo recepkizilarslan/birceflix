@@ -332,6 +332,6 @@
     "subtitle": "{{region}} bölgesinde hangi platformda izleyebileceğin görünür.",
     "updatedHoursAgo": "{{hours}} saat önce güncellendi",
     "loadFailed": "Liste yüklenemedi.",
-    "attribution": "Liste kaynağı: {{listName}} (TMDB). Sağlayıcı verisi JustWatch."
+    "attribution": "Kaynak: {{source}} (TMDB). Sağlayıcı verisi JustWatch."
   }
 }
