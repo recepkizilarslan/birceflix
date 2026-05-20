@@ -1,9 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { and, desc, eq } from 'drizzle-orm'
-import { db } from '../db/client.js'
-import { watchedMovies } from '../db/schema.js'
 import { rlRead, rlWrite } from '../lib/rateLimit.js'
+import { serializeWatched } from '../lib/serializers.js'
 
 const mediaTypeEnum = z.enum(['movie', 'tv']).default('movie')
 
@@ -33,27 +31,10 @@ export async function watchedRoutes(app: FastifyInstance) {
   app.get('/api/watched', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
-    const rows = await db
-      .select()
-      .from(watchedMovies)
-      .where(eq(watchedMovies.userId, userId))
-      .orderBy(desc(watchedMovies.watchedAt))
-      .limit(limit)
-      .offset((page - 1) * limit)
-
+    const rows = await app.services.watched.getWatched(userId, page, limit)
+    
     return {
-      items: rows.map((r) => ({
-      id: r.id,
-      user_id: r.userId,
-      tmdb_id: r.tmdbId,
-      media_type: r.mediaType,
-      imdb_id: r.imdbId,
-      title: r.title,
-      poster_path: r.posterPath,
-      watched_at: r.watchedAt.toISOString(),
-      my_rating: r.myRating,
-      notes: r.notes,
-    })),
+      items: rows.map(serializeWatched),
       page,
       limit,
     }
@@ -63,28 +44,15 @@ export async function watchedRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const body = upsertBody.parse(req.body)
 
-    await db
-      .insert(watchedMovies)
-      .values({
-        userId,
-        tmdbId: body.tmdb_id,
-        mediaType: body.media_type,
-        imdbId: body.imdb_id ?? null,
-        title: body.title,
-        posterPath: body.poster_path ?? null,
-        myRating: body.my_rating ?? null,
-        notes: body.notes ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
-        set: {
-          imdbId: body.imdb_id ?? null,
-          title: body.title,
-          posterPath: body.poster_path ?? null,
-          myRating: body.my_rating ?? null,
-          notes: body.notes ?? null,
-        },
-      })
+    await app.services.watched.upsertWatched(userId, {
+      tmdbId: body.tmdb_id,
+      mediaType: body.media_type,
+      imdbId: body.imdb_id,
+      title: body.title,
+      posterPath: body.poster_path,
+      myRating: body.my_rating,
+      notes: body.notes,
+    })
 
     return { ok: true }
   })
@@ -93,28 +61,10 @@ export async function watchedRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
-    const [row] = await db
-      .select()
-      .from(watchedMovies)
-      .where(and(
-        eq(watchedMovies.userId, userId),
-        eq(watchedMovies.tmdbId, tmdbId),
-        eq(watchedMovies.mediaType, media_type),
-      ))
-      .limit(1)
+    
+    const row = await app.services.watched.getWatchedItem(userId, tmdbId, media_type)
     if (!row) return reply.code(404).send({ error: 'not found' })
-    return {
-      id: row.id,
-      user_id: row.userId,
-      tmdb_id: row.tmdbId,
-      media_type: row.mediaType,
-      imdb_id: row.imdbId,
-      title: row.title,
-      poster_path: row.posterPath,
-      watched_at: row.watchedAt.toISOString(),
-      my_rating: row.myRating,
-      notes: row.notes,
-    }
+    return serializeWatched(row)
   })
 
   app.patch('/api/watched/:tmdbId', rlWrite, async (req, reply) => {
@@ -127,21 +77,12 @@ export async function watchedRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'nothing to update' })
     }
 
-    const update: Partial<{ myRating: number | null; notes: string | null }> = {}
-    if (body.my_rating !== undefined) update.myRating = body.my_rating ?? null
-    if (body.notes !== undefined) update.notes = body.notes ?? null
+    const updated = await app.services.watched.updateWatched(userId, tmdbId, media_type, {
+      myRating: body.my_rating,
+      notes: body.notes,
+    })
 
-    const result = await db
-      .update(watchedMovies)
-      .set(update)
-      .where(and(
-        eq(watchedMovies.userId, userId),
-        eq(watchedMovies.tmdbId, tmdbId),
-        eq(watchedMovies.mediaType, media_type),
-      ))
-      .returning({ id: watchedMovies.id })
-
-    if (result.length === 0) {
+    if (!updated) {
       return reply.code(404).send({ error: 'not found — mark as watched first' })
     }
     return { ok: true }
@@ -151,13 +92,9 @@ export async function watchedRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
-    await db
-      .delete(watchedMovies)
-      .where(and(
-        eq(watchedMovies.userId, userId),
-        eq(watchedMovies.tmdbId, tmdbId),
-        eq(watchedMovies.mediaType, media_type),
-      ))
+    
+    await app.services.watched.deleteWatched(userId, tmdbId, media_type)
     return { ok: true }
   })
 }
+

@@ -1,9 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { and, desc, eq } from 'drizzle-orm'
-import { db } from '../db/client.js'
-import { watchlist } from '../db/schema.js'
 import { rlRead, rlWrite } from '../lib/rateLimit.js'
+import { serializeWatchlist } from '../lib/serializers.js'
 
 const mediaTypeEnum = z.enum(['movie', 'tv']).default('movie')
 
@@ -26,24 +24,10 @@ export async function watchlistRoutes(app: FastifyInstance) {
   app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
-    const rows = await db
-      .select()
-      .from(watchlist)
-      .where(eq(watchlist.userId, userId))
-      .orderBy(desc(watchlist.priority), desc(watchlist.addedAt))
-      .limit(limit)
-      .offset((page - 1) * limit)
-
+    const rows = await app.services.watchlist.getWatchlist(userId, page, limit)
+    
     return {
-      items: rows.map((r) => ({
-      user_id: r.userId,
-      tmdb_id: r.tmdbId,
-      media_type: r.mediaType,
-      title: r.title,
-      poster_path: r.posterPath,
-      added_at: r.addedAt.toISOString(),
-      priority: r.priority,
-    })),
+      items: rows.map(serializeWatchlist),
       page,
       limit,
     }
@@ -53,25 +37,13 @@ export async function watchlistRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
 
-    await db
-      .insert(watchlist)
-      .values({
-        userId,
-        tmdbId: body.tmdb_id,
-        mediaType: body.media_type,
-        title: body.title,
-        posterPath: body.poster_path ?? null,
-        priority: body.priority ?? 0,
-      })
-      .onConflictDoUpdate({
-        target: [watchlist.userId, watchlist.tmdbId, watchlist.mediaType],
-        // Keep title/poster fresh in case TMDB updated them; preserve added_at.
-        set: {
-          title: body.title,
-          posterPath: body.poster_path ?? null,
-          priority: body.priority ?? 0,
-        },
-      })
+    await app.services.watchlist.addToWatchlist(userId, {
+      tmdbId: body.tmdb_id,
+      mediaType: body.media_type,
+      title: body.title,
+      posterPath: body.poster_path,
+      priority: body.priority,
+    })
     return { ok: true }
   })
 
@@ -79,13 +51,9 @@ export async function watchlistRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
-    await db
-      .delete(watchlist)
-      .where(and(
-        eq(watchlist.userId, userId),
-        eq(watchlist.tmdbId, tmdbId),
-        eq(watchlist.mediaType, media_type),
-      ))
+    
+    await app.services.watchlist.removeFromWatchlist(userId, tmdbId, media_type)
     return { ok: true }
   })
 }
+

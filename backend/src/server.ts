@@ -9,6 +9,7 @@ import { ZodError } from 'zod'
 
 import { env } from './env.js'
 import authGuard from './plugins/authGuard.js'
+import services from './plugins/services.js'
 import { authRoutes } from './auth/routes.js'
 import { discoverRoutes } from './routes/discover.js'
 import { searchRoutes } from './routes/search.js'
@@ -53,6 +54,7 @@ async function build() {
   })
 
   await app.register(authGuard)
+  await app.register(services)
 
   app.setErrorHandler((error, req, reply) => {
     if (error instanceof ZodError) {
