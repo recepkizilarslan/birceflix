@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
 import { tvDetail, tvSeason, type TvDetail, type TvSeasonDetail } from '../lib/tv'
-import { poster } from '../lib/api'
+import { poster, getContentTitle } from '../lib/api'
 import { fmtDate } from '../lib/intl'
 import { mediaKey } from '../lib/watched'
 import {
@@ -20,7 +20,7 @@ function episodeKey(s: number, e: number): string {
 
 export function TvDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const {
     user,
@@ -49,7 +49,7 @@ export function TvDetailPage() {
         .then((rows) => setWatchedKeys(new Set(rows.map((r) => episodeKey(r.season_number, r.episode_number)))))
         .catch(() => {})
     }
-  }, [id, user])
+  }, [id, user, i18n.language])
 
   const loadSeason = async (n: number) => {
     if (!show || seasons.has(n)) {
@@ -64,6 +64,8 @@ export function TvDetailPage() {
       setErr(e.message ?? 'season load failed')
     }
   }
+
+  const displayTitle = show ? getContentTitle(show) : ''
 
   const toggleEpisode = async (s: number, ep: { episode_number: number; name?: string | null }) => {
     if (!show || !user) return
@@ -81,7 +83,7 @@ export function TvDetailPage() {
       } else {
         await markEpisode({
           show_id: show.id,
-          show_name: show.name,
+          show_name: displayTitle,
           show_poster_path: show.poster_path,
           season_number: s,
           episode_number: ep.episode_number,
@@ -115,7 +117,7 @@ export function TvDetailPage() {
     } else {
       try {
         await markSeason(
-          { show_id: show.id, show_name: show.name, show_poster_path: show.poster_path },
+          { show_id: show.id, show_name: displayTitle, show_poster_path: show.poster_path },
           season.season_number,
           season.episodes.map((e) => ({ number: e.episode_number, name: e.name })),
         )
@@ -161,8 +163,8 @@ export function TvDetailPage() {
         )}
         <div className="flex-1 space-y-3 min-w-0">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{show.name}</h1>
-            {show.original_name !== show.name && (
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{displayTitle}</h1>
+            {show.original_name && show.original_name !== displayTitle && (
               <div className="text-sm text-[var(--color-text-dim)] mt-1">{show.original_name}</div>
             )}
           </div>
@@ -189,7 +191,7 @@ export function TvDetailPage() {
             const k = mediaKey('tv', show.id)
             const isWatched = showWatchedKeys.has(k)
             const inWatchlist = showWatchlistKeys.has(k)
-            const ref = { id: show.id, media_type: 'tv' as const, title: show.name, poster_path: show.poster_path }
+            const ref = { id: show.id, media_type: 'tv' as const, title: displayTitle, poster_path: show.poster_path }
             return (
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3">
                 <button

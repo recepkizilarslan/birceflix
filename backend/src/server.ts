@@ -29,6 +29,7 @@ import { calendarRoutes } from './routes/calendar.js'
 import { exportRoutes } from './routes/export.js'
 import { topRoutes } from './routes/top.js'
 import { startTopRefresh } from './lib/topCache.js'
+import { purgeExpired } from './auth/session.js'
 
 async function build() {
   const app = Fastify({
@@ -103,6 +104,14 @@ async function main() {
   await startTopRefresh(app.log)
   try {
     await app.listen({ host: env.HOST, port: env.PORT })
+
+    // Purge expired sessions on boot, and then every 24 hours. unref() so
+    // the timer doesn't hold the event loop open during graceful shutdown
+    // or in test runners.
+    purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions on boot'))
+    setInterval(() => {
+      purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions'))
+    }, 24 * 60 * 60 * 1000).unref?.()
   } catch (err) {
     app.log.error(err)
     process.exit(1)

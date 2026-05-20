@@ -5,7 +5,7 @@ import { and, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedEpisodes, watchedMovies, watchHistory, webhookTokens } from '../db/schema.js'
 import { parseJellyfin, parsePlex, type ScrobbleEvent } from '../lib/scrobblers.js'
-import { rlRead, rlWrite } from '../lib/rateLimit.js'
+import { rlRead, rlWrite, rlWebhook } from '../lib/rateLimit.js'
 
 const createBody = z.object({
   label: z.string().min(1).max(120),
@@ -134,7 +134,7 @@ export async function webhookRoutes(app: FastifyInstance) {
   })
 
   // -------- Scrobble receiver (no auth — token in URL) ------------------
-  app.post('/api/webhooks/scrobble/:token', async (req, reply) => {
+  app.post('/api/webhooks/scrobble/:token', rlWebhook, async (req, reply) => {
     const { token } = tokenParam.parse(req.params)
     const hashedToken = createHash('sha256').update(token).digest('hex')
     const [row] = await db

@@ -1,4 +1,5 @@
 import type { TmdbMovie } from './api'
+import { intlLocale } from '../i18n'
 
 export interface CalendarResponse {
   results: TmdbMovie[]
@@ -16,6 +17,7 @@ async function json<T>(res: Response): Promise<T> {
 export async function getUpcoming(page = 1, region?: string): Promise<CalendarResponse> {
   const u = new URL('/api/calendar/upcoming', window.location.origin)
   u.searchParams.set('page', String(page))
+  u.searchParams.set('ui_language', intlLocale())
   if (region) u.searchParams.set('region', region)
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
@@ -23,6 +25,7 @@ export async function getUpcoming(page = 1, region?: string): Promise<CalendarRe
 export async function getNowPlaying(page = 1, region?: string): Promise<CalendarResponse> {
   const u = new URL('/api/calendar/now-playing', window.location.origin)
   u.searchParams.set('page', String(page))
+  u.searchParams.set('ui_language', intlLocale())
   if (region) u.searchParams.set('region', region)
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }

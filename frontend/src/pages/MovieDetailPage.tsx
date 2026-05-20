@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
-import { movieDetail, poster, logo, type MovieDetail } from '../lib/api'
+import { movieDetail, poster, logo, getContentTitle, type MovieDetail } from '../lib/api'
 import { mediaKey } from '../lib/watched'
 import { useRegion } from '../lib/preferences'
 import { PersonalNote } from '../components/PersonalNote'
@@ -12,7 +12,7 @@ import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [region] = useRegion()
   const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const [d, setD] = useState<MovieDetail | null>(null)
@@ -22,7 +22,7 @@ export function MovieDetailPage() {
     if (!id) return
     setD(null); setErr(null)
     movieDetail(Number(id), region).then(setD).catch((e) => setErr(e.message))
-  }, [id, region])
+  }, [id, region, i18n.language])
 
   if (err) return <Wrap><div className="text-red-400">{err}</div></Wrap>
   if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div></Wrap>
@@ -30,6 +30,7 @@ export function MovieDetailPage() {
   const watched = watchedKeys.has(mediaKey('movie', d.id))
   const inWatchlist = watchlistKeys.has(mediaKey('movie', d.id))
   const year = d.release_date?.slice(0, 4) ?? ''
+  const displayTitle = getContentTitle(d)
 
   return (
     <div>
@@ -70,8 +71,8 @@ export function MovieDetailPage() {
         )}
         <div className="flex-1 space-y-3 min-w-0">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{d.title}</h1>
-            {d.original_title !== d.title && (
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{displayTitle}</h1>
+            {d.original_title && d.original_title !== displayTitle && (
               <div className="text-sm text-[var(--color-text-dim)] mt-1">{d.original_title}</div>
             )}
           </div>
@@ -96,7 +97,7 @@ export function MovieDetailPage() {
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-2">
             <button
               disabled={!user}
-              onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
               className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition active:scale-[0.98] ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
@@ -110,7 +111,7 @@ export function MovieDetailPage() {
             </button>
             <button
               disabled={!user}
-              onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: d.title, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+              onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
               className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition border active:scale-[0.98] ${
                 !user
                   ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'
@@ -124,7 +125,7 @@ export function MovieDetailPage() {
             </button>
             {user && (
               <div className="col-span-2 sm:col-auto">
-                <AddToListMenu tmdbId={d.id} title={d.title} posterPath={d.poster_path} />
+                <AddToListMenu tmdbId={d.id} title={displayTitle} posterPath={d.poster_path} />
               </div>
             )}
           </div>

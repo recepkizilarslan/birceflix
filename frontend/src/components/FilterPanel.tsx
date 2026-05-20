@@ -96,7 +96,7 @@ export function FilterPanel({
   onApplySaved,
   onDeleteSaved,
 }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
   const { providers, loading: providersLoading } = useProviders(mediaType, value.watch_region)
 
@@ -105,7 +105,7 @@ export function FilterPanel({
   useEffect(() => {
     const loader = tvMode ? listTvGenres : listGenres
     loader().then(setGenres).catch(() => {})
-  }, [tvMode])
+  }, [tvMode, i18n.language])
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]

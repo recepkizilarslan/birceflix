@@ -73,6 +73,8 @@ export interface DiscoverFilters {
   page?: number
 }
 
+import { intlLocale } from '../i18n'
+
 const TMDB_IMG = 'https://image.tmdb.org/t/p'
 
 export function poster(path: string | null | undefined, size: 'w185' | 'w342' | 'w500' | 'original' = 'w342') {
@@ -93,6 +95,31 @@ async function get<T>(path: string, params: Record<string, string | undefined> =
   return res.json() as Promise<T>
 }
 
+/**
+ * Title to render in the UI. TMDB localizes title/name to ui_language, but
+ * its Turkish translations for English originals tend to read poorly
+ * ("Esaretin Bedeli" vs. "The Shawshank Redemption"); the product call here
+ * is to keep en/tr originals in their own language and only fall back to
+ * TMDB's localized title for content that originates in other languages
+ * (Korean, Japanese, Hindi, ...), where the original script is unreadable
+ * for most users.
+ */
+export function getContentTitle(item: {
+  title?: string
+  name?: string
+  original_title?: string
+  original_name?: string
+  original_language?: string
+}): string {
+  const title = item.title || item.name || ''
+  const originalTitle = item.original_title || item.original_name || ''
+  const originalLang = item.original_language || ''
+  if ((originalLang === 'en' || originalLang === 'tr') && originalTitle) {
+    return originalTitle
+  }
+  return title
+}
+
 export function discover(f: DiscoverFilters) {
   return get<{ results: TmdbMovie[]; page: number; total_pages: number; total_results: number }>('/api/discover', {
     min_rating: f.min_rating?.toString(),
@@ -107,23 +134,28 @@ export function discover(f: DiscoverFilters) {
     runtime_to: f.runtime_to?.toString(),
     sort_by: f.sort_by,
     page: f.page?.toString(),
+    ui_language: intlLocale(),
   })
 }
 
 export function search(q: string, page = 1) {
-  return get<{ results: TmdbMovie[]; page: number; total_pages: number }>('/api/search', { q, page: page.toString() })
+  return get<{ results: TmdbMovie[]; page: number; total_pages: number }>('/api/search', {
+    q,
+    page: page.toString(),
+    ui_language: intlLocale(),
+  })
 }
 
 export function movieDetail(id: number, region = 'TR') {
-  return get<MovieDetail>(`/api/movie/${id}`, { region })
+  return get<MovieDetail>(`/api/movie/${id}`, { region, ui_language: intlLocale() })
 }
 
 export function listProviders(region = 'TR') {
-  return get<ProviderListItem[]>('/api/providers', { region })
+  return get<ProviderListItem[]>('/api/providers', { region, ui_language: intlLocale() })
 }
 
 export function listGenres() {
-  return get<Genre[]>('/api/genres')
+  return get<Genre[]>('/api/genres', { ui_language: intlLocale() })
 }
 
 export interface TopProvider {
@@ -140,6 +172,16 @@ export interface TopItem {
   vote_average: number
   year: string | null
   genre_ids: number[]
+  /** ISO 639-1 (lowercase). null when TMDB omits. */
+  original_language: string | null
+  /** ISO 3166-1 (uppercase). null when TMDB has no country listed. */
+  origin_country: string | null
+  /** Movies only. */
+  runtime: number | null
+  /** TV only. */
+  number_of_seasons: number | null
+  /** TV only. */
+  number_of_episodes: number | null
   providers: TopProvider[]
 }
 
@@ -151,5 +193,5 @@ export interface TopSnapshot {
 }
 
 export function top(mediaType: 'movie' | 'tv', region = 'TR') {
-  return get<TopSnapshot>('/api/top', { media_type: mediaType, region })
+  return get<TopSnapshot>('/api/top', { media_type: mediaType, region, ui_language: intlLocale() })
 }
