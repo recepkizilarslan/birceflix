@@ -46,6 +46,11 @@ export interface FilterState {
    * apply client-side over those items. Documentary mode disables this
    * toggle since there's no /doc/top_rated endpoint. */
   top_only: boolean
+  /** Client-side filter against the user's watched set. "all" is the
+   * default; "unwatched" hides items already marked watched; "watched"
+   * shows only items already marked watched. Applied after the TMDB
+   * response so pagination is preserved as-is. */
+  watched_filter: 'all' | 'unwatched' | 'watched'
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -66,6 +71,7 @@ export const DEFAULT_FILTERS: FilterState = {
   episodes_to: '',
   sort_by: 'popularity.desc',
   top_only: false,
+  watched_filter: 'all',
 }
 
 interface Props {
@@ -82,6 +88,9 @@ interface Props {
   onSaveCurrent?: () => void
   onApplySaved?: (s: SavedFilter) => void
   onDeleteSaved?: (s: SavedFilter) => void
+  /** When true, render the "Watched" client-side filter section. Hide it
+   *  for signed-out users since their watched set is always empty. */
+  showWatchedFilter?: boolean
 }
 
 export function FilterPanel({
@@ -95,6 +104,7 @@ export function FilterPanel({
   onSaveCurrent,
   onApplySaved,
   onDeleteSaved,
+  showWatchedFilter,
 }: Props) {
   const { t, i18n } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
@@ -241,6 +251,25 @@ export function FilterPanel({
               </span>
             </span>
           </label>
+        </Section>
+      )}
+
+      {showWatchedFilter && (
+        <Section title={t('filters.watched.title')} defaultOpen>
+          <div className="flex flex-wrap gap-1.5">
+            {(['all', 'unwatched', 'watched'] as const).map((opt) => {
+              const active = value.watched_filter === opt
+              return (
+                <button
+                  key={opt}
+                  onClick={() => onChange({ ...value, watched_filter: opt })}
+                  className={chipCls(active)}
+                >
+                  {t(`filters.watched.options.${opt}`)}
+                </button>
+              )
+            })}
+          </div>
         </Section>
       )}
 
@@ -418,6 +447,7 @@ export function countActiveFilters(f: FilterState): number {
   if (f.episodes_from !== '') n++
   if (f.episodes_to !== '') n++
   if (f.top_only) n++
+  if (f.watched_filter !== 'all') n++
   // Note: sort_by is intentionally NOT counted — sorting lives outside
   // the filter panel (in the results toolbar) and isn't a "filter".
   return n

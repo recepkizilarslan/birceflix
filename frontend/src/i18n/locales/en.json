@@ -124,7 +124,15 @@
     },
     "all": "All",
     "apply": "Apply",
-    "applyCount": "Show {{count}} results"
+    "applyCount": "Show {{count}} results",
+    "watched": {
+      "title": "Watched status",
+      "options": {
+        "all": "All",
+        "unwatched": "Hide watched",
+        "watched": "Only watched"
+      }
+    }
   },
   "sort": {
     "label": "Sort"
@@ -144,6 +152,7 @@
   "card": {
     "tmdbRating": "★ {{rating}}",
     "watched": "✓ Watched",
+    "watchedWatermark": "Watched",
     "markWatched": "Mark as watched",
     "addToWatchlist": "+ Add to watchlist",
     "inWatchlist": "✓ In watchlist",
