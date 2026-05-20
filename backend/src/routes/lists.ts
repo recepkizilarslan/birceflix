@@ -63,7 +63,7 @@ function serialiseItem(i: typeof listItems.$inferSelect) {
 
 export async function listsRoutes(app: FastifyInstance) {
   // -------- Own lists ----------------------------------------------------
-  app.get('/api/lists', rlRead, async (req) => {
+  app.get('/api/lists', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select({
@@ -79,7 +79,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Create -------------------------------------------------------
-  app.post('/api/lists', rlWrite, async (req, reply) => {
+  app.post('/api/lists', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = createBody.parse(req.body)
     const [row] = await db
@@ -97,7 +97,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Detail (own list with items) ---------------------------------
-  app.get('/api/lists/:id', rlRead, async (req, reply) => {
+  app.get('/api/lists/:id', { config: rlRead.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const [row] = await db
@@ -117,7 +117,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Update -------------------------------------------------------
-  app.patch('/api/lists/:id', rlWrite, async (req, reply) => {
+  app.patch('/api/lists/:id', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = updateBody.parse(req.body)
@@ -154,7 +154,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Delete -------------------------------------------------------
-  app.delete('/api/lists/:id', rlWrite, async (req, reply) => {
+  app.delete('/api/lists/:id', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const result = await db
@@ -166,7 +166,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: add ---------------------------------------------------
-  app.post('/api/lists/:id/items', rlWrite, async (req, reply) => {
+  app.post('/api/lists/:id/items', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = addItemBody.parse(req.body)
@@ -202,7 +202,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: remove -----------------------------------------------
-  app.delete('/api/lists/:id/items/:tmdbId', rlWrite, async (req, reply) => {
+  app.delete('/api/lists/:id/items/:tmdbId', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id, tmdbId } = itemParam.parse(req.params)
 

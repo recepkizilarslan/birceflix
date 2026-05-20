@@ -54,7 +54,7 @@ async function getValidToken(userId: string): Promise<string | null> {
 
 export async function integrationsRoutes(app: FastifyInstance) {
   // -------- Status -------------------------------------------------------
-  app.get('/api/integrations/trakt/status', rlRead, async (req) => {
+  app.get('/api/integrations/trakt/status', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return { configured: false, connected: false, last_sync_at: null }
 
@@ -75,7 +75,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Start OAuth --------------------------------------------------
-  app.get('/api/integrations/trakt/connect', rlAuth, async (req, reply) => {
+  app.get('/api/integrations/trakt/connect', { config: rlAuth.config }, async (req, reply) => {
     await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
 
@@ -91,7 +91,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- OAuth callback -----------------------------------------------
-  app.get('/api/integrations/trakt/callback', rlAuth, async (req, reply) => {
+  app.get('/api/integrations/trakt/callback', { config: rlAuth.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
 
@@ -116,7 +116,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Disconnect ---------------------------------------------------
-  app.post('/api/integrations/trakt/disconnect', rlWrite, async (req) => {
+  app.post('/api/integrations/trakt/disconnect', { config: rlWrite.config }, async (req) => {
     const userId = await app.requireAuth(req)
     await db
       .update(users)
@@ -131,7 +131,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Import history ----------------------------------------------
-  app.post('/api/integrations/trakt/import-history', rlWrite, async (req, reply) => {
+  app.post('/api/integrations/trakt/import-history', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
 
