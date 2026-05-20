@@ -73,6 +73,8 @@ export interface DiscoverFilters {
   page?: number
 }
 
+import { intlLocale } from '../i18n'
+
 const TMDB_IMG = 'https://image.tmdb.org/t/p'
 
 export function poster(path: string | null | undefined, size: 'w185' | 'w342' | 'w500' | 'original' = 'w342') {
@@ -107,23 +109,28 @@ export function discover(f: DiscoverFilters) {
     runtime_to: f.runtime_to?.toString(),
     sort_by: f.sort_by,
     page: f.page?.toString(),
+    ui_language: intlLocale(),
   })
 }
 
 export function search(q: string, page = 1) {
-  return get<{ results: TmdbMovie[]; page: number; total_pages: number }>('/api/search', { q, page: page.toString() })
+  return get<{ results: TmdbMovie[]; page: number; total_pages: number }>('/api/search', {
+    q,
+    page: page.toString(),
+    ui_language: intlLocale(),
+  })
 }
 
 export function movieDetail(id: number, region = 'TR') {
-  return get<MovieDetail>(`/api/movie/${id}`, { region })
+  return get<MovieDetail>(`/api/movie/${id}`, { region, ui_language: intlLocale() })
 }
 
 export function listProviders(region = 'TR') {
-  return get<ProviderListItem[]>('/api/providers', { region })
+  return get<ProviderListItem[]>('/api/providers', { region, ui_language: intlLocale() })
 }
 
 export function listGenres() {
-  return get<Genre[]>('/api/genres')
+  return get<Genre[]>('/api/genres', { ui_language: intlLocale() })
 }
 
 export interface TopProvider {
@@ -161,5 +168,5 @@ export interface TopSnapshot {
 }
 
 export function top(mediaType: 'movie' | 'tv', region = 'TR') {
-  return get<TopSnapshot>('/api/top', { media_type: mediaType, region })
+  return get<TopSnapshot>('/api/top', { media_type: mediaType, region, ui_language: intlLocale() })
 }

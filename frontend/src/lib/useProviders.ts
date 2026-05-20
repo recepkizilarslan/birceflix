@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { isTvMedia, type MediaType } from '../components/FilterPanel'
 import { listProviders, type ProviderListItem } from './api'
 import { listTvProviders } from './tv'
 
 // Module-level cache so the Discover page's provider strip and its filter
 // panel (which both render at the same time) share a single network fetch
-// per (mediaType, region) pair instead of duplicating requests.
+// per (mediaType, region, language) triple instead of duplicating requests.
+// Language is part of the key because provider names localize.
 const cache = new Map<string, ProviderListItem[]>()
 
-function cacheKey(mediaType: MediaType, region: string) {
-  return `${isTvMedia(mediaType) ? 'tv' : 'movie'}:${region}`
+function cacheKey(mediaType: MediaType, region: string, language: string) {
+  return `${isTvMedia(mediaType) ? 'tv' : 'movie'}:${region}:${language}`
 }
 
 export function useProviders(mediaType: MediaType, region: string) {
-  const key = cacheKey(mediaType, region)
+  const { i18n } = useTranslation()
+  const key = cacheKey(mediaType, region, i18n.language)
   const [providers, setProviders] = useState<ProviderListItem[]>(() => cache.get(key) ?? [])
   const [loading, setLoading] = useState<boolean>(() => !cache.has(key))
 

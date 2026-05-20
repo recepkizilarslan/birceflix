@@ -1,3 +1,5 @@
+import { intlLocale } from '../i18n'
+
 export interface TmdbTvShow {
   id: number
   name: string
@@ -52,23 +54,29 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 export async function tvDetail(id: number): Promise<TvDetail> {
-  return json(await fetch(`/api/tv/${id}`, { credentials: 'include' }))
+  const u = new URL(`/api/tv/${id}`, window.location.origin)
+  u.searchParams.set('ui_language', intlLocale())
+  return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
 
 export async function tvSeason(id: number, season: number): Promise<TvSeasonDetail> {
-  return json(await fetch(`/api/tv/${id}/season/${season}`, { credentials: 'include' }))
+  const u = new URL(`/api/tv/${id}/season/${season}`, window.location.origin)
+  u.searchParams.set('ui_language', intlLocale())
+  return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
 
 export async function searchTv(q: string, page = 1): Promise<{ results: TmdbTvShow[]; page: number; total_pages: number }> {
   const u = new URL('/api/tv/search', window.location.origin)
   u.searchParams.set('q', q)
   u.searchParams.set('page', String(page))
+  u.searchParams.set('ui_language', intlLocale())
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
 
 export async function popularTv(page = 1): Promise<{ results: TmdbTvShow[]; page: number; total_pages: number }> {
   const u = new URL('/api/tv/popular', window.location.origin)
   u.searchParams.set('page', String(page))
+  u.searchParams.set('ui_language', intlLocale())
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
 
@@ -110,6 +118,7 @@ export function discoverTv(f: DiscoverTvFilters) {
   set('episodes_to', f.episodes_to?.toString())
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
+  set('ui_language', intlLocale())
   return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{
     results: TmdbTvShow[]
     page: number
@@ -119,7 +128,9 @@ export function discoverTv(f: DiscoverTvFilters) {
 }
 
 export async function listTvGenres(): Promise<{ id: number; name: string }[]> {
-  return json(await fetch('/api/tv/genres', { credentials: 'include' }))
+  const u = new URL('/api/tv/genres', window.location.origin)
+  u.searchParams.set('ui_language', intlLocale())
+  return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
 
 export async function listTvProviders(region: string): Promise<{
@@ -130,5 +141,6 @@ export async function listTvProviders(region: string): Promise<{
 }[]> {
   const u = new URL('/api/tv/providers', window.location.origin)
   u.searchParams.set('region', region)
+  u.searchParams.set('ui_language', intlLocale())
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
