@@ -15,7 +15,10 @@ const createBody = z.object({
   name: z.string().min(1).max(120).trim(),
   description: z.string().max(500).nullable().optional(),
   media_type: mediaTypeEnum,
-  filters: z.record(z.string(), z.unknown()),
+  filters: z.record(z.string(), z.unknown()).refine(
+    (v) => JSON.stringify(v).length <= 10_000,
+    'filter payload too large'
+  ),
 })
 
 function serialise(row: typeof savedFilters.$inferSelect) {
