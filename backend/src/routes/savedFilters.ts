@@ -42,7 +42,7 @@ export async function savedFiltersRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
-  app.post('/api/saved-filters', async (req) => {
+  app.post('/api/saved-filters', async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = createBody.parse(req.body)
     const [row] = await db
@@ -55,7 +55,8 @@ export async function savedFiltersRoutes(app: FastifyInstance) {
         filters: body.filters,
       })
       .returning()
-    return serialise(row!)
+    if (!row) return reply.code(500).send({ error: 'failed to insert saved filter' })
+    return serialise(row)
   })
 
   app.delete('/api/saved-filters/:id', async (req, reply) => {

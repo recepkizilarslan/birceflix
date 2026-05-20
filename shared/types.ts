@@ -53,7 +53,6 @@ export interface WatchHistoryEntry {
   tmdb_id: number
   watched_at: string
   my_rating: number | null
-  location: string | null
   notes: string | null
 }
 
@@ -61,6 +60,5 @@ export interface AddHistoryRequest {
   tmdb_id: number
   watched_at?: string
   my_rating?: number | null
-  location?: string | null
   notes?: string | null
 }

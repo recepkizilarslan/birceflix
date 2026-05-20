@@ -55,7 +55,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
-  app.post('/api/history', rlWrite, async (req) => {
+  app.post('/api/history', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
     const watchedAt = parseWatchedAt(body.watched_at)
@@ -70,7 +70,8 @@ export async function historyRoutes(app: FastifyInstance) {
         notes: body.notes ?? null,
       })
       .returning()
-    return serialise(row!)
+    if (!row) return reply.code(500).send({ error: 'failed to add history' })
+    return serialise(row)
   })
 
   app.patch('/api/history/:id', rlWrite, async (req, reply) => {

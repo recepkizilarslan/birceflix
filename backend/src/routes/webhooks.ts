@@ -110,7 +110,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     return rows.map((r) => serialise(r, false))
   })
 
-  app.post('/api/webhooks', rlWrite, async (req) => {
+  app.post('/api/webhooks', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { label } = createBody.parse(req.body)
     const token = newToken()
@@ -118,8 +118,9 @@ export async function webhookRoutes(app: FastifyInstance) {
       .insert(webhookTokens)
       .values({ userId, label, token })
       .returning()
+    if (!row) return reply.code(500).send({ error: 'failed to create webhook' })
     // Returned ONCE in full — the UI shows the URL with it.
-    return serialise(row!, true)
+    return serialise(row, true)
   })
 
   app.delete('/api/webhooks/:id', rlWrite, async (req) => {

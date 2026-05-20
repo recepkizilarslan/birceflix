@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { users, watchedMovies, watchHistory } from '../db/schema.js'
 import { env } from '../env.js'
@@ -184,14 +184,26 @@ async function importOne(userId: string, item: TraktHistoryItem): Promise<'impor
     })
     .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
 
-  // Append a viewing event. Trakt id isn't stored; identical (user, movie,
-  // watched_at) pairs would dedupe — but Trakt timestamps are unique per
-  // viewing in practice, so plain insert is fine.
-  await db.insert(watchHistory).values({
-    userId,
-    tmdbId,
-    watchedAt,
-  })
+  // Append a viewing event if not already exists
+  const existing = await db
+    .select()
+    .from(watchHistory)
+    .where(
+      and(
+        eq(watchHistory.userId, userId),
+        eq(watchHistory.tmdbId, tmdbId),
+        eq(watchHistory.watchedAt, watchedAt)
+      )
+    )
+    .limit(1)
+
+  if (existing.length === 0) {
+    await db.insert(watchHistory).values({
+      userId,
+      tmdbId,
+      watchedAt,
+    })
+  }
 
   return 'imported'
 }

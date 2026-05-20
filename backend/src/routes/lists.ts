@@ -68,18 +68,18 @@ export async function listsRoutes(app: FastifyInstance) {
     const rows = await db
       .select({
         list: lists,
-        itemCount: sql<number>`(
-          SELECT count(*)::int FROM ${listItems} WHERE ${listItems.listId} = ${lists.id}
-        )`.as('item_count'),
+        itemCount: sql<number>`count(${listItems.tmdbId})::int`.as('item_count'),
       })
       .from(lists)
+      .leftJoin(listItems, eq(lists.id, listItems.listId))
       .where(eq(lists.userId, userId))
+      .groupBy(lists.id)
       .orderBy(desc(lists.updatedAt))
     return rows.map((r) => serialiseList(r.list, r.itemCount))
   })
 
   // -------- Create -------------------------------------------------------
-  app.post('/api/lists', rlWrite, async (req) => {
+  app.post('/api/lists', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = createBody.parse(req.body)
     const [row] = await db
@@ -92,7 +92,8 @@ export async function listsRoutes(app: FastifyInstance) {
         publicSlug: body.is_public ? newSlug() : null,
       })
       .returning()
-    return serialiseList(row!, 0)
+    if (!row) return reply.code(500).send({ error: 'failed to create list' })
+    return serialiseList(row, 0)
   })
 
   // -------- Detail (own list with items) ---------------------------------
@@ -148,7 +149,8 @@ export async function listsRoutes(app: FastifyInstance) {
       .set(update)
       .where(and(eq(lists.id, id), eq(lists.userId, userId)))
       .returning()
-    return serialiseList(row!)
+    if (!row) return reply.code(404).send({ error: 'not found' })
+    return serialiseList(row)
   })
 
   // -------- Delete -------------------------------------------------------

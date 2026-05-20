@@ -20,11 +20,21 @@ interface CacheEntry {
 const TTL_MS = 60 * 60 * 1000 // 1 hour
 const cache = new Map<number, CacheEntry>()
 
+const MAX_CACHE_SIZE = 1000
+
 /** Periodic cleanup so the Map doesn't grow without bound. */
 setInterval(() => {
   const now = Date.now()
   for (const [k, v] of cache.entries()) {
     if (v.expires <= now) cache.delete(k)
+  }
+  
+  if (cache.size > MAX_CACHE_SIZE) {
+    const keys = Array.from(cache.keys())
+    const toRemove = keys.slice(0, cache.size - MAX_CACHE_SIZE)
+    for (const k of toRemove) {
+      cache.delete(k)
+    }
   }
 }, 10 * 60 * 1000).unref?.()
 

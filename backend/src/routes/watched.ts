@@ -24,17 +24,25 @@ const patchBody = z.object({
 
 const idParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const mediaTypeQuery = z.object({ media_type: mediaTypeEnum })
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export async function watchedRoutes(app: FastifyInstance) {
   app.get('/api/watched', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
+    const { page, limit } = pageQuery.parse(req.query)
     const rows = await db
       .select()
       .from(watchedMovies)
       .where(eq(watchedMovies.userId, userId))
       .orderBy(desc(watchedMovies.watchedAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
 
-    return rows.map((r) => ({
+    return {
+      items: rows.map((r) => ({
       id: r.id,
       user_id: r.userId,
       tmdb_id: r.tmdbId,
@@ -45,7 +53,10 @@ export async function watchedRoutes(app: FastifyInstance) {
       watched_at: r.watchedAt.toISOString(),
       my_rating: r.myRating,
       notes: r.notes,
-    }))
+    })),
+      page,
+      limit,
+    }
   })
 
   app.post('/api/watched', rlWrite, async (req) => {

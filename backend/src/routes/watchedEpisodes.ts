@@ -33,6 +33,10 @@ const episodeKey = z.object({
   season: z.coerce.number().int().min(0),
   episode: z.coerce.number().int().min(0),
 })
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export async function watchedEpisodeRoutes(app: FastifyInstance) {
   // List all watched episodes for one show (current user)
@@ -62,7 +66,15 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
       .where(eq(watchedEpisodes.userId, userId))
       .groupBy(watchedEpisodes.showId)
       .orderBy(desc(sql`max(${watchedEpisodes.watchedAt})`))
-    return rows
+
+    const { page, limit } = pageQuery.parse(req.query)
+    const paginatedRows = rows.slice((page - 1) * limit, page * limit)
+
+    return {
+      items: paginatedRows,
+      page,
+      limit,
+    }
   })
 
   // Mark a single episode

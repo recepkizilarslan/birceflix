@@ -17,17 +17,25 @@ const addBody = z.object({
 
 const idParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const mediaTypeQuery = z.object({ media_type: mediaTypeEnum })
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export async function watchlistRoutes(app: FastifyInstance) {
   app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
+    const { page, limit } = pageQuery.parse(req.query)
     const rows = await db
       .select()
       .from(watchlist)
       .where(eq(watchlist.userId, userId))
       .orderBy(desc(watchlist.priority), desc(watchlist.addedAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
 
-    return rows.map((r) => ({
+    return {
+      items: rows.map((r) => ({
       user_id: r.userId,
       tmdb_id: r.tmdbId,
       media_type: r.mediaType,
@@ -35,7 +43,10 @@ export async function watchlistRoutes(app: FastifyInstance) {
       poster_path: r.posterPath,
       added_at: r.addedAt.toISOString(),
       priority: r.priority,
-    }))
+    })),
+      page,
+      limit,
+    }
   })
 
   app.post('/api/watchlist', rlWrite, async (req) => {
