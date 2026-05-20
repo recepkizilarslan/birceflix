@@ -88,6 +88,7 @@
     "platforms": "Platforms",
     "platformLoading": "Loading…",
     "platformNone": "No platforms for this region.",
+    "platformRegionHint": "Region: {{region}} — change it from the header.",
     "top": "Top 250",
     "topToggle": "Show only Top 250",
     "topHintMovie": "Filter within TMDB's 250 highest-rated movies. Cards show streaming platforms.",
