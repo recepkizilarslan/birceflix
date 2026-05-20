@@ -44,7 +44,7 @@ function parseWatchedAt(s: string | undefined): Date | undefined {
 }
 
 export async function historyRoutes(app: FastifyInstance) {
-  app.get('/api/history/:tmdbId', rlRead, async (req) => {
+  app.get('/api/history/:tmdbId', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = tmdbParam.parse(req.params)
     const rows = await db
@@ -55,7 +55,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
-  app.post('/api/history', rlWrite, async (req, reply) => {
+  app.post('/api/history', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
     const watchedAt = parseWatchedAt(body.watched_at)
@@ -74,7 +74,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row)
   })
 
-  app.patch('/api/history/:id', rlWrite, async (req, reply) => {
+  app.patch('/api/history/:id', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const body = patchBody.parse(req.body)
@@ -106,7 +106,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row)
   })
 
-  app.delete('/api/history/:id', rlWrite, async (req, reply) => {
+  app.delete('/api/history/:id', { config: rlWrite.config }, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     const deleted = await db
