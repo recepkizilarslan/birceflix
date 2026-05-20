@@ -1,4 +1,4 @@
-import type { watchedMovies, watchlist } from '../db/schema.js'
+import { watchedMovies, watchlist } from '../db/schema.js'
 
 export function serializeWatched(r: typeof watchedMovies.$inferSelect) {
   return {
