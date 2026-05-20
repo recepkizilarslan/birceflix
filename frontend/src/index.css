@@ -8,6 +8,7 @@
   --color-text: #e5e7eb;
   --color-text-dim: #9ca3af;
   --color-accent: #ffffff;
+  --color-brand: #FF3B47;
 }
 
 html, body, #root {
