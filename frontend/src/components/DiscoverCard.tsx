@@ -47,6 +47,10 @@ interface Props {
    * "no flatrate platform" which the consumer may or may not want to
    * surface). */
   providerBanner?: ProviderBadge[]
+  /** When false, suppresses the "watched" dim/watermark overlay even if
+   *  `watched` is true. The Watched page passes this so its grid (where
+   *  every card is watched by definition) doesn't drown in overlays. */
+  showWatchedOverlay?: boolean
 }
 
 /**
@@ -63,9 +67,11 @@ export function DiscoverCard({
   inWatchlist,
   myRating,
   providerBanner,
+  showWatchedOverlay = true,
 }: Props) {
   const { t } = useTranslation()
   const year = item.date?.slice(0, 4) ?? ''
+  const overlay = watched && showWatchedOverlay
 
   return (
     <div className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition flex flex-col">
@@ -84,12 +90,22 @@ export function DiscoverCard({
               src={poster(item.poster_path)!}
               alt={item.title}
               loading="lazy"
-              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              className={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${overlay ? 'grayscale-[40%]' : ''}`}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-text-dim)]">
               {t('card.noPoster')}
             </div>
+          )}
+          {overlay && (
+            <>
+              <div className="pointer-events-none absolute inset-0 bg-black/55" aria-hidden />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="-rotate-12 px-3 py-1 rounded-md border-2 border-emerald-300/80 text-emerald-200 text-[12px] sm:text-[13px] font-bold uppercase tracking-[0.18em] bg-black/35 backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
+                  {t('card.watchedWatermark')}
+                </div>
+              </div>
+            </>
           )}
           {/* TMDB rating chip — corner badge stays readable over any poster. */}
           <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/65 backdrop-blur text-[10px] sm:text-[11px] font-semibold tabular-nums">

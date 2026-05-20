@@ -47,6 +47,7 @@ export function Watched() {
             watched={watchedKeys.has(k)}
             onToggleWatchlist={toggleWatchlist}
             inWatchlist={watchlistKeys.has(k)}
+            showWatchedOverlay={false}
           />
         )
       })}

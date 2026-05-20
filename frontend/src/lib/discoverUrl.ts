@@ -23,6 +23,7 @@ import { SORT_OPTIONS, TV_SORT_OPTIONS } from './constants'
  *   ef|et  number 0..5000          episodes from/to (TV only)
  *   sort   TMDB sort key           omitted when default
  *   top    "1"                      top-rated-only mode (movies + tv only)
+ *   w      "u" | "w"                watched filter (unwatched / only watched)
  */
 
 export interface DiscoverUrlState {
@@ -52,6 +53,7 @@ const KEY = {
   episodesTo: 'et',
   sort: 'sort',
   top: 'top',
+  watched: 'w',
 } as const
 
 function parseMediaType(raw: string | null): MediaType {
@@ -97,6 +99,12 @@ function parsePage(raw: string | null): number {
   return typeof n === 'number' ? n : 1
 }
 
+function parseWatchedFilter(raw: string | null): FilterState['watched_filter'] {
+  if (raw === 'u') return 'unwatched'
+  if (raw === 'w') return 'watched'
+  return 'all'
+}
+
 /**
  * Parse Discover state from URL search params. Invalid values fall back to
  * defaults so hand-edited or stale links still load instead of crashing.
@@ -126,6 +134,7 @@ export function parseDiscoverUrl(sp: URLSearchParams, defaultRegion: string): Di
     sort_by: parseSort(sp.get(KEY.sort), mediaType),
     // top-mode flag, ignored for doc since there's no /doc top_rated.
     top_only: sp.get(KEY.top) === '1' && mediaType !== 'doc',
+    watched_filter: parseWatchedFilter(sp.get(KEY.watched)),
   }
 
   const rawQuery = sp.get(KEY.q)
@@ -179,6 +188,9 @@ export function serializeDiscoverUrl(state: DiscoverUrlState): URLSearchParams {
   // top-only flag never applies to /doc (no top_rated endpoint), so drop
   // it from the URL even if a stale state would have set it.
   if (f.top_only && mediaType !== 'doc') sp.set(KEY.top, '1')
+
+  if (f.watched_filter === 'unwatched') sp.set(KEY.watched, 'u')
+  else if (f.watched_filter === 'watched') sp.set(KEY.watched, 'w')
 
   return sp
 }

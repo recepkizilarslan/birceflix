@@ -141,6 +141,29 @@ export function Discover() {
   const activeCount = countActiveFilters(filters)
   const sortOptions = isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS
 
+  // Apply the client-side watched filter on top of whatever the API
+  // returned. Filtering after the fetch means a page may visibly shrink,
+  // but it's the only place the user's watched set is available — TMDB
+  // can't filter it server-side.
+  const wf = filters.watched_filter
+  const matchesWatched = (mt: 'movie' | 'tv', id: number) => {
+    if (wf === 'all') return true
+    const isWatched = watchedKeys.has(mediaKey(mt, id))
+    return wf === 'watched' ? isWatched : !isWatched
+  }
+  const visibleResults = useMemo(
+    () => (wf === 'all' ? results : results.filter((r) => matchesWatched(isTvMedia(mediaType) ? 'tv' : 'movie', r.id))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [results, wf, watchedKeys, mediaType],
+  )
+  const visibleTopResults = useMemo(
+    () => (wf === 'all' || !topResults
+      ? topResults
+      : topResults.filter((r) => matchesWatched(isTvMedia(mediaType) ? 'tv' : 'movie', r.id))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [topResults, wf, watchedKeys, mediaType],
+  )
+
   // Load saved filter snapshots once the user is signed in. The list mutates
   // locally via the save / delete handlers below — no refetch on every tweak.
   useEffect(() => {
@@ -266,10 +289,10 @@ export function Discover() {
             <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
           <div className="flex items-center gap-3 ml-auto">
-            {!loading && (topResults?.length ?? results.length) > 0 && (
+            {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
               <div className="text-xs text-[var(--color-text-dim)]">
                 {t('discover.results', {
-                  count: topResults?.length ?? results.length,
+                  count: visibleTopResults?.length ?? visibleResults.length,
                   page,
                 })}
               </div>
@@ -294,10 +317,10 @@ export function Discover() {
           {searchQuery
             ? <span className="truncate">{t('discover.searchResults', { query: searchQuery })}</span>
             : <span />}
-          {!loading && (topResults?.length ?? results.length) > 0 && (
+          {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
             <span className="shrink-0 ml-2">
               {t('discover.results', {
-                count: topResults?.length ?? results.length,
+                count: visibleTopResults?.length ?? visibleResults.length,
                 page,
               })}
             </span>
@@ -306,7 +329,7 @@ export function Discover() {
 
         {err && <div className="text-red-400 text-sm">{err}</div>}
         {loading && <div className="text-center text-[var(--color-text-dim)] py-10">{t('common.loading')}</div>}
-        {!loading && (topResults ? topResults.length === 0 : results.length === 0) && (
+        {!loading && (visibleTopResults ? visibleTopResults.length === 0 : visibleResults.length === 0) && (
           <div className="text-center text-[var(--color-text-dim)] py-10">
             {t('common.noResults')}{' '}
             {activeCount > 0 && <button onClick={onReset} className="text-[var(--color-accent)] underline">{t('discover.clearFilters')}</button>}
@@ -314,8 +337,8 @@ export function Discover() {
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4">
-          {topResults
-            ? topResults.map((it) => {
+          {visibleTopResults
+            ? visibleTopResults.map((it) => {
                 const cardItem: DiscoverCardItem = {
                   id: it.id,
                   media_type: isTvMedia(mediaType) ? 'tv' : 'movie',
@@ -340,7 +363,7 @@ export function Discover() {
                 )
               })
             : (isTvMedia(mediaType)
-                ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
+                ? (visibleResults as TmdbTvShow[]).map((s): DiscoverCardItem => ({
                     id: s.id,
                     media_type: 'tv',
                     title: getContentTitle(s),
@@ -359,7 +382,7 @@ export function Discover() {
                       </>
                     ),
                   }))
-                : (results as TmdbMovie[]).map((m): DiscoverCardItem => ({
+                : (visibleResults as TmdbMovie[]).map((m): DiscoverCardItem => ({
                     id: m.id,
                     media_type: 'movie',
                     title: getContentTitle(m),
@@ -383,7 +406,7 @@ export function Discover() {
               })}
         </div>
 
-        {(topResults?.length ?? results.length) > 0 && totalPages > 1 && (
+        {(visibleTopResults?.length ?? visibleResults.length) > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 py-6">
             <PageBtn disabled={page <= 1} onClick={() => update({ page: page - 1 })}>
               {t('common.previous')}
@@ -414,8 +437,8 @@ export function Discover() {
                 onClick={() => setFilterSheetOpen(false)}
                 className="flex-[2] h-12 rounded-xl bg-[var(--color-accent)] text-black text-sm font-semibold active:scale-[0.98] transition"
               >
-                {results.length > 0
-                  ? t('filters.applyCount', { count: results.length, defaultValue: t('filters.apply') })
+                {visibleResults.length > 0
+                  ? t('filters.applyCount', { count: visibleResults.length, defaultValue: t('filters.apply') })
                   : t('filters.apply')}
               </button>
             </div>

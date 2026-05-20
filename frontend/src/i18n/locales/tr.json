@@ -124,7 +124,15 @@
     },
     "all": "Tümü",
     "apply": "Uygula",
-    "applyCount": "{{count}} sonucu göster"
+    "applyCount": "{{count}} sonucu göster",
+    "watched": {
+      "title": "İzlenme durumu",
+      "options": {
+        "all": "Tümü",
+        "unwatched": "İzlenenleri gizle",
+        "watched": "Yalnızca izlenenler"
+      }
+    }
   },
   "sort": {
     "label": "Sırala"
@@ -144,6 +152,7 @@
   "card": {
     "tmdbRating": "★ {{rating}}",
     "watched": "✓ İzledim",
+    "watchedWatermark": "İzlendi",
     "markWatched": "İzledim olarak işaretle",
     "addToWatchlist": "+ Listeme ekle",
     "inWatchlist": "✓ Listemde",
