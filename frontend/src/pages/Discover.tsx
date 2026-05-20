@@ -217,7 +217,6 @@ export function Discover() {
           onSaveCurrent={user ? () => setSaveDialogOpen(true) : undefined}
           onApplySaved={user ? handleApplySaved : undefined}
           onDeleteSaved={user ? handleDeleteSaved : undefined}
-          showWatchedFilter={!!user}
         />
       </aside>
 
@@ -456,7 +455,6 @@ export function Discover() {
             onSaveCurrent={user ? () => setSaveDialogOpen(true) : undefined}
             onApplySaved={user ? handleApplySaved : undefined}
             onDeleteSaved={user ? handleDeleteSaved : undefined}
-            showWatchedFilter={!!user}
           />
         </BottomSheet>
       )}

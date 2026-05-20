@@ -88,9 +88,6 @@ interface Props {
   onSaveCurrent?: () => void
   onApplySaved?: (s: SavedFilter) => void
   onDeleteSaved?: (s: SavedFilter) => void
-  /** When true, render the "Watched" client-side filter section. Hide it
-   *  for signed-out users since their watched set is always empty. */
-  showWatchedFilter?: boolean
 }
 
 export function FilterPanel({
@@ -104,7 +101,6 @@ export function FilterPanel({
   onSaveCurrent,
   onApplySaved,
   onDeleteSaved,
-  showWatchedFilter,
 }: Props) {
   const { t, i18n } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
@@ -254,24 +250,22 @@ export function FilterPanel({
         </Section>
       )}
 
-      {showWatchedFilter && (
-        <Section title={t('filters.watched.title')} defaultOpen>
-          <div className="flex flex-wrap gap-1.5">
-            {(['all', 'unwatched', 'watched'] as const).map((opt) => {
-              const active = value.watched_filter === opt
-              return (
-                <button
-                  key={opt}
-                  onClick={() => onChange({ ...value, watched_filter: opt })}
-                  className={chipCls(active)}
-                >
-                  {t(`filters.watched.options.${opt}`)}
-                </button>
-              )
-            })}
-          </div>
-        </Section>
-      )}
+      <Section title={t('filters.watched.title')} defaultOpen>
+        <div className="flex flex-wrap gap-1.5">
+          {(['all', 'unwatched', 'watched'] as const).map((opt) => {
+            const active = value.watched_filter === opt
+            return (
+              <button
+                key={opt}
+                onClick={() => onChange({ ...value, watched_filter: opt })}
+                className={chipCls(active)}
+              >
+                {t(`filters.watched.options.${opt}`)}
+              </button>
+            )
+          })}
+        </div>
+      </Section>
 
       <Section title={`${t('filters.minRating')} ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
         <input
