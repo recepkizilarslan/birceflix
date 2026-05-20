@@ -127,7 +127,7 @@ export function Layout() {
               className="block leading-none"
               style={{
                 fontFamily: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
-                color: '#FF3B47',
+                color: 'var(--color-accent)',
                 fontSize: 'clamp(1.5rem, 5vw, 1.875rem)',
                 letterSpacing: '0.01em',
                 textShadow: '0 2px 4px rgba(0,0,0,0.5)',
