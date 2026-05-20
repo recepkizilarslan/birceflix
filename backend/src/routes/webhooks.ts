@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, createHash } from 'node:crypto'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedEpisodes, watchedMovies, watchHistory, webhookTokens } from '../db/schema.js'
@@ -114,12 +114,13 @@ export async function webhookRoutes(app: FastifyInstance) {
     const userId = await app.requireAuth(req)
     const { label } = createBody.parse(req.body)
     const token = newToken()
+    const hashedToken = createHash('sha256').update(token).digest('hex')
     const [row] = await db
       .insert(webhookTokens)
-      .values({ userId, label, token })
+      .values({ userId, label, token: hashedToken })
       .returning()
     // Returned ONCE in full — the UI shows the URL with it.
-    return serialise(row!, true)
+    return { ...serialise(row!, false), token }
   })
 
   app.delete('/api/webhooks/:id', rlWrite, async (req) => {
@@ -134,10 +135,11 @@ export async function webhookRoutes(app: FastifyInstance) {
   // -------- Scrobble receiver (no auth — token in URL) ------------------
   app.post('/api/webhooks/scrobble/:token', async (req, reply) => {
     const { token } = tokenParam.parse(req.params)
+    const hashedToken = createHash('sha256').update(token).digest('hex')
     const [row] = await db
       .select({ id: webhookTokens.id, userId: webhookTokens.userId })
       .from(webhookTokens)
-      .where(eq(webhookTokens.token, token))
+      .where(eq(webhookTokens.token, hashedToken))
       .limit(1)
     if (!row) return reply.code(404).send({ error: 'unknown token' })
 

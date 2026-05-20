@@ -33,14 +33,14 @@ async function build() {
     logger: env.NODE_ENV === 'development'
       ? { transport: { target: 'pino-pretty' } }
       : true,
-    trustProxy: true,
+    trustProxy: 1,
   })
 
   await app.register(helmet, { contentSecurityPolicy: false })
   await app.register(sensible)
   await app.register(cookie, { secret: env.SESSION_SECRET })
   await app.register(cors, {
-    origin: env.NODE_ENV === 'development' ? env.FRONTEND_ORIGIN : true,
+    origin: env.FRONTEND_ORIGIN,
     credentials: true,
   })
   await app.register(rateLimit, {
