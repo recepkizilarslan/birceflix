@@ -13,12 +13,14 @@ export interface AddWatchlistInput {
 export class WatchlistService {
   constructor(private db: DB) {}
 
-  async getWatchlist(userId: string) {
+  async getWatchlist(userId: string, page = 1, limit = 50) {
     return this.db
       .select()
       .from(watchlist)
       .where(eq(watchlist.userId, userId))
       .orderBy(desc(watchlist.priority), desc(watchlist.addedAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
   }
 
   async addToWatchlist(userId: string, input: AddWatchlistInput) {
