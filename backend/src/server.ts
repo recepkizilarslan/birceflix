@@ -8,6 +8,7 @@ import rateLimit from '@fastify/rate-limit'
 
 import { env } from './env.js'
 import authGuard from './plugins/authGuard.js'
+import services from './plugins/services.js'
 import { authRoutes } from './auth/routes.js'
 import { discoverRoutes } from './routes/discover.js'
 import { searchRoutes } from './routes/search.js'
@@ -53,6 +54,7 @@ async function build() {
   })
 
   await app.register(authGuard)
+  await app.register(services)
 
   // Routes
   await app.register(authRoutes)
