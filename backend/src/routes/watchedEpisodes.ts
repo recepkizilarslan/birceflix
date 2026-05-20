@@ -33,9 +33,14 @@ const episodeKey = z.object({
   season: z.coerce.number().int().min(0),
   episode: z.coerce.number().int().min(0),
 })
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export async function watchedEpisodeRoutes(app: FastifyInstance) {
   // List all watched episodes for one show (current user)
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watched-episodes/:showId', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId } = showIdParam.parse(req.params)
@@ -48,6 +53,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Per-show counts — used by the watched-shows summary list
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watched-episodes', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
@@ -62,10 +68,19 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
       .where(eq(watchedEpisodes.userId, userId))
       .groupBy(watchedEpisodes.showId)
       .orderBy(desc(sql`max(${watchedEpisodes.watchedAt})`))
-    return rows
+
+    const { page, limit } = pageQuery.parse(req.query)
+    const paginatedRows = rows.slice((page - 1) * limit, page * limit)
+
+    return {
+      items: paginatedRows,
+      page,
+      limit,
+    }
   })
 
   // Mark a single episode
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/watched-episodes', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = markBody.parse(req.body)
@@ -101,6 +116,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Mark a whole season at once — used by the "tüm sezon" toggle
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/watched-episodes/bulk', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = bulkBody.parse(req.body)
@@ -128,6 +144,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Unmark a single episode
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/watched-episodes/:showId/:season/:episode', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId, season, episode } = episodeKey.parse(req.params)
@@ -145,6 +162,7 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
   })
 
   // Unmark an entire season
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/watched-episodes/:showId/:season', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { showId, season } = z

@@ -5,6 +5,7 @@ import helmet from '@fastify/helmet'
 import multipart from '@fastify/multipart'
 import sensible from '@fastify/sensible'
 import rateLimit from '@fastify/rate-limit'
+import { ZodError } from 'zod'
 
 import { env } from './env.js'
 import authGuard from './plugins/authGuard.js'
@@ -55,6 +56,19 @@ async function build() {
 
   await app.register(authGuard)
   await app.register(services)
+
+  app.setErrorHandler((error, req, reply) => {
+    if (error instanceof ZodError) {
+      app.log.warn({ err: error }, 'validation error')
+      return reply.code(400).send({ error: 'validation failed', issues: error.issues })
+    }
+    const err = error as any
+    if (err.statusCode) {
+      return reply.code(err.statusCode).send({ error: err.message })
+    }
+    app.log.error({ err: error }, 'unhandled exception')
+    return reply.code(500).send({ error: 'internal server error' })
+  })
 
   // Routes
   await app.register(authRoutes)

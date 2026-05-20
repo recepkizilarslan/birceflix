@@ -15,14 +15,26 @@ const addBody = z.object({
 
 const idParam = z.object({ tmdbId: z.coerce.number().int().positive() })
 const mediaTypeQuery = z.object({ media_type: mediaTypeEnum })
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export async function watchlistRoutes(app: FastifyInstance) {
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
-    const rows = await app.services.watchlist.getWatchlist(userId)
-    return rows.map(serializeWatchlist)
+    const { page, limit } = pageQuery.parse(req.query)
+    const rows = await app.services.watchlist.getWatchlist(userId, page, limit)
+    
+    return {
+      items: rows.map(serializeWatchlist),
+      page,
+      limit,
+    }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/watchlist', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
@@ -37,6 +49,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/watchlist/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)

@@ -43,6 +43,7 @@ async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promis
 
 export async function importRoutes(app: FastifyInstance) {
   // -------- Letterboxd: watched.csv → watched_movies ----------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/import/letterboxd/watched', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const csv = await readCsv(req as unknown as { file: () => Promise<{ toBuffer: () => Promise<Buffer> } | undefined> })
@@ -83,6 +84,7 @@ export async function importRoutes(app: FastifyInstance) {
   })
 
   // -------- Letterboxd: diary.csv → watch_history -------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/import/letterboxd/diary', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const csv = await readCsv(req as unknown as { file: () => Promise<{ toBuffer: () => Promise<Buffer> } | undefined> })

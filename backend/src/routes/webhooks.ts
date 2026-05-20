@@ -99,6 +99,7 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
 
 export async function webhookRoutes(app: FastifyInstance) {
   // -------- Token CRUD (auth required) ----------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/webhooks', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
@@ -110,7 +111,8 @@ export async function webhookRoutes(app: FastifyInstance) {
     return rows.map((r) => serialise(r, false))
   })
 
-  app.post('/api/webhooks', rlWrite, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/webhooks', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { label } = createBody.parse(req.body)
     const token = newToken()
@@ -119,10 +121,12 @@ export async function webhookRoutes(app: FastifyInstance) {
       .insert(webhookTokens)
       .values({ userId, label, token: hashedToken })
       .returning()
+    if (!row) return reply.code(500).send({ error: 'failed to create webhook' })
     // Returned ONCE in full — the UI shows the URL with it.
-    return { ...serialise(row!, false), token }
+    return { ...serialise(row, false), token }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/webhooks/:id', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -133,6 +137,7 @@ export async function webhookRoutes(app: FastifyInstance) {
   })
 
   // -------- Scrobble receiver (no auth — token in URL) ------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/webhooks/scrobble/:token', rlWebhook, async (req, reply) => {
     const { token } = tokenParam.parse(req.params)
     const hashedToken = createHash('sha256').update(token).digest('hex')

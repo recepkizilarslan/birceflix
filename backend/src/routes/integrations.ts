@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { users, watchedMovies, watchHistory } from '../db/schema.js'
 import { env } from '../env.js'
@@ -54,6 +54,7 @@ async function getValidToken(userId: string): Promise<string | null> {
 
 export async function integrationsRoutes(app: FastifyInstance) {
   // -------- Status -------------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/status', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return { configured: false, connected: false, last_sync_at: null }
@@ -75,6 +76,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Start OAuth --------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/connect', rlAuth, async (req, reply) => {
     await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
@@ -91,6 +93,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- OAuth callback -----------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/callback', rlAuth, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
@@ -116,6 +119,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Disconnect ---------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/integrations/trakt/disconnect', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     await db
@@ -131,6 +135,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Import history ----------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/integrations/trakt/import-history', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
@@ -185,14 +190,26 @@ async function importOne(userId: string, item: TraktHistoryItem): Promise<'impor
     })
     .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
 
-  // Append a viewing event. Trakt id isn't stored; identical (user, movie,
-  // watched_at) pairs would dedupe — but Trakt timestamps are unique per
-  // viewing in practice, so plain insert is fine.
-  await db.insert(watchHistory).values({
-    userId,
-    tmdbId,
-    watchedAt,
-  })
+  // Append a viewing event if not already exists
+  const existing = await db
+    .select()
+    .from(watchHistory)
+    .where(
+      and(
+        eq(watchHistory.userId, userId),
+        eq(watchHistory.tmdbId, tmdbId),
+        eq(watchHistory.watchedAt, watchedAt)
+      )
+    )
+    .limit(1)
+
+  if (existing.length === 0) {
+    await db.insert(watchHistory).values({
+      userId,
+      tmdbId,
+      watchedAt,
+    })
+  }
 
   return 'imported'
 }

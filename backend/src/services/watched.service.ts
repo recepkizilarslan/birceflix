@@ -20,12 +20,14 @@ export interface UpdateWatchedInput {
 export class WatchedService {
   constructor(private db: DB) {}
 
-  async getWatched(userId: string) {
+  async getWatched(userId: string, page = 1, limit = 50) {
     return this.db
       .select()
       .from(watchedMovies)
       .where(eq(watchedMovies.userId, userId))
       .orderBy(desc(watchedMovies.watchedAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
   }
 
   async getWatchedItem(userId: string, tmdbId: number, mediaType: 'movie' | 'tv') {
