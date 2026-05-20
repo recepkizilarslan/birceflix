@@ -23,8 +23,15 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** GET /api/watched returns a paginated envelope (`{items, page, limit}`).
+ *  The UI doesn't paginate yet, so we ask for the backend's max page size
+ *  and unwrap items. If the user crosses that ceiling we'll need to loop
+ *  pages here. */
 export async function listWatched(): Promise<WatchedRow[]> {
-  return json<WatchedRow[]>(await fetch('/api/watched', { credentials: 'include' }))
+  const body = await json<{ items: WatchedRow[]; page: number; limit: number }>(
+    await fetch('/api/watched?limit=100', { credentials: 'include' }),
+  )
+  return body.items
 }
 
 export interface MarkWatchedInput {

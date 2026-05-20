@@ -33,8 +33,14 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** GET /api/watched-episodes returns a paginated envelope
+ *  (`{items, page, limit}`). The UI doesn't paginate yet, so we ask for
+ *  the backend's max page size and unwrap items. */
 export async function listWatchedShows(): Promise<WatchedShowSummary[]> {
-  return json(await fetch('/api/watched-episodes', { credentials: 'include' }))
+  const body = await json<{ items: WatchedShowSummary[]; page: number; limit: number }>(
+    await fetch('/api/watched-episodes?limit=100', { credentials: 'include' }),
+  )
+  return body.items
 }
 
 export async function listWatchedEpisodes(showId: number): Promise<WatchedEpisodeRow[]> {
