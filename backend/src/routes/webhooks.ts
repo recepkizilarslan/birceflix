@@ -99,7 +99,7 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
 
 export async function webhookRoutes(app: FastifyInstance) {
   // -------- Token CRUD (auth required) ----------------------------------
-  app.get('/api/webhooks', { config: rlRead.config }, async (req) => {
+  app.get('/api/webhooks', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
       .select()
@@ -110,7 +110,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     return rows.map((r) => serialise(r, false))
   })
 
-  app.post('/api/webhooks', { config: rlWrite.config }, async (req, reply) => {
+  app.post('/api/webhooks', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { label } = createBody.parse(req.body)
     const token = newToken()
@@ -124,7 +124,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     return { ...serialise(row, false), token }
   })
 
-  app.delete('/api/webhooks/:id', { config: rlWrite.config }, async (req) => {
+  app.delete('/api/webhooks/:id', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
     await db
@@ -134,7 +134,7 @@ export async function webhookRoutes(app: FastifyInstance) {
   })
 
   // -------- Scrobble receiver (no auth — token in URL) ------------------
-  app.post('/api/webhooks/scrobble/:token', { config: rlWebhook.config }, async (req, reply) => {
+  app.post('/api/webhooks/scrobble/:token', rlWebhook, async (req, reply) => {
     const { token } = tokenParam.parse(req.params)
     const hashedToken = createHash('sha256').update(token).digest('hex')
     const [row] = await db

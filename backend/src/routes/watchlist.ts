@@ -21,7 +21,7 @@ const pageQuery = z.object({
 })
 
 export async function watchlistRoutes(app: FastifyInstance) {
-  app.get('/api/watchlist', { config: rlRead.config }, async (req) => {
+  app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
     const rows = await app.services.watchlist.getWatchlist(userId, page, limit)
@@ -33,7 +33,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/watchlist', { config: rlWrite.config }, async (req) => {
+  app.post('/api/watchlist', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
 
@@ -47,7 +47,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.delete('/api/watchlist/:tmdbId', { config: rlWrite.config }, async (req) => {
+  app.delete('/api/watchlist/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)

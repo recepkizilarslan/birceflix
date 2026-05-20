@@ -28,7 +28,7 @@ const pageQuery = z.object({
 })
 
 export async function watchedRoutes(app: FastifyInstance) {
-  app.get('/api/watched', { config: rlRead.config }, async (req) => {
+  app.get('/api/watched', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
     const rows = await app.services.watched.getWatched(userId, page, limit)
@@ -40,7 +40,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/watched', { config: rlWrite.config }, async (req) => {
+  app.post('/api/watched', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = upsertBody.parse(req.body)
 
@@ -57,7 +57,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.get('/api/watched/:tmdbId', { config: rlRead.config }, async (req, reply) => {
+  app.get('/api/watched/:tmdbId', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
@@ -67,7 +67,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return serializeWatched(row)
   })
 
-  app.patch('/api/watched/:tmdbId', { config: rlWrite.config }, async (req, reply) => {
+  app.patch('/api/watched/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)
@@ -88,7 +88,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  app.delete('/api/watched/:tmdbId', { config: rlWrite.config }, async (req) => {
+  app.delete('/api/watched/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
     const { media_type } = mediaTypeQuery.parse(req.query)

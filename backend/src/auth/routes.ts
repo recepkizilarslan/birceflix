@@ -65,7 +65,7 @@ function deriveNames(profile: GoogleUserInfo): { firstName: string | null; lastN
 
 export async function authRoutes(app: FastifyInstance) {
   // 1) Start OAuth — redirect to Google
-  app.get('/api/auth/google', { config: rlAuth.config }, async (req, reply) => {
+  app.get('/api/auth/google', rlAuth, async (req, reply) => {
     const state = generateState()
     const codeVerifier = generateCodeVerifier()
     const url = google.createAuthorizationURL(state, codeVerifier, ['openid', 'profile', 'email'])
@@ -84,7 +84,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // 2) OAuth callback
-  app.get('/api/auth/google/callback', { config: rlAuth.config }, async (req, reply) => {
+  app.get('/api/auth/google/callback', rlAuth, async (req, reply) => {
     const { code, state } = req.query as { code?: string; state?: string }
     const cookieState = req.cookies[STATE_COOKIE]
     const codeVerifier = req.cookies[VERIFIER_COOKIE]
