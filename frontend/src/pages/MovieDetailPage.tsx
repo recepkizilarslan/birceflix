@@ -12,7 +12,7 @@ import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [region] = useRegion()
   const { user, watchedKeys, toggleWatched, watchlistKeys, toggleWatchlist } = useOutletContext<LayoutContext>()
   const [d, setD] = useState<MovieDetail | null>(null)
@@ -22,7 +22,7 @@ export function MovieDetailPage() {
     if (!id) return
     setD(null); setErr(null)
     movieDetail(Number(id), region).then(setD).catch((e) => setErr(e.message))
-  }, [id, region])
+  }, [id, region, i18n.language])
 
   if (err) return <Wrap><div className="text-red-400">{err}</div></Wrap>
   if (!d) return <Wrap><div className="py-16 text-center text-[var(--color-text-dim)]">{t('common.loading')}</div></Wrap>

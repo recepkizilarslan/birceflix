@@ -132,6 +132,7 @@ export interface TopSnapshot {
   updated_at: string
   media_type: TopMediaType
   region: string
+  language: string
   items: TopItem[]
 }
 
@@ -141,12 +142,14 @@ interface CacheEntry {
   last_error: string | null
 }
 
-/** Cache key is `${mediaType}:${region}`. */
+/** Cache key is `${mediaType}:${region}:${language}`. Language is part of
+ * the key because titles localize per UI language (e.g. "Esaretin Bedeli"
+ * vs. "The Shawshank Redemption"); the rest of the snapshot is identical. */
 const cache = new Map<string, CacheEntry>()
 let timer: NodeJS.Timeout | null = null
 
-function cacheKey(mediaType: TopMediaType, region: string): string {
-  return `${mediaType}:${region.toUpperCase()}`
+function cacheKey(mediaType: TopMediaType, region: string, language: string): string {
+  return `${mediaType}:${region.toUpperCase()}:${language}`
 }
 
 /** Run `fn` against each item with at most `limit` concurrent invocations. */
@@ -169,10 +172,10 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 /** Single detail fetch with watch-providers appended. Returns null on any
  * failure so one bad id can't poison the whole snapshot; the next daily
  * refresh retries. */
-async function fetchDetail(mediaType: TopMediaType, id: number): Promise<TmdbDetail | null> {
+async function fetchDetail(mediaType: TopMediaType, id: number, language: string): Promise<TmdbDetail | null> {
   try {
     return await tmdb<TmdbDetail>(`/${mediaType}/${id}`, {
-      language: 'en-US',
+      language,
       append_to_response: 'watch/providers',
     })
   } catch {
@@ -200,10 +203,11 @@ function extractOriginCountry(mediaType: TopMediaType, detail: TmdbDetail): stri
 async function buildSnapshot(
   mediaType: TopMediaType,
   region: string,
+  language: string,
   log: FastifyBaseLogger | Console,
 ): Promise<TopSnapshot> {
   const started = Date.now()
-  log.info({ mediaType, region }, '[top] refresh start')
+  log.info({ mediaType, region, language }, '[top] refresh start')
 
   // Phase 1: ordered list of ids. Cheap, paginated. We pull pages in
   // parallel since they're independent.
@@ -211,7 +215,7 @@ async function buildSnapshot(
   const pages = await Promise.all(
     Array.from({ length: pagesNeeded }, (_, i) =>
       tmdb<TmdbTopRatedResponse>(`/${mediaType}/top_rated`, {
-        language: 'en-US',
+        language,
         page: String(i + 1),
       }),
     ),
@@ -222,7 +226,7 @@ async function buildSnapshot(
   // gives us everything Discover's filters need (runtime, language,
   // country, genres, seasons/episodes, providers).
   const detailsByIndex = await mapLimit(listItems, CONCURRENCY, (l) =>
-    fetchDetail(mediaType, l.id),
+    fetchDetail(mediaType, l.id, language),
   )
 
   const items: TopItem[] = listItems.map((l, idx) => {
@@ -251,11 +255,12 @@ async function buildSnapshot(
     updated_at: new Date().toISOString(),
     media_type: mediaType,
     region,
+    language,
     items,
   }
 
   log.info(
-    { mediaType, region, count: items.length, duration_ms: Date.now() - started },
+    { mediaType, region, language, count: items.length, duration_ms: Date.now() - started },
     '[top] refresh ok',
   )
   return snapshot
@@ -264,13 +269,14 @@ async function buildSnapshot(
 async function refreshEntry(
   mediaType: TopMediaType,
   region: string,
+  language: string,
   log: FastifyBaseLogger | Console,
 ): Promise<TopSnapshot> {
-  const key = cacheKey(mediaType, region)
+  const key = cacheKey(mediaType, region, language)
   const entry = cache.get(key) ?? { snapshot: null, inflight: null, last_error: null }
   if (entry.inflight) return entry.inflight
 
-  entry.inflight = buildSnapshot(mediaType, region, log)
+  entry.inflight = buildSnapshot(mediaType, region, language, log)
     .then((snap) => {
       entry.snapshot = snap
       entry.last_error = null
@@ -279,7 +285,7 @@ async function refreshEntry(
     .catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err)
       entry.last_error = msg
-      log.error({ mediaType, region, err: msg }, '[top] refresh failed')
+      log.error({ mediaType, region, language, err: msg }, '[top] refresh failed')
       throw err
     })
     .finally(() => {
@@ -290,6 +296,10 @@ async function refreshEntry(
   return entry.inflight
 }
 
+/** Languages warmed at boot. Matches the frontend's supportedLngs in
+ * src/i18n/index.ts — keep them in sync if a new locale is added. */
+const WARM_LANGUAGES = ['tr-TR', 'en-US']
+
 /**
  * Returns the cached snapshot, kicking off a refresh on first access.
  * Concurrent callers share the same in-flight promise.
@@ -297,34 +307,38 @@ async function refreshEntry(
 export async function getTop(
   mediaType: TopMediaType,
   region: string,
+  language: string,
   log: FastifyBaseLogger | Console,
 ): Promise<TopSnapshot> {
-  const entry = cache.get(cacheKey(mediaType, region))
+  const entry = cache.get(cacheKey(mediaType, region, language))
   if (entry?.snapshot) return entry.snapshot
-  return refreshEntry(mediaType, region.toUpperCase(), log)
+  return refreshEntry(mediaType, region.toUpperCase(), language, log)
 }
 
 /**
- * Warm the default (movie + tv, default region) snapshots on boot. Awaited
- * before app.listen so the first request is hot. Other (mediaType, region)
- * combinations are filled lazily on demand. Daily refresh is scheduled
- * here too; the timer is guarded so reboots can't double-arm it.
+ * Warm the default (movie + tv, default region, each warm language)
+ * snapshots on boot. Awaited before app.listen so the first request is
+ * hot. Other (mediaType, region, language) combinations are filled lazily
+ * on demand. Daily refresh is scheduled here too; the timer is guarded so
+ * reboots can't double-arm it.
  */
 export async function startTopRefresh(log: FastifyBaseLogger): Promise<void> {
   const region = env.DEFAULT_WATCH_REGION.toUpperCase()
-  await Promise.all([
-    refreshEntry('movie', region, log).catch(() => undefined),
-    refreshEntry('tv', region, log).catch(() => undefined),
-  ])
+  await Promise.all(
+    WARM_LANGUAGES.flatMap((lang) => [
+      refreshEntry('movie', region, lang, log).catch(() => undefined),
+      refreshEntry('tv', region, lang, log).catch(() => undefined),
+    ]),
+  )
 
   if (timer) return
   timer = setInterval(() => {
-    // Refresh every (mediaType, region) pair we've ever served so warm
-    // entries stay warm. Failures are logged and ignored — the next tick
-    // (or an explicit request) will retry.
+    // Refresh every (mediaType, region, language) triple we've ever served
+    // so warm entries stay warm. Failures are logged and ignored — the
+    // next tick (or an explicit request) will retry.
     for (const key of cache.keys()) {
-      const [mt, r] = key.split(':') as [TopMediaType, string]
-      refreshEntry(mt, r, log).catch(() => undefined)
+      const [mt, r, lang] = key.split(':') as [TopMediaType, string, string]
+      refreshEntry(mt, r, lang, log).catch(() => undefined)
     }
   }, REFRESH_INTERVAL_MS)
   timer.unref?.()
@@ -334,15 +348,17 @@ export async function startTopRefresh(log: FastifyBaseLogger): Promise<void> {
 export function getTopStatus(): Array<{
   media_type: TopMediaType
   region: string
+  language: string
   updated_at: string | null
   item_count: number
   last_error: string | null
 }> {
   return Array.from(cache.entries()).map(([key, entry]) => {
-    const [mt, r] = key.split(':') as [TopMediaType, string]
+    const [mt, r, lang] = key.split(':') as [TopMediaType, string, string]
     return {
       media_type: mt,
       region: r,
+      language: lang,
       updated_at: entry.snapshot?.updated_at ?? null,
       item_count: entry.snapshot?.items.length ?? 0,
       last_error: entry.last_error,
