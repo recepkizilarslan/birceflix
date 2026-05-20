@@ -95,6 +95,31 @@ async function get<T>(path: string, params: Record<string, string | undefined> =
   return res.json() as Promise<T>
 }
 
+/**
+ * Title to render in the UI. TMDB localizes title/name to ui_language, but
+ * its Turkish translations for English originals tend to read poorly
+ * ("Esaretin Bedeli" vs. "The Shawshank Redemption"); the product call here
+ * is to keep en/tr originals in their own language and only fall back to
+ * TMDB's localized title for content that originates in other languages
+ * (Korean, Japanese, Hindi, ...), where the original script is unreadable
+ * for most users.
+ */
+export function getContentTitle(item: {
+  title?: string
+  name?: string
+  original_title?: string
+  original_name?: string
+  original_language?: string
+}): string {
+  const title = item.title || item.name || ''
+  const originalTitle = item.original_title || item.original_name || ''
+  const originalLang = item.original_language || ''
+  if ((originalLang === 'en' || originalLang === 'tr') && originalTitle) {
+    return originalTitle
+  }
+  return title
+}
+
 export function discover(f: DiscoverFilters) {
   return get<{ results: TmdbMovie[]; page: number; total_pages: number; total_results: number }>('/api/discover', {
     min_rating: f.min_rating?.toString(),

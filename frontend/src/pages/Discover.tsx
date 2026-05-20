@@ -7,7 +7,7 @@ import { ProviderStrip } from '../components/ProviderStrip'
 import { SaveFilterDialog } from '../components/SaveFilterDialog'
 import { SearchBar } from '../components/SearchBar'
 import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
-import { discover, search, top, type TmdbMovie, type TopItem } from '../lib/api'
+import { discover, search, top, getContentTitle, type TmdbMovie, type TopItem } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
 import { mediaKey } from '../lib/watched'
 import { SORT_OPTIONS, TV_SORT_OPTIONS } from '../lib/constants'
@@ -343,7 +343,7 @@ export function Discover() {
                 ? (results as TmdbTvShow[]).map((s): DiscoverCardItem => ({
                     id: s.id,
                     media_type: 'tv',
-                    title: s.name,
+                    title: getContentTitle(s),
                     poster_path: s.poster_path,
                     vote_average: s.vote_average,
                     date: s.first_air_date ?? null,
@@ -362,7 +362,7 @@ export function Discover() {
                 : (results as TmdbMovie[]).map((m): DiscoverCardItem => ({
                     id: m.id,
                     media_type: 'movie',
-                    title: m.title,
+                    title: getContentTitle(m),
                     poster_path: m.poster_path,
                     vote_average: m.vote_average,
                     date: m.release_date ?? null,
