@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { poster, type TmdbMovie } from '../lib/api'
+import { poster, getContentTitle, type TmdbMovie } from '../lib/api'
 
 interface Props {
   movie: TmdbMovie
@@ -14,14 +14,15 @@ interface Props {
 export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, myRating }: Props) {
   const { t } = useTranslation()
   const year = movie.release_date?.slice(0, 4) ?? ''
+  const displayTitle = getContentTitle(movie)
   return (
     <div className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition">
-      <button onClick={() => onOpen(movie)} className="block w-full text-left">
+      <button onClick={() => onOpen({ ...movie, title: displayTitle })} className="block w-full text-left">
         <div className="relative aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
           {poster(movie.poster_path) ? (
             <img
               src={poster(movie.poster_path)!}
-              alt={movie.title}
+              alt={displayTitle}
               loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
             />
@@ -38,7 +39,7 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, my
         </div>
         <div className="p-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-medium leading-snug line-clamp-2">{movie.title}</h3>
+            <h3 className="text-sm font-medium leading-snug line-clamp-2">{displayTitle}</h3>
             <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)]">
               ★ {movie.vote_average.toFixed(1)}
             </span>
@@ -49,7 +50,7 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, my
       <div className="px-3 pb-3">
         <button
           disabled={!canMark}
-          onClick={() => onToggleWatched(movie)}
+          onClick={() => onToggleWatched({ ...movie, title: displayTitle })}
           className={`w-full text-sm py-1.5 rounded-lg transition ${
             !canMark
               ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
