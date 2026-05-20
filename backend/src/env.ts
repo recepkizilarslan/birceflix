@@ -10,7 +10,7 @@ const schema = z.object({
 
   // Session
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 chars'),
-  SESSION_COOKIE_NAME: z.string().default('birceflix_session'),
+  SESSION_COOKIE_NAME: z.string().default('__Host-birceflix_session'),
   SESSION_TTL_DAYS: z.coerce.number().default(30),
 
   // Google OAuth

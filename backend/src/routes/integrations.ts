@@ -15,6 +15,7 @@ import {
   type TraktTokens,
 } from '../lib/trakt.js'
 import { rlAuth, rlRead, rlWrite } from '../lib/rateLimit.js'
+import { encrypt, decrypt } from '../lib/crypto.js'
 
 const STATE_COOKIE = 'trakt_oauth_state'
 
@@ -36,15 +37,15 @@ async function getValidToken(userId: string): Promise<string | null> {
     .limit(1)
   if (!row || !row.access || !row.refresh) return null
 
-  if (tokenIsFresh(row.expires)) return row.access
+  if (tokenIsFresh(row.expires)) return decrypt(row.access)
 
   // Refresh
-  const fresh = await refreshAccessToken(row.refresh)
+  const fresh = await refreshAccessToken(decrypt(row.refresh))
   await db
     .update(users)
     .set({
-      traktAccessToken: fresh.access_token,
-      traktRefreshToken: fresh.refresh_token,
+      traktAccessToken: encrypt(fresh.access_token),
+      traktRefreshToken: encrypt(fresh.refresh_token),
       traktExpiresAt: tokenExpiresAt(fresh),
     })
     .where(eq(users.id, userId))
@@ -104,8 +105,8 @@ export async function integrationsRoutes(app: FastifyInstance) {
     await db
       .update(users)
       .set({
-        traktAccessToken: tokens.access_token,
-        traktRefreshToken: tokens.refresh_token,
+        traktAccessToken: encrypt(tokens.access_token),
+        traktRefreshToken: encrypt(tokens.refresh_token),
         traktExpiresAt: tokenExpiresAt(tokens),
       })
       .where(eq(users.id, userId))
