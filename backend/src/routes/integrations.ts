@@ -54,6 +54,7 @@ async function getValidToken(userId: string): Promise<string | null> {
 
 export async function integrationsRoutes(app: FastifyInstance) {
   // -------- Status -------------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/status', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return { configured: false, connected: false, last_sync_at: null }
@@ -75,6 +76,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Start OAuth --------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/connect', rlAuth, async (req, reply) => {
     await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
@@ -91,6 +93,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- OAuth callback -----------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/integrations/trakt/callback', rlAuth, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })
@@ -116,6 +119,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Disconnect ---------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/integrations/trakt/disconnect', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     await db
@@ -131,6 +135,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
   })
 
   // -------- Import history ----------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/integrations/trakt/import-history', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     if (!traktConfigured()) return reply.code(503).send({ error: 'trakt not configured' })

@@ -44,6 +44,7 @@ function parseWatchedAt(s: string | undefined): Date | undefined {
 }
 
 export async function historyRoutes(app: FastifyInstance) {
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/history/:tmdbId', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = tmdbParam.parse(req.params)
@@ -55,6 +56,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/history', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
@@ -74,6 +76,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row)
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.patch('/api/history/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -106,6 +109,7 @@ export async function historyRoutes(app: FastifyInstance) {
     return serialise(row)
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/history/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)

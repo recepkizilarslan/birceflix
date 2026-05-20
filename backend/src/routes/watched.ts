@@ -28,6 +28,7 @@ const pageQuery = z.object({
 })
 
 export async function watchedRoutes(app: FastifyInstance) {
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watched', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
@@ -40,6 +41,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/watched', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = upsertBody.parse(req.body)
@@ -57,6 +59,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watched/:tmdbId', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
@@ -67,6 +70,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return serializeWatched(row)
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.patch('/api/watched/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)
@@ -88,6 +92,7 @@ export async function watchedRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/watched/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)

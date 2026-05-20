@@ -63,6 +63,7 @@ function serialiseItem(i: typeof listItems.$inferSelect) {
 
 export async function listsRoutes(app: FastifyInstance) {
   // -------- Own lists ----------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/lists', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const rows = await db
@@ -79,6 +80,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Create -------------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/lists', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const body = createBody.parse(req.body)
@@ -97,6 +99,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Detail (own list with items) ---------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/lists/:id', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -117,6 +120,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Update -------------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.patch('/api/lists/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -154,6 +158,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Delete -------------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/lists/:id', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -166,6 +171,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: add ---------------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/lists/:id/items', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id } = idParam.parse(req.params)
@@ -202,6 +208,7 @@ export async function listsRoutes(app: FastifyInstance) {
   })
 
   // -------- Items: remove -----------------------------------------------
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/lists/:id/items/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id, tmdbId } = itemParam.parse(req.params)

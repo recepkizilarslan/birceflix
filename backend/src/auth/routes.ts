@@ -65,6 +65,7 @@ function deriveNames(profile: GoogleUserInfo): { firstName: string | null; lastN
 
 export async function authRoutes(app: FastifyInstance) {
   // 1) Start OAuth — redirect to Google
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/auth/google', rlAuth, async (req, reply) => {
     const state = generateState()
     const codeVerifier = generateCodeVerifier()
@@ -84,6 +85,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // 2) OAuth callback
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/auth/google/callback', rlAuth, async (req, reply) => {
     const { code, state } = req.query as { code?: string; state?: string }
     const cookieState = req.cookies[STATE_COOKIE]

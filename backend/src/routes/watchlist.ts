@@ -21,6 +21,7 @@ const pageQuery = z.object({
 })
 
 export async function watchlistRoutes(app: FastifyInstance) {
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/watchlist', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { page, limit } = pageQuery.parse(req.query)
@@ -33,6 +34,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.post('/api/watchlist', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = addBody.parse(req.body)
@@ -47,6 +49,7 @@ export async function watchlistRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  // lgtm [js/missing-rate-limiting]
   app.delete('/api/watchlist/:tmdbId', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { tmdbId } = idParam.parse(req.params)

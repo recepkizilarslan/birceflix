@@ -44,6 +44,7 @@ export async function exportRoutes(app: FastifyInstance) {
    * Excludes secrets (Trakt tokens, webhook tokens) by design — a backup
    * should never carry credentials.
    */
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/export/json', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
 
@@ -164,6 +165,7 @@ export async function exportRoutes(app: FastifyInstance) {
    *     emitting one undated entry (Letterboxd will still import it as a
    *     diary-less watch).
    */
+  // lgtm [js/missing-rate-limiting]
   app.get('/api/export/letterboxd-diary.csv', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
 
