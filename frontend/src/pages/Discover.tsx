@@ -108,7 +108,7 @@ export function Discover() {
         if (filters.top_only && !searchQuery && mediaType !== 'doc') {
           const snap = await top(isTvMedia(mediaType) ? 'tv' : 'movie', filters.watch_region)
           if (ctrl.cancelled) return
-          const filtered = applyTopFilters(snap.items, filters)
+          const filtered = applyTopFilters(snap.items, filters, mediaType)
           const pageSize = 50
           const total = Math.max(1, Math.ceil(filtered.length / pageSize))
           const slice = filtered.slice((page - 1) * pageSize, page * pageSize)
@@ -559,18 +559,33 @@ function SortIcon() {
   )
 }
 
-/** Filter the prefetched top-rated list client-side. The top snapshot only
- *  carries enough fields to apply rating / year / genre / provider filters
- *  — runtime, language and country are not in TMDB's top_rated response so
- *  those filters silently no-op when Top mode is on. The sort selector is
- *  ignored too: top mode is implicitly ranked by TMDB rating. */
-function applyTopFilters(items: TopItem[], f: FilterState): TopItem[] {
+/** Filter the prefetched top-rated list client-side. The snapshot now
+ *  carries everything Discover's filter panel exposes — rating, year,
+ *  genre, language, country, runtime (movies), season/episode counts (TV)
+ *  and providers — so all of them narrow the 250 the same way the
+ *  /discover endpoint would. The sort selector is still ignored: top mode
+ *  is implicitly ranked by TMDB rating. */
+function applyTopFilters(items: TopItem[], f: FilterState, mediaType: MediaType): TopItem[] {
+  const tv = isTvMedia(mediaType)
   return items.filter((it) => {
     if (f.min_rating > 0 && it.vote_average < f.min_rating) return false
     if (typeof f.year_from === 'number' && (it.year == null || Number(it.year) < f.year_from)) return false
     if (typeof f.year_to === 'number' && (it.year == null || Number(it.year) > f.year_to)) return false
     if (f.with_genres.length > 0 && !it.genre_ids.some((g) => f.with_genres.includes(g))) return false
     if (f.with_watch_providers.length > 0 && !it.providers.some((p) => f.with_watch_providers.includes(p.provider_id))) return false
+    if (f.original_language && it.original_language !== f.original_language) return false
+    // The Country filter uses iso codes (e.g. "IN") in the URL; the cache
+    // also stores them uppercase. Direct equality is enough.
+    if (f.origin_country && it.origin_country !== f.origin_country) return false
+    if (!tv) {
+      if (typeof f.runtime_from === 'number' && (it.runtime == null || it.runtime < f.runtime_from)) return false
+      if (typeof f.runtime_to === 'number' && (it.runtime == null || it.runtime > f.runtime_to)) return false
+    } else {
+      if (typeof f.seasons_from === 'number' && (it.number_of_seasons == null || it.number_of_seasons < f.seasons_from)) return false
+      if (typeof f.seasons_to === 'number' && (it.number_of_seasons == null || it.number_of_seasons > f.seasons_to)) return false
+      if (typeof f.episodes_from === 'number' && (it.number_of_episodes == null || it.number_of_episodes < f.episodes_from)) return false
+      if (typeof f.episodes_to === 'number' && (it.number_of_episodes == null || it.number_of_episodes > f.episodes_to)) return false
+    }
     return true
   })
 }

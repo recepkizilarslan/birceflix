@@ -140,6 +140,16 @@ export interface TopItem {
   vote_average: number
   year: string | null
   genre_ids: number[]
+  /** ISO 639-1 (lowercase). null when TMDB omits. */
+  original_language: string | null
+  /** ISO 3166-1 (uppercase). null when TMDB has no country listed. */
+  origin_country: string | null
+  /** Movies only. */
+  runtime: number | null
+  /** TV only. */
+  number_of_seasons: number | null
+  /** TV only. */
+  number_of_episodes: number | null
   providers: TopProvider[]
 }
 
