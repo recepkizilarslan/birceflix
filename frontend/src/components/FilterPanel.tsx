@@ -199,10 +199,8 @@ export function FilterPanel({
       )}
 
       <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
-        <div className="mb-2">
-          <Select value={value.watch_region} onChange={(v) => onChange({ ...value, watch_region: v, with_watch_providers: [] })}>
-            {COUNTRIES.filter((c) => c.code).map((c) => <option key={c.code} value={c.code}>{countryLabel(c.code)}</option>)}
-          </Select>
+        <div className="text-[11px] text-[var(--color-text-dim)] mb-2 leading-tight">
+          {t('filters.platformRegionHint', { region: countryLabel(value.watch_region) })}
         </div>
         <div className="grid grid-cols-2 gap-1.5 max-h-72 sm:max-h-56 overflow-y-auto">
           {providersLoading && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}

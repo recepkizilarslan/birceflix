@@ -88,6 +88,7 @@
     "platforms": "Platform",
     "platformLoading": "Yükleniyor…",
     "platformNone": "Bu bölge için platform listesi yok.",
+    "platformRegionHint": "Bölge: {{region}} — üstteki menüden değiştirebilirsin.",
     "top": "Top 250",
     "topToggle": "Yalnızca Top 250 göster",
     "topHintMovie": "TMDB'nin en yüksek puanlı 250 filmi içinde filtrele. Kartlarda yayın platformu görünür.",

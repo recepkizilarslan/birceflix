@@ -82,6 +82,20 @@ export function Discover() {
   const [err, setErr] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(1)
 
+  // Watch-region is driven exclusively by the header preference now (no
+  // separate dropdown inside the Platforms filter). When the user flips
+  // the header region we drop the URL's `wr` and clear any provider chips
+  // since provider IDs are region-scoped and would silently no-op
+  // otherwise.
+  useEffect(() => {
+    if (filters.watch_region === region) return
+    update({
+      filters: { ...filters, watch_region: region, with_watch_providers: [] },
+      page: 1,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region])
+
   // Lock body scroll while a bottom sheet is open so the page underneath
   // doesn't move when the user pans the sheet.
   useEffect(() => {
