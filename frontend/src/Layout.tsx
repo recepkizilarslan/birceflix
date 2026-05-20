@@ -127,7 +127,7 @@ export function Layout() {
               className="block leading-none"
               style={{
                 fontFamily: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
-                color: 'var(--color-accent)',
+                color: 'var(--color-brand)',
                 fontSize: 'clamp(1.5rem, 5vw, 1.875rem)',
                 letterSpacing: '0.01em',
                 textShadow: '0 2px 4px rgba(0,0,0,0.5)',
@@ -172,7 +172,7 @@ export function Layout() {
               <span
                 style={{
                   fontFamily: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
-                  color: '#FF3B47',
+                  color: 'var(--color-brand)',
                   fontSize: '1.5rem',
                 }}
               >
@@ -284,7 +284,7 @@ function BottomTab({
           <Icon size={20} className={isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'} />
           <span className="leading-none truncate max-w-full px-1">{label}</span>
           {badge != null && badge > 0 && (
-            <span className="absolute top-1 right-[18%] min-w-[16px] h-[16px] px-1 rounded-full bg-[#FF3B47] text-white text-[9px] font-semibold flex items-center justify-center leading-none">
+            <span className="absolute top-1 right-[18%] min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--color-brand)] text-white text-[9px] font-semibold flex items-center justify-center leading-none">
               {badge > 99 ? '99+' : badge}
             </span>
           )}

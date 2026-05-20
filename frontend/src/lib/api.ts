@@ -125,3 +125,41 @@ export function listProviders(region = 'TR') {
 export function listGenres() {
   return get<Genre[]>('/api/genres')
 }
+
+export interface TopProvider {
+  provider_id: number
+  provider_name: string
+  logo_path: string
+}
+
+export interface TopItem {
+  rank: number
+  id: number
+  title: string
+  poster_path: string | null
+  vote_average: number
+  year: string | null
+  genre_ids: number[]
+  /** ISO 639-1 (lowercase). null when TMDB omits. */
+  original_language: string | null
+  /** ISO 3166-1 (uppercase). null when TMDB has no country listed. */
+  origin_country: string | null
+  /** Movies only. */
+  runtime: number | null
+  /** TV only. */
+  number_of_seasons: number | null
+  /** TV only. */
+  number_of_episodes: number | null
+  providers: TopProvider[]
+}
+
+export interface TopSnapshot {
+  updated_at: string
+  media_type: 'movie' | 'tv'
+  region: string
+  items: TopItem[]
+}
+
+export function top(mediaType: 'movie' | 'tv', region = 'TR') {
+  return get<TopSnapshot>('/api/top', { media_type: mediaType, region })
+}

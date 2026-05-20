@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listGenres, listProviders, type Genre, type ProviderListItem } from '../lib/api'
-import { listTvGenres, listTvProviders } from '../lib/tv'
+import { listGenres, type Genre } from '../lib/api'
+import { listTvGenres } from '../lib/tv'
 import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
+import { useProviders } from '../lib/useProviders'
 import type { SavedFilter } from '../lib/savedFilters'
 
 /**
@@ -40,6 +41,11 @@ export interface FilterState {
   episodes_from: number | ''
   episodes_to: number | ''
   sort_by: string
+  /** When true, the Discover results come from the prefetched top-rated
+   * snapshot for (mediaType, region) instead of /discover. Other filters
+   * apply client-side over those items. Documentary mode disables this
+   * toggle since there's no /doc/top_rated endpoint. */
+  top_only: boolean
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -59,6 +65,7 @@ export const DEFAULT_FILTERS: FilterState = {
   episodes_from: '',
   episodes_to: '',
   sort_by: 'popularity.desc',
+  top_only: false,
 }
 
 interface Props {
@@ -91,8 +98,7 @@ export function FilterPanel({
 }: Props) {
   const { t } = useTranslation()
   const [genres, setGenres] = useState<Genre[]>([])
-  const [providers, setProviders] = useState<ProviderListItem[]>([])
-  const [providersLoading, setProvidersLoading] = useState(false)
+  const { providers, loading: providersLoading } = useProviders(mediaType, value.watch_region)
 
   const tvMode = isTvMedia(mediaType)
 
@@ -100,15 +106,6 @@ export function FilterPanel({
     const loader = tvMode ? listTvGenres : listGenres
     loader().then(setGenres).catch(() => {})
   }, [tvMode])
-
-  useEffect(() => {
-    const loader = tvMode ? listTvProviders : listProviders
-    setProvidersLoading(true)
-    loader(value.watch_region).then((p) => {
-      const top = [...p].sort((a, b) => a.display_priority - b.display_priority).slice(0, 20)
-      setProviders(top)
-    }).catch(() => setProviders([])).finally(() => setProvidersLoading(false))
-  }, [tvMode, value.watch_region])
 
   const toggle = (arr: number[], id: number) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]
@@ -224,6 +221,28 @@ export function FilterPanel({
           })}
         </div>
       </Section>
+
+      {/* "Top" mode swaps the discover source for our prefetched top-rated
+          snapshot, so cards can show provider banners without per-item
+          fetches. /doc has no top_rated endpoint — hide the toggle there. */}
+      {mediaType !== 'doc' && (
+        <Section title={t('filters.top')} defaultOpen>
+          <label className="flex items-start gap-2.5 px-2 py-2 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] cursor-pointer transition">
+            <input
+              type="checkbox"
+              checked={value.top_only}
+              onChange={(e) => onChange({ ...value, top_only: e.target.checked })}
+              className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+            />
+            <span className="flex-1 leading-tight">
+              <span className="block text-[13px] sm:text-sm">{t('filters.topToggle')}</span>
+              <span className="block text-[11px] text-[var(--color-text-dim)] mt-0.5">
+                {t(tvMode ? 'filters.topHintTv' : 'filters.topHintMovie')}
+              </span>
+            </span>
+          </label>
+        </Section>
+      )}
 
       <Section title={`${t('filters.minRating')} ${value.min_rating > 0 ? `(${value.min_rating.toFixed(1)})` : ''}`} defaultOpen>
         <input
@@ -398,6 +417,7 @@ export function countActiveFilters(f: FilterState): number {
   if (f.seasons_to !== '') n++
   if (f.episodes_from !== '') n++
   if (f.episodes_to !== '') n++
+  if (f.top_only) n++
   // Note: sort_by is intentionally NOT counted — sorting lives outside
   // the filter panel (in the results toolbar) and isn't a "filter".
   return n

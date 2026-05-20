@@ -32,6 +32,11 @@ const schema = z.object({
 
   // Defaults
   DEFAULT_WATCH_REGION: z.string().length(2).default('TR'),
+
+  // "Top" filter mode. Backend prefetches TMDB top_rated for movies and
+  // for TV separately. 250 is the recognisable "IMDb Top 250" count; we
+  // pull 13 pages (20 per page) and slice. Hard-capped at TMDB's 500.
+  TOP_LIMIT: z.coerce.number().int().positive().max(500).default(250),
 })
 
 export type Env = z.infer<typeof schema>

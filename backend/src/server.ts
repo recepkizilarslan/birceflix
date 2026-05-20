@@ -25,6 +25,8 @@ import { savedFiltersRoutes } from './routes/savedFilters.js'
 import { webhookRoutes } from './routes/webhooks.js'
 import { calendarRoutes } from './routes/calendar.js'
 import { exportRoutes } from './routes/export.js'
+import { topRoutes } from './routes/top.js'
+import { startTopRefresh } from './lib/topCache.js'
 import { purgeExpired } from './auth/session.js'
 
 async function build() {
@@ -70,6 +72,7 @@ async function build() {
   await app.register(webhookRoutes)
   await app.register(calendarRoutes)
   await app.register(exportRoutes)
+  await app.register(topRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
 
@@ -78,14 +81,21 @@ async function build() {
 
 async function main() {
   const app = await build()
+  // Warm the top-rated snapshots (movie + TV, default region) before
+  // accepting traffic so the first /api/top request is hot. Failures here
+  // are swallowed inside the cache module (logged + retried on demand) so
+  // a transient TMDB hiccup never blocks boot.
+  await startTopRefresh(app.log)
   try {
     await app.listen({ host: env.HOST, port: env.PORT })
 
-    // Purge expired sessions on boot, and then every 24 hours
+    // Purge expired sessions on boot, and then every 24 hours. unref() so
+    // the timer doesn't hold the event loop open during graceful shutdown
+    // or in test runners.
     purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions on boot'))
     setInterval(() => {
       purgeExpired().catch((err) => app.log.error(err, 'Failed to purge expired sessions'))
-    }, 24 * 60 * 60 * 1000)
+    }, 24 * 60 * 60 * 1000).unref?.()
   } catch (err) {
     app.log.error(err)
     process.exit(1)
