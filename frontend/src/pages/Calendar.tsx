@@ -49,6 +49,7 @@ export function CalendarPage() {
       const fn = t === 'upcoming' ? getUpcoming : getNowPlaying
       setData(await fn(p, r))
       setPage(p)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
     } finally {
@@ -133,11 +134,10 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-sm transition ${
-        active
-          ? 'bg-[var(--color-accent)] text-black font-medium'
-          : 'text-[var(--color-text-dim)] hover:text-white'
-      }`}
+      className={`px-3 py-1.5 rounded-md text-sm transition ${active
+        ? 'bg-[var(--color-accent)] text-black font-medium'
+        : 'text-[var(--color-text-dim)] hover:text-white'
+        }`}
     >
       {children}
     </button>

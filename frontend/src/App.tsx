@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import { Layout } from './Layout'
 import { Discover } from './pages/Discover'
 import { Watched } from './pages/Watched'
@@ -17,6 +18,7 @@ import { SignInScreen } from './components/SignInScreen'
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Sign-in lives outside Layout so the marquee/hero gets the
             full viewport without competing with the app chrome. */}
@@ -59,6 +61,17 @@ function App() {
 function RedirectToDiscover() {
   const { search } = useLocation()
   return <Navigate to={{ pathname: '/discover', search }} replace />
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  const navType = useNavigationType()
+  useEffect(() => {
+    if (navType !== 'POP') {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, navType])
+  return null
 }
 
 export default App
