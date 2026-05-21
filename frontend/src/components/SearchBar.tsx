@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { MediaType } from './FilterPanel'
 
 interface Props {
   /** Optional controlled value. When provided, the input mirrors it so shared
@@ -8,11 +9,19 @@ interface Props {
   value?: string
   onSearch: (q: string) => void
   onClear: () => void
+  mediaType?: MediaType
 }
 
-export function SearchBar({ value, onSearch, onClear }: Props) {
+const PLACEHOLDER_KEY: Record<MediaType, string> = {
+  movie: 'search.placeholderMovie',
+  tv: 'search.placeholderTv',
+  doc: 'search.placeholderDoc',
+}
+
+export function SearchBar({ value, onSearch, onClear, mediaType }: Props) {
   const { t } = useTranslation()
   const [q, setQ] = useState(value ?? '')
+  const placeholder = t(mediaType ? PLACEHOLDER_KEY[mediaType] : 'search.placeholder')
 
   // Resync local input when the external value changes (e.g., user navigates
   // back to a different `?q=`, or clicks a shared link). We don't strictly
@@ -46,9 +55,9 @@ export function SearchBar({ value, onSearch, onClear }: Props) {
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder={t('search.placeholder')}
+        placeholder={placeholder}
         enterKeyHint="search"
-        aria-label={t('search.placeholder')}
+        aria-label={placeholder}
         className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl h-12 sm:h-11 pl-11 pr-[5.5rem] focus:outline-none focus:border-[var(--color-accent)]"
       />
       <div className="absolute right-1.5 flex items-center gap-1">
@@ -64,7 +73,7 @@ export function SearchBar({ value, onSearch, onClear }: Props) {
         )}
         <button
           type="submit"
-          aria-label={t('search.placeholder')}
+          aria-label={placeholder}
           className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-[var(--color-accent)] text-black hover:opacity-90 active:scale-[0.96]"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
