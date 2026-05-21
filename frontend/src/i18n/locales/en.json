@@ -338,6 +338,9 @@
   },
   "search": {
     "placeholder": "Search movies…",
+    "placeholderMovie": "Search movies…",
+    "placeholderTv": "Search TV shows…",
+    "placeholderDoc": "Search documentaries…",
     "clear": "clear"
   }
 }

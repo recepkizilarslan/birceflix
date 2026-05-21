@@ -248,6 +248,7 @@ export function Discover() {
           value={searchQuery ?? ''}
           onSearch={(q) => update({ query: q, page: 1 })}
           onClear={() => update({ query: null, page: 1 })}
+          mediaType={mediaType}
         />
 
         {/* Mobile media-type segmented control — quick switch between Film/Dizi/Belgesel. */}

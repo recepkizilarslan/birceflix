@@ -338,6 +338,9 @@
   },
   "search": {
     "placeholder": "Film ara…",
+    "placeholderMovie": "Film ara…",
+    "placeholderTv": "Dizi ara…",
+    "placeholderDoc": "Belgesel ara…",
     "clear": "temizle"
   }
 }
