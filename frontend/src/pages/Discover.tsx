@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
@@ -36,6 +36,14 @@ export function Discover() {
   // the stable identity we react to; the parsed object itself is fresh each
   // render but only the string drives effects.
   const urlKey = searchParams.toString()
+  const previousUrlKey = useRef(urlKey)
+  useEffect(() => {
+    if (previousUrlKey.current !== urlKey) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      previousUrlKey.current = urlKey
+    }
+  }, [urlKey])
+
   const parsed = useMemo<DiscoverUrlState>(
     () => parseDiscoverUrl(searchParams, region),
     // eslint-disable-next-line react-hooks/exhaustive-deps
