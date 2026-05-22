@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { LayoutContext } from '../Layout'
@@ -7,6 +7,8 @@ import { ProviderStrip } from '../components/ProviderStrip'
 import { SaveFilterDialog } from '../components/SaveFilterDialog'
 import { SearchBar } from '../components/SearchBar'
 import { DiscoverCard, type DiscoverCardItem } from '../components/DiscoverCard'
+import { BackToTop } from '../components/BackToTop'
+import { intlLocale } from '../i18n'
 import { discover, search, top, getContentTitle, type TmdbMovie, type TopItem } from '../lib/api'
 import { discoverTv, searchTv, type TmdbTvShow } from '../lib/tv'
 import { mediaKey } from '../lib/watched'
@@ -49,7 +51,7 @@ export function Discover() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [urlKey, region],
   )
-  const { mediaType, filters, query: searchQuery, page } = parsed
+  const { mediaType, filters, query: searchQuery } = parsed
 
   const update = (next: Partial<DiscoverUrlState>) => {
     setSearchParams(serializeDiscoverUrl({ ...parsed, ...next }), { replace: true })
@@ -73,7 +75,7 @@ export function Discover() {
     if (next === 'doc' && nextFilters.top_only) {
       nextFilters = { ...nextFilters, top_only: false }
     }
-    update({ mediaType: next, filters: nextFilters, query: null, page: 1 })
+    update({ mediaType: next, filters: nextFilters, query: null })
   }
 
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
@@ -87,11 +89,20 @@ export function Discover() {
    * moment top_only flips off or the user starts searching. */
   const [topResults, setTopResults] = useState<TopItem[] | null>(null)
   const [loading, setLoading] = useState(false)
+  /** True while a "load more" page request is in flight. Distinct from
+   *  `loading` (initial / filter-change fetch) so the UI can keep the
+   *  existing results visible while we tack a new page onto the end. */
+  const [loadingMore, setLoadingMore] = useState(false)
   const [err, setErr] = useState<string | null>(null)
-  const [totalPages, setTotalPages] = useState(1)
-  /** Total matching items across all pages — the number we show in
-   *  "{count} sonuç". null while loading or for endpoints we can't
-   *  size precisely (top mode, search). */
+  /** Next TMDB page number to request when the IntersectionObserver fires.
+   *  Starts at 2 because the initial fetch grabs page 1. */
+  const [nextPage, setNextPage] = useState(2)
+  /** TMDB cap is 500; we clamp here so the UI doesn't keep requesting
+   *  pages the API refuses. */
+  const [totalPagesAvail, setTotalPagesAvail] = useState(1)
+  /** Total matching items across all pages — shown prominently above the
+   *  grid. Falls back to null only when TMDB omits the field (search
+   *  endpoints used to; both /discover variants always include it). */
   const [totalResults, setTotalResults] = useState<number | null>(null)
 
   // Watch-region is driven exclusively by the header preference now (no
@@ -103,7 +114,6 @@ export function Discover() {
     if (filters.watch_region === region) return
     update({
       filters: { ...filters, watch_region: region, with_watch_providers: [] },
-      page: 1,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region])
@@ -118,58 +128,112 @@ export function Discover() {
     return () => { document.body.style.overflow = prev }
   }, [filterSheetOpen, sortSheetOpen])
 
-  // Fetch results whenever the URL changes. Debounced so rapid filter edits
-  // (year-input typing, range slider drags) coalesce into one request. The
-  // controller short-circuits stale responses if a newer URL change arrives
-  // before the in-flight request resolves.
+  // Generation counter: every URL change (filters / sort / search / media
+  // type) bumps it. In-flight `loadMore` calls compare against it and
+  // discard their results if a newer URL has won the race, so the
+  // accumulator never gets polluted with results from stale filters.
+  const fetchGen = useRef(0)
+
+  // Initial fetch on URL change. Debounced so rapid filter edits coalesce
+  // into one request. Replaces the whole results array — `loadMore` only
+  // appends, never resets.
   useEffect(() => {
-    const ctrl = { cancelled: false }
+    fetchGen.current += 1
+    const myGen = fetchGen.current
+    setLoading(true)
+    setErr(null)
+    setResults([])
+    setTopResults(null)
+    setNextPage(2)
+    setTotalPagesAvail(1)
+    setTotalResults(null)
+
     const tid = setTimeout(async () => {
-      setLoading(true); setErr(null)
       try {
         // Top mode short-circuits both discover and search — its base list
         // (TMDB top_rated for the current media type, prefetched server-side)
-        // is what every other filter narrows. Search re-enables the normal
-        // flow because querying within the 250 is rarely what users want.
+        // is what every other filter narrows. The whole filtered snapshot
+        // is rendered at once; there's nothing more to lazy-load.
         if (filters.top_only && !searchQuery && mediaType !== 'doc') {
           const snap = await top(isTvMedia(mediaType) ? 'tv' : 'movie', filters.watch_region)
-          if (ctrl.cancelled) return
+          if (fetchGen.current !== myGen) return
           const filtered = applyTopFilters(snap.items, filters, mediaType)
-          const pageSize = 50
-          const total = Math.max(1, Math.ceil(filtered.length / pageSize))
-          const slice = filtered.slice((page - 1) * pageSize, page * pageSize)
-          setTopResults(slice)
+          setTopResults(filtered)
           setResults([])
-          setTotalPages(total)
-          // Top mode knows the exact universe (the snapshot we just filtered).
+          setTotalPagesAvail(1)
           setTotalResults(filtered.length)
           return
         }
-        setTopResults(null)
+
         const data = searchQuery
-          ? await (isTvMedia(mediaType) ? searchTv(searchQuery, page) : search(searchQuery, page))
-          : await runDiscoverRequest(mediaType, filters, page)
-        if (ctrl.cancelled) return
+          ? await (isTvMedia(mediaType) ? searchTv(searchQuery, 1) : search(searchQuery, 1))
+          : await runDiscoverRequest(mediaType, filters, 1)
+        if (fetchGen.current !== myGen) return
         setResults(data.results)
-        setTotalPages(Math.min(data.total_pages, 500))
-        // total_results is present on /discover (movie + tv) responses; the
-        // search endpoints currently omit the field, so we fall back to null
-        // and the UI uses the page-local count instead.
+        setTotalPagesAvail(Math.min(data.total_pages, 500))
+        // total_results is on every /discover response; search endpoints
+        // sometimes omit it, so fall back to the page-local length so the
+        // banner still has a number to show.
         const tr = (data as { total_results?: number }).total_results
-        setTotalResults(typeof tr === 'number' ? tr : null)
+        setTotalResults(typeof tr === 'number' ? tr : data.results.length)
       } catch (e: any) {
-        if (!ctrl.cancelled) setErr(e?.message ?? String(e))
+        if (fetchGen.current === myGen) setErr(e?.message ?? String(e))
       } finally {
-        if (!ctrl.cancelled) setLoading(false)
+        if (fetchGen.current === myGen) setLoading(false)
       }
     }, 250)
-    return () => { ctrl.cancelled = true; clearTimeout(tid) }
+    return () => { clearTimeout(tid) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlKey, i18n.language])
 
+  // Append the next TMDB page onto `results`. Called from the
+  // IntersectionObserver attached to the sentinel below the grid.
+  // Bails early when nothing more is available, or when an initial /
+  // load-more request is already in flight.
+  const loadMore = useCallback(async () => {
+    if (loading || loadingMore) return
+    if (topResults) return  // top mode is a one-shot client-side render
+    if (nextPage > totalPagesAvail) return
+
+    const myGen = fetchGen.current
+    setLoadingMore(true)
+    try {
+      const data = searchQuery
+        ? await (isTvMedia(mediaType) ? searchTv(searchQuery, nextPage) : search(searchQuery, nextPage))
+        : await runDiscoverRequest(mediaType, filters, nextPage)
+      if (fetchGen.current !== myGen) return
+      setResults((prev) => [...prev, ...data.results])
+      setNextPage((p) => p + 1)
+    } catch {
+      // Lazy-load failure is non-fatal — let the next intersection retry.
+      // We deliberately don't surface this as a banner error so a flaky
+      // page-5 fetch doesn't blow away the user's view of pages 1-4.
+    } finally {
+      if (fetchGen.current === myGen) setLoadingMore(false)
+    }
+  }, [loading, loadingMore, topResults, nextPage, totalPagesAvail, searchQuery, mediaType, filters])
+
+  // IntersectionObserver on a sentinel div below the grid. The ref pattern
+  // keeps the observer instance stable while still calling the latest
+  // closure of loadMore (which depends on the current filters / page).
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const loadMoreRef = useRef(loadMore)
+  useEffect(() => { loadMoreRef.current = loadMore }, [loadMore])
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const obs = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) loadMoreRef.current()
+    }, { rootMargin: '600px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const hasMore = !topResults && nextPage <= totalPagesAvail
+  const numberFmt = useMemo(() => new Intl.NumberFormat(intlLocale()), [i18n.language])
+
   const onReset = () => update({
     filters: { ...DEFAULT_FILTERS, watch_region: filters.watch_region },
-    page: 1,
   })
   const activeCount = countActiveFilters(filters)
   const sortOptions = isTvMedia(mediaType) ? TV_SORT_OPTIONS : SORT_OPTIONS
@@ -214,7 +278,7 @@ export function Discover() {
   }
 
   const handleApplySaved = (s: SavedFilter) => {
-    update({ mediaType: s.media_type, filters: s.filters, query: null, page: 1 })
+    update({ mediaType: s.media_type, filters: s.filters, query: null })
     setFilterSheetOpen(false)
   }
 
@@ -228,7 +292,7 @@ export function Discover() {
     const nextProviders = filters.with_watch_providers.includes(id)
       ? filters.with_watch_providers.filter((x) => x !== id)
       : [...filters.with_watch_providers, id]
-    update({ filters: { ...filters, with_watch_providers: nextProviders }, page: 1 })
+    update({ filters: { ...filters, with_watch_providers: nextProviders } })
   }
 
   return (
@@ -237,7 +301,7 @@ export function Discover() {
       <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
         <FilterPanel
           value={filters}
-          onChange={(next) => update({ filters: next, page: 1 })}
+          onChange={(next) => update({ filters: next })}
           onReset={onReset}
           activeCount={activeCount}
           mediaType={mediaType}
@@ -253,8 +317,8 @@ export function Discover() {
       <div className="space-y-4 min-w-0">
         <SearchBar
           value={searchQuery ?? ''}
-          onSearch={(q) => update({ query: q, page: 1 })}
-          onClear={() => update({ query: null, page: 1 })}
+          onSearch={(q) => update({ query: q })}
+          onClear={() => update({ query: null })}
           mediaType={mediaType}
         />
 
@@ -313,29 +377,24 @@ export function Discover() {
           </div>
         </div>
 
-        {/* Desktop toolbar: results count + sort. */}
+        {/* Desktop toolbar: results count + sort. The count is always
+            rendered (even while loading or with zero matches) so the
+            user sees the size of the catalog they're filtering against. */}
         <div className="hidden lg:flex items-center justify-between gap-3 flex-wrap">
           {searchQuery && (
             <div className="text-sm text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</div>
           )}
           <div className="flex items-center gap-3 ml-auto">
-            {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
-              <div className="text-xs text-[var(--color-text-dim)]">
-                {t('discover.results', {
-                  // Prefer the response's total over the page-local count so
-                  // users see "10000 sonuç" instead of "20 sonuç" once we
-                  // can size the universe. Falls back to page count for
-                  // search-style endpoints that don't expose total_results.
-                  count: totalResults ?? visibleTopResults?.length ?? visibleResults.length,
-                  page,
-                })}
+            {totalResults != null && (
+              <div className="text-sm font-medium text-[var(--color-text)]">
+                {t('discover.results', { total: numberFmt.format(totalResults) })}
               </div>
             )}
             <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
               <span>{t('sort.label')}</span>
               <select
                 value={filters.sort_by}
-                onChange={(e) => update({ filters: { ...filters, sort_by: e.target.value }, page: 1 })}
+                onChange={(e) => update({ filters: { ...filters, sort_by: e.target.value } })}
                 className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)] min-w-[160px]"
               >
                 {sortOptions.map((s) => (
@@ -347,16 +406,13 @@ export function Discover() {
         </div>
 
         {/* Mobile result count + search query line — outside sticky so it scrolls away. */}
-        <div className="lg:hidden flex items-center justify-between text-xs text-[var(--color-text-dim)]">
+        <div className="lg:hidden flex items-center justify-between text-xs">
           {searchQuery
-            ? <span className="truncate">{t('discover.searchResults', { query: searchQuery })}</span>
+            ? <span className="truncate text-[var(--color-text-dim)]">{t('discover.searchResults', { query: searchQuery })}</span>
             : <span />}
-          {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
-            <span className="shrink-0 ml-2">
-              {t('discover.results', {
-                count: totalResults ?? visibleTopResults?.length ?? visibleResults.length,
-                page,
-              })}
+          {totalResults != null && (
+            <span className="shrink-0 ml-2 font-medium text-[var(--color-text)]">
+              {t('discover.results', { total: numberFmt.format(totalResults) })}
             </span>
           )}
         </div>
@@ -440,18 +496,30 @@ export function Discover() {
               })}
         </div>
 
-        {(visibleTopResults?.length ?? visibleResults.length) > 0 && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 py-6">
-            <PageBtn disabled={page <= 1} onClick={() => update({ page: page - 1 })}>
-              {t('common.previous')}
-            </PageBtn>
-            <div className="text-sm text-[var(--color-text-dim)]">{t('common.pageOf', { page, total: totalPages })}</div>
-            <PageBtn disabled={page >= totalPages} onClick={() => update({ page: page + 1 })}>
-              {t('common.next')}
-            </PageBtn>
+        {/* Infinite-scroll sentinel + loading footer. The 600px rootMargin
+            on the observer (above) means the next page kicks off well
+            before the user hits the bottom, so the new cards stream in
+            without a visible pause. The sentinel always renders so the
+            observer stays attached even after the very first page. */}
+        <div ref={sentinelRef} aria-hidden="true" className="h-px" />
+        {loadingMore && (
+          <div className="py-6 text-center text-sm text-[var(--color-text-dim)]">
+            {t('common.loadingMore')}
+          </div>
+        )}
+        {!loadingMore && !loading && !hasMore && totalResults != null && visibleResults.length > 0 && (
+          <div className="py-6 text-center text-xs text-[var(--color-text-dim)]">
+            {t('discover.loadedOf', {
+              loaded: numberFmt.format(visibleResults.length),
+              total: numberFmt.format(totalResults),
+            })}
           </div>
         )}
       </div>
+
+      {/* Floating "back to top" button. Hidden while a bottom sheet is open
+          so it doesn't poke through the modal overlay. */}
+      <BackToTop hidden={filterSheetOpen || sortSheetOpen} />
 
       {/* ───────── Mobile filter bottom-sheet ───────── */}
       {filterSheetOpen && (
@@ -480,7 +548,7 @@ export function Discover() {
         >
           <FilterPanel
             value={filters}
-            onChange={(next) => update({ filters: next, page: 1 })}
+            onChange={(next) => update({ filters: next })}
             onReset={onReset}
             activeCount={activeCount}
             mediaType={mediaType}
@@ -512,7 +580,7 @@ export function Discover() {
                 <button
                   key={s.value}
                   onClick={() => {
-                    update({ filters: { ...filters, sort_by: s.value }, page: 1 })
+                    update({ filters: { ...filters, sort_by: s.value } })
                     setSortSheetOpen(false)
                   }}
                   className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left text-sm border-b border-[var(--color-border)] last:border-b-0 transition ${
@@ -528,18 +596,6 @@ export function Discover() {
         </BottomSheet>
       )}
     </div>
-  )
-}
-
-function PageBtn({ disabled, onClick, children }: { disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      disabled={disabled}
-      onClick={onClick}
-      className="text-sm px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] disabled:opacity-40 hover:border-[var(--color-accent)]"
-    >
-      {children}
-    </button>
   )
 }
 

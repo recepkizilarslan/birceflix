@@ -10,7 +10,6 @@ import { SORT_OPTIONS, TV_SORT_OPTIONS } from './constants'
  *
  *   type   movie | tv | doc        omitted when 'movie'
  *   q      search query            (free text)
- *   page   number 1..500           omitted when 1
  *   g      comma-sep genre IDs
  *   lang   ISO 639-1 code          original_language
  *   c      ISO 3166-1 code         origin_country
@@ -30,13 +29,11 @@ export interface DiscoverUrlState {
   mediaType: MediaType
   filters: FilterState
   query: string | null
-  page: number
 }
 
 const KEY = {
   type: 'type',
   q: 'q',
-  page: 'page',
   genres: 'g',
   lang: 'lang',
   country: 'c',
@@ -94,11 +91,6 @@ function parseSort(raw: string | null, mediaType: MediaType): string {
   return list.some((o) => o.value === raw) ? raw : DEFAULT_FILTERS.sort_by
 }
 
-function parsePage(raw: string | null): number {
-  const n = parseIntInRange(raw, 1, 500)
-  return typeof n === 'number' ? n : 1
-}
-
 function parseWatchedFilter(raw: string | null): FilterState['watched_filter'] {
   if (raw === 'u') return 'unwatched'
   if (raw === 'w') return 'watched'
@@ -140,7 +132,10 @@ export function parseDiscoverUrl(sp: URLSearchParams, defaultRegion: string): Di
   const rawQuery = sp.get(KEY.q)
   const query = rawQuery && rawQuery.trim() ? rawQuery.trim() : null
 
-  return { mediaType, filters, query, page: parsePage(sp.get(KEY.page)) }
+  // Legacy `page` query param is silently dropped — the Discover page used
+  // to be paginated but now uses infinite scroll, so the URL no longer
+  // carries a page index. Old shared links with `page=N` still parse.
+  return { mediaType, filters, query }
 }
 
 /**
@@ -151,12 +146,11 @@ export function parseDiscoverUrl(sp: URLSearchParams, defaultRegion: string): Di
  */
 export function serializeDiscoverUrl(state: DiscoverUrlState): URLSearchParams {
   const sp = new URLSearchParams()
-  const { mediaType, filters: f, query, page } = state
+  const { mediaType, filters: f, query } = state
   const tv = isTvMedia(mediaType)
 
   if (mediaType !== 'movie') sp.set(KEY.type, mediaType)
   if (query) sp.set(KEY.q, query)
-  if (page > 1) sp.set(KEY.page, String(page))
 
   if (f.min_rating > 0) sp.set(KEY.rating, String(f.min_rating))
   if (f.original_language) sp.set(KEY.lang, f.original_language)
