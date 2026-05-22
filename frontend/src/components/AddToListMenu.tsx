@@ -5,15 +5,18 @@ import { addToList, listLists, type ListSummary } from '../lib/lists'
 
 interface Props {
   tmdbId: number
+  /** Disambiguates TMDB namespace — movie 1396 ≠ TV 1396. Required so the
+   * entry routes to the correct detail page when reopened from the list. */
+  mediaType: 'movie' | 'tv'
   title: string
   posterPath: string | null
 }
 
 /**
- * "Add to list" dropdown for the movie detail page.
+ * "Add to list" dropdown for the movie / TV detail pages.
  * Loads the user's lists on first open; adding emits an inline confirmation.
  */
-export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
+export function AddToListMenu({ tmdbId, mediaType, title, posterPath }: Props) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [lists, setLists] = useState<ListSummary[] | null>(null)
@@ -38,7 +41,7 @@ export function AddToListMenu({ tmdbId, title, posterPath }: Props) {
   const onPick = async (list: ListSummary) => {
     setErr(null)
     try {
-      await addToList(list.id, { tmdb_id: tmdbId, title, poster_path: posterPath })
+      await addToList(list.id, { tmdb_id: tmdbId, media_type: mediaType, title, poster_path: posterPath })
       setAddedTo(list.name)
       window.setTimeout(() => setAddedTo(null), 2500)
       setOpen(false)

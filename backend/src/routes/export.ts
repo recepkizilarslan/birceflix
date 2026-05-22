@@ -102,6 +102,7 @@ export async function exportRoutes(app: FastifyInstance) {
       updated_at: l.updatedAt.toISOString(),
       items: (itemsByListId.get(l.id) ?? []).map((i) => ({
         tmdb_id: i.tmdbId,
+        media_type: i.mediaType,
         title: i.title,
         poster_path: i.posterPath,
         position: i.position,

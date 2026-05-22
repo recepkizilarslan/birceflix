@@ -182,13 +182,17 @@ export const listItems = pgTable(
       .notNull()
       .references(() => lists.id, { onDelete: 'cascade' }),
     tmdbId: integer('tmdb_id').notNull(),
+    /** 'movie' | 'tv'. Defaults to 'movie' for backfill. Distinguishes the
+     * TMDB namespace so movie 1396 and TV 1396 can both live in the same
+     * list, and so the UI can route each entry to the correct detail page. */
+    mediaType: text('media_type').notNull().default('movie'),
     title: text('title').notNull(),
     posterPath: text('poster_path'),
     position: smallint('position').default(0).notNull(),
     addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.listId, t.tmdbId] }),
+    pk: primaryKey({ columns: [t.listId, t.tmdbId, t.mediaType] }),
     listOrderIdx: index('list_items_list_order_idx').on(t.listId, t.position, t.addedAt),
   }),
 )

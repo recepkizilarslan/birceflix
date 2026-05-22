@@ -39,8 +39,8 @@ export function PublicListPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
           {list.items.map((it) => (
             <button
-              key={it.tmdb_id}
-              onClick={() => navigate(`/movie/${it.tmdb_id}`)}
+              key={`${it.media_type}:${it.tmdb_id}`}
+              onClick={() => navigate(it.media_type === 'tv' ? `/tv/${it.tmdb_id}` : `/movie/${it.tmdb_id}`)}
               className="group rounded-xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition text-left"
             >
               <div className="aspect-[2/3] bg-[var(--color-surface-2)] overflow-hidden">
