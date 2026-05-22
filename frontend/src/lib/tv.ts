@@ -21,6 +21,14 @@ export interface TvDetail extends TmdbTvShow {
   credits?: { cast: { id: number; name: string; character: string; profile_path: string | null }[] }
   external_ids?: { imdb_id?: string | null }
   episode_run_time?: number[]
+  /** Region-scoped watch providers (flatrate / rent / buy). null when TMDB
+   *  has no data for the requested region. */
+  watch_providers?: {
+    link?: string
+    flatrate?: { provider_id: number; provider_name: string; logo_path: string }[]
+    rent?: { provider_id: number; provider_name: string; logo_path: string }[]
+    buy?: { provider_id: number; provider_name: string; logo_path: string }[]
+  } | null
 }
 
 export interface TvSeasonSummary {
@@ -54,8 +62,9 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function tvDetail(id: number): Promise<TvDetail> {
+export async function tvDetail(id: number, region = 'TR'): Promise<TvDetail> {
   const u = new URL(`/api/tv/${id}`, window.location.origin)
+  u.searchParams.set('region', region)
   u.searchParams.set('ui_language', intlLocale())
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }

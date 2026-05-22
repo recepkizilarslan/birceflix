@@ -57,6 +57,14 @@ const detailQuery = z.object({
   ui_language: z.string().default('en-US'),
 })
 
+// TV detail accepts an optional region so the response can slice out the
+// region-specific watch providers, matching the movie detail endpoint.
+// Default falls back to the env's DEFAULT_WATCH_REGION for ad-hoc API users.
+const tvDetailQuery = z.object({
+  region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
+  ui_language: z.string().default('en-US'),
+})
+
 interface ProviderRow {
   provider_id: number
   provider_name: string
@@ -65,14 +73,19 @@ interface ProviderRow {
 }
 
 export async function tvRoutes(app: FastifyInstance) {
-  // TV show detail (with credits + external ids in case we want IMDB later)
+  // TV show detail (with credits + external ids in case we want IMDB later).
+  // `region` slices out per-region watch providers from the appended bag,
+  // mirroring /api/movie/:id so the TV detail page can show provider chips.
   app.get('/api/tv/:id', async (req) => {
     const { id } = idParam.parse(req.params)
-    const { ui_language } = detailQuery.parse(req.query)
-    return tmdb(`/tv/${id}`, {
-      append_to_response: 'credits,external_ids,videos',
+    const { region, ui_language } = tvDetailQuery.parse(req.query)
+    const detail = await tmdb<{ id: number; [key: string]: unknown }>(`/tv/${id}`, {
+      append_to_response: 'credits,external_ids,videos,watch/providers',
       language: ui_language,
     })
+    const providers = (detail as { 'watch/providers'?: { results?: Record<string, unknown> } })['watch/providers']
+    const watchProviders = providers?.results?.[region] ?? null
+    return { ...detail, watch_providers: watchProviders }
   })
 
   // Single season — TMDB returns episode list with air_date, runtime, etc.
