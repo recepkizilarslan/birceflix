@@ -2,12 +2,13 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
 import { omdbByImdbId } from '../lib/omdb.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 import { env } from '../env.js'
 
 const paramsSchema = z.object({ id: z.coerce.number().int().positive() })
 const querySchema = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 interface TmdbDetail {

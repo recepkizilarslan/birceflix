@@ -1,12 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 import { env } from '../env.js'
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).max(500).default(1),
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 export async function calendarRoutes(app: FastifyInstance) {

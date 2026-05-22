@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
 import { enrichTvBrief } from '../lib/tvCache.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 import { env } from '../env.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
@@ -12,11 +13,11 @@ const seasonParam = z.object({
 const searchQuery = z.object({
   q: z.string().min(1).max(200),
   page: z.coerce.number().default(1),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 const popularQuery = z.object({
   page: z.coerce.number().default(1),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 // Same shape as movie discover but emitted to /discover/tv with TV-specific
@@ -41,20 +42,20 @@ const discoverQuery = z.object({
   episodes_to: z.coerce.number().int().min(0).optional(),
   sort_by: z.string().default('popularity.desc'),
   page: z.coerce.number().default(1),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 const providersQuery = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 const genresQuery = z.object({
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 const detailQuery = z.object({
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 interface ProviderRow {

@@ -1,12 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { env } from '../env.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 import { getTop, getTopStatus } from '../lib/topCache.js'
 
 const querySchema = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
   media_type: z.enum(['movie', 'tv']).default('movie'),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 export async function topRoutes(app: FastifyInstance) {
