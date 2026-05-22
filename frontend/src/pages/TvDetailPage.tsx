@@ -220,6 +220,23 @@ export function TvDetailPage() {
         </div>
       </div>
 
+      {show.translated_languages && show.translated_languages.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-2">{t('movie.translatedLanguages')}</h2>
+          <div className="flex flex-wrap gap-1.5">
+            {show.translated_languages.map((l) => (
+              <span
+                key={l.iso_639_1}
+                title={l.english_name}
+                className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-xs"
+              >
+                {l.name || l.english_name}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section>
         <h2 className="text-xs uppercase tracking-wider text-[var(--color-text-dim)] mb-3">{t('tv.seasons')}</h2>
         {!user && (

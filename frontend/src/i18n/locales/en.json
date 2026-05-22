@@ -180,6 +180,7 @@
     "production": "Production",
     "country": "Country",
     "spokenLanguages": "Language",
+    "translatedLanguages": "Available translations",
     "imdbPage": "IMDB page →",
     "noProviderForRegion": "No streaming info for this region.",
     "history": "🎞 My watch history",

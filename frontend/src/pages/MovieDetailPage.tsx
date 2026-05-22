@@ -224,6 +224,22 @@ export function MovieDetailPage() {
               </div>
             </Section>
           )}
+
+          {d.translated_languages && d.translated_languages.length > 0 && (
+            <Section title={t('movie.translatedLanguages')}>
+              <div className="flex flex-wrap gap-1.5">
+                {d.translated_languages.map((l) => (
+                  <span
+                    key={l.iso_639_1}
+                    title={l.english_name}
+                    className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-xs"
+                  >
+                    {l.name || l.english_name}
+                  </span>
+                ))}
+              </div>
+            </Section>
+          )}
         </aside>
       </div>
 

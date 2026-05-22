@@ -12,12 +12,19 @@ export interface TmdbMovie {
   genre_ids?: number[]
 }
 
+export interface TranslatedLanguage {
+  iso_639_1: string
+  english_name: string
+  name: string
+}
+
 export interface MovieDetail extends TmdbMovie {
   imdb_id?: string
   runtime?: number
   genres?: { id: number; name: string }[]
   production_countries?: { iso_3166_1: string; name: string }[]
   spoken_languages?: { iso_639_1: string; english_name: string }[]
+  translated_languages?: TranslatedLanguage[]
   reviews?: { results: TmdbReview[] }
   credits?: { cast: { id: number; name: string; character: string; profile_path: string | null }[] }
   videos?: { results: { key: string; site: string; type: string }[] }

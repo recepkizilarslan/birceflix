@@ -180,6 +180,7 @@
     "production": "Yapım",
     "country": "Ülke",
     "spokenLanguages": "Dil",
+    "translatedLanguages": "Mevcut çeviri dilleri",
     "imdbPage": "IMDB sayfası →",
     "noProviderForRegion": "Bu bölgede platform bilgisi yok.",
     "history": "🎞 İzleme geçmişim",
