@@ -52,30 +52,48 @@ export async function watchedEpisodeRoutes(app: FastifyInstance) {
     return rows.map(serialise)
   })
 
-  // Per-show counts — used by the watched-shows summary list
+  // Per-show counts — used by the watched-shows summary list.
+  //
+  // Pagination MUST happen in SQL: a power user with 1000s of episodes across
+  // a few hundred shows would otherwise stream every group back to Node just
+  // so we can slice in JS. We also return `total` (distinct show count) so
+  // the UI knows when to stop asking for more pages.
   // lgtm [js/missing-rate-limiting]
   app.get('/api/watched-episodes', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
-    const rows = await db
-      .select({
-        show_id: watchedEpisodes.showId,
-        show_name: sql<string>`max(${watchedEpisodes.showName})`.as('show_name'),
-        show_poster_path: sql<string | null>`max(${watchedEpisodes.showPosterPath})`.as('show_poster_path'),
-        episode_count: sql<number>`count(*)::int`.as('episode_count'),
-        last_watched_at: sql<string>`max(${watchedEpisodes.watchedAt})::text`.as('last_watched_at'),
-      })
-      .from(watchedEpisodes)
-      .where(eq(watchedEpisodes.userId, userId))
-      .groupBy(watchedEpisodes.showId)
-      .orderBy(desc(sql`max(${watchedEpisodes.watchedAt})`))
-
     const { page, limit } = pageQuery.parse(req.query)
-    const paginatedRows = rows.slice((page - 1) * limit, page * limit)
+
+    // Two queries: one for the page slice (with limit/offset), one for the
+    // distinct-show count. count(DISTINCT showId) is the right cardinality
+    // because the rows we'd return are grouped by show.
+    const [items, totalRow] = await Promise.all([
+      db
+        .select({
+          show_id: watchedEpisodes.showId,
+          show_name: sql<string>`max(${watchedEpisodes.showName})`.as('show_name'),
+          show_poster_path: sql<string | null>`max(${watchedEpisodes.showPosterPath})`.as('show_poster_path'),
+          episode_count: sql<number>`count(*)::int`.as('episode_count'),
+          last_watched_at: sql<string>`max(${watchedEpisodes.watchedAt})::text`.as('last_watched_at'),
+        })
+        .from(watchedEpisodes)
+        .where(eq(watchedEpisodes.userId, userId))
+        .groupBy(watchedEpisodes.showId)
+        .orderBy(desc(sql`max(${watchedEpisodes.watchedAt})`))
+        .limit(limit)
+        .offset((page - 1) * limit),
+      db
+        .select({
+          total: sql<number>`count(distinct ${watchedEpisodes.showId})::int`.as('total'),
+        })
+        .from(watchedEpisodes)
+        .where(eq(watchedEpisodes.userId, userId)),
+    ])
 
     return {
-      items: paginatedRows,
+      items,
       page,
       limit,
+      total: totalRow[0]?.total ?? 0,
     }
   })
 
