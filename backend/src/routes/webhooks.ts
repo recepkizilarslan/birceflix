@@ -92,11 +92,15 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent): Promise<'wrote'
       .values({
         userId,
         tmdbId: ev.tmdbId,
+        mediaType: 'movie',
         imdbId: ev.imdbId,
         title: ev.title,
         posterPath: null,
       })
-      .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
+      // (user_id, tmdb_id, media_type) is the actual unique index since 0009.
+      .onConflictDoNothing({
+        target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
+      })
 
     if (await watchHistoryDuplicateExists(userId, ev.tmdbId, ev.watchedAt)) {
       return 'deduped'

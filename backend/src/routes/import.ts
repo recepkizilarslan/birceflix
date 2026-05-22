@@ -73,10 +73,14 @@ export async function importRoutes(app: FastifyInstance) {
         .values({
           userId,
           tmdbId: match.id,
+          mediaType: 'movie',
           title: match.title,
           posterPath: match.poster_path ?? null,
         })
-        .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
+        // (user_id, tmdb_id, media_type) is the actual unique index since 0009.
+        .onConflictDoNothing({
+          target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
+        })
       report.matched++
     })
 
@@ -121,10 +125,13 @@ export async function importRoutes(app: FastifyInstance) {
         .values({
           userId,
           tmdbId: match.id,
+          mediaType: 'movie',
           title: match.title,
           posterPath: match.poster_path ?? null,
         })
-        .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
+        .onConflictDoNothing({
+          target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
+        })
 
       await db.insert(watchHistory).values({
         userId,
