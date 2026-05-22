@@ -58,11 +58,15 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
       .values({
         userId,
         tmdbId: ev.tmdbId,
+        mediaType: 'movie',
         imdbId: ev.imdbId,
         title: ev.title,
         posterPath: null,
       })
-      .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
+      // (user_id, tmdb_id, media_type) is the actual unique index since 0009.
+      .onConflictDoNothing({
+        target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
+      })
 
     await db.insert(watchHistory).values({
       userId,

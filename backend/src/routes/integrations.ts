@@ -179,16 +179,22 @@ async function importOne(userId: string, item: TraktHistoryItem): Promise<'impor
   const watchedAt = new Date(item.watched_at)
 
   // Make sure a watched_movies row exists (no rewrite if already there).
+  // The unique index on watched_movies is (user_id, tmdb_id, media_type) since
+  // migration 0009 — the conflict target must list all three columns or PG
+  // raises "no unique constraint matching ON CONFLICT specification".
   await db
     .insert(watchedMovies)
     .values({
       userId,
       tmdbId,
+      mediaType: 'movie',
       imdbId: item.movie.ids.imdb ?? null,
       title: item.movie.title,
       posterPath: null,
     })
-    .onConflictDoNothing({ target: [watchedMovies.userId, watchedMovies.tmdbId] })
+    .onConflictDoNothing({
+      target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
+    })
 
   // Append a viewing event if not already exists
   const existing = await db
