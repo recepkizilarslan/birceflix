@@ -98,9 +98,21 @@ export interface DiscoverTvFilters {
   episodes_to?: number
   sort_by?: string
   page?: number
+  /** See lib/api.ts DiscoverFilters for the semantics. */
+  watched_filter?: 'all' | 'unwatched' | 'watched'
 }
 
-export function discoverTv(f: DiscoverTvFilters) {
+export interface DiscoverTvResponse {
+  results: TmdbTvShow[]
+  page: number
+  total_pages: number
+  total_results?: number
+  filtered_out?: number
+  watched_filter?: 'all' | 'unwatched' | 'watched'
+  filters_ignored?: string[]
+}
+
+export function discoverTv(f: DiscoverTvFilters): Promise<DiscoverTvResponse> {
   const u = new URL('/api/tv/discover', window.location.origin)
   const set = (k: string, v: string | undefined) => { if (v !== undefined && v !== '') u.searchParams.set(k, v) }
   set('min_rating', f.min_rating?.toString())
@@ -120,12 +132,8 @@ export function discoverTv(f: DiscoverTvFilters) {
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
   set('ui_language', intlLocale())
-  return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{
-    results: TmdbTvShow[]
-    page: number
-    total_pages: number
-    filtered_out?: number
-  }>
+  if (f.watched_filter && f.watched_filter !== 'all') set('watched_filter', f.watched_filter)
+  return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<DiscoverTvResponse>
 }
 
 export async function listTvGenres(): Promise<{ id: number; name: string }[]> {

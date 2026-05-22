@@ -1,5 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { and, desc, eq, sql } from 'drizzle-orm'
+import { db } from '../db/client.js'
+import { watchedMovies } from '../db/schema.js'
 import { tmdb } from '../lib/tmdb.js'
 import { enrichTvBrief } from '../lib/tvCache.js'
 import { env } from '../env.js'
@@ -18,6 +21,8 @@ const popularQuery = z.object({
   page: z.coerce.number().default(1),
   ui_language: z.string().default('en-US'),
 })
+
+const watchedFilterEnum = z.enum(['all', 'unwatched', 'watched']).default('all')
 
 // Same shape as movie discover but emitted to /discover/tv with TV-specific
 // date param names. Runtime is per-episode for TV, which is what the user
@@ -40,9 +45,14 @@ const discoverQuery = z.object({
   episodes_from: z.coerce.number().int().min(0).optional(),
   episodes_to: z.coerce.number().int().min(0).optional(),
   sort_by: z.string().default('popularity.desc'),
-  page: z.coerce.number().default(1),
+  page: z.coerce.number().int().min(1).default(1),
   ui_language: z.string().default('en-US'),
+  /** Mirrors the movie discover endpoint — see routes/discover.ts for the
+   *  full rationale on why this lives server-side. */
+  watched_filter: watchedFilterEnum,
 })
+
+const WATCHED_PAGE_SIZE = 20
 
 const providersQuery = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
@@ -106,9 +116,74 @@ export async function tvRoutes(app: FastifyInstance) {
   })
 
   // Filtered TV discover — mirrors /api/discover but uses /discover/tv and
-  // TV-specific date param names.
+  // TV-specific date param names. `watched_filter` semantics are identical
+  // to the movie endpoint: 'watched' sources from watched_movies, 'unwatched'
+  // subtracts watched IDs from a TMDB page.
   app.get('/api/tv/discover', async (req) => {
     const q = discoverQuery.parse(req.query)
+
+    // ------------- watched: skip TMDB, render from watched_movies -------------
+    if (q.watched_filter === 'watched') {
+      const userId = await app.requireAuth(req)
+      const offset = (q.page - 1) * WATCHED_PAGE_SIZE
+
+      const [items, totalRow] = await Promise.all([
+        db
+          .select()
+          .from(watchedMovies)
+          .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'tv')))
+          .orderBy(desc(watchedMovies.watchedAt))
+          .limit(WATCHED_PAGE_SIZE)
+          .offset(offset),
+        db
+          .select({ total: sql<number>`count(*)::int`.as('total') })
+          .from(watchedMovies)
+          .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'tv'))),
+      ])
+
+      const total = totalRow[0]?.total ?? 0
+      const totalPages = Math.max(1, Math.ceil(total / WATCHED_PAGE_SIZE))
+
+      const ignored: string[] = []
+      if (q.with_genres) ignored.push('with_genres')
+      if (q.year_from != null || q.year_to != null) ignored.push('year')
+      if (q.min_rating != null) ignored.push('min_rating')
+      if (q.runtime_from != null || q.runtime_to != null) ignored.push('runtime')
+      if (q.with_watch_providers) ignored.push('with_watch_providers')
+      if (q.original_language) ignored.push('original_language')
+      if (q.origin_country) ignored.push('origin_country')
+      if (q.seasons_from != null || q.seasons_to != null) ignored.push('seasons')
+      if (q.episodes_from != null || q.episodes_to != null) ignored.push('episodes')
+      if (q.sort_by && q.sort_by !== 'popularity.desc') ignored.push('sort_by')
+
+      return {
+        page: q.page,
+        total_pages: totalPages,
+        total_results: total,
+        // Pad to the TvShowBrief shape enrichTvBrief produces so the
+        // frontend's TV-card components don't fork on the result source.
+        results: items.map((r) => ({
+          id: r.tmdbId,
+          name: r.title,
+          original_name: r.title,
+          original_language: '',
+          overview: '',
+          poster_path: r.posterPath,
+          backdrop_path: null,
+          first_air_date: r.watchedAt.toISOString().slice(0, 10),
+          vote_average: r.myRating ?? 0,
+          vote_count: 0,
+          genre_ids: [],
+          number_of_seasons: null,
+          number_of_episodes: null,
+        })),
+        filtered_out: 0,
+        watched_filter: 'watched' as const,
+        filters_ignored: ignored,
+      }
+    }
+
+    // ------------- all / unwatched: TMDB then optional subtract -------------
     const defaultMinVotes = q.sort_by.startsWith('vote_average') ? '50' : undefined
 
     const data = await tmdb<{ results: { id: number }[]; page: number; total_pages: number; total_results: number }>('/discover/tv', {
@@ -132,13 +207,14 @@ export async function tvRoutes(app: FastifyInstance) {
     let results = await enrichTvBrief(data.results)
 
     // Post-filter on counts (TMDB has no native param for these). The
-    // `filtered_total` field tells the UI how many of the page survived
+    // `filtered_out` field tells the UI how many of the page survived
     // the filter, separate from TMDB's total_results which counts the
     // pre-filter universe.
     const usingCountFilter =
       q.seasons_from != null || q.seasons_to != null ||
       q.episodes_from != null || q.episodes_to != null
 
+    let countFilteredOut = 0
     if (usingCountFilter) {
       const beforeFilter = results.length
       results = results.filter((r) => {
@@ -150,10 +226,27 @@ export async function tvRoutes(app: FastifyInstance) {
         if (q.episodes_to != null && e > q.episodes_to) return false
         return true
       })
-      return { ...data, results, filtered_out: beforeFilter - results.length }
+      countFilteredOut = beforeFilter - results.length
     }
 
-    return { ...data, results, filtered_out: 0 }
+    if (q.watched_filter === 'unwatched') {
+      const userId = await app.requireAuth(req)
+      const watched = await db
+        .select({ tmdbId: watchedMovies.tmdbId })
+        .from(watchedMovies)
+        .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'tv')))
+      const watchedIds = new Set(watched.map((w) => w.tmdbId))
+      const before = results.length
+      results = results.filter((r) => !watchedIds.has(r.id))
+      return {
+        ...data,
+        results,
+        filtered_out: countFilteredOut + (before - results.length),
+        watched_filter: 'unwatched' as const,
+      }
+    }
+
+    return { ...data, results, filtered_out: countFilteredOut, watched_filter: 'all' as const }
   })
 
   // TV genre list — IDs differ from /genre/movie/list so the filter UI

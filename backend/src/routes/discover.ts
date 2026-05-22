@@ -1,6 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { and, desc, eq, sql } from 'drizzle-orm'
+import { db } from '../db/client.js'
+import { watchedMovies } from '../db/schema.js'
 import { tmdb } from '../lib/tmdb.js'
+
+const watchedFilterEnum = z.enum(['all', 'unwatched', 'watched']).default('all')
 
 const querySchema = z.object({
   min_rating: z.coerce.number().optional(),
@@ -15,19 +20,116 @@ const querySchema = z.object({
   runtime_from: z.coerce.number().optional(),
   runtime_to: z.coerce.number().optional(),
   sort_by: z.string().default('popularity.desc'),
-  page: z.coerce.number().default(1),
+  page: z.coerce.number().int().min(1).default(1),
   ui_language: z.string().default('en-US'),
+  /** Client-side filter against the user's watched set. Server-side now
+   *  because intersecting TMDB results with the watched table in the
+   *  browser broke pagination (a page would visibly shrink) and made
+   *  the "watched only" mode practically useless (TMDB's popularity
+   *  ordering rarely overlaps with a single user's watched list). */
+  watched_filter: watchedFilterEnum,
 })
+
+/** TMDB returns 20 items per page; mirror that in watched-mode pagination so
+ *  the UI's page-stepper behaves consistently across modes. */
+const WATCHED_PAGE_SIZE = 20
+
+/** Filters that the watched-mode path can't honor because `watched_movies`
+ *  doesn't denormalise enough TMDB metadata. Reported back in the response
+ *  so the UI can hint at why these chips appear ineffective. */
+type IgnoredFilter =
+  | 'with_genres'
+  | 'year_from'
+  | 'year_to'
+  | 'min_rating'
+  | 'min_votes'
+  | 'runtime_from'
+  | 'runtime_to'
+  | 'with_watch_providers'
+  | 'original_language'
+  | 'origin_country'
+  | 'sort_by'
+
+function collectIgnored(q: z.infer<typeof querySchema>): IgnoredFilter[] {
+  const ignored: IgnoredFilter[] = []
+  if (q.with_genres) ignored.push('with_genres')
+  if (q.year_from != null) ignored.push('year_from')
+  if (q.year_to != null) ignored.push('year_to')
+  if (q.min_rating != null) ignored.push('min_rating')
+  if (q.min_votes != null) ignored.push('min_votes')
+  if (q.runtime_from != null) ignored.push('runtime_from')
+  if (q.runtime_to != null) ignored.push('runtime_to')
+  if (q.with_watch_providers) ignored.push('with_watch_providers')
+  if (q.original_language) ignored.push('original_language')
+  if (q.origin_country) ignored.push('origin_country')
+  if (q.sort_by && q.sort_by !== 'popularity.desc') ignored.push('sort_by')
+  return ignored
+}
 
 export async function discoverRoutes(app: FastifyInstance) {
   app.get('/api/discover', async (req) => {
     const q = querySchema.parse(req.query)
 
-    // Only apply a vote_count floor when sorting by rating — otherwise
-    // a handful of votes can dominate the chart.
+    // --------------------- watched: skip TMDB entirely --------------------
+    // We render the user's own watched_movies as the source. Filters that
+    // depend on TMDB metadata we don't store (genre, runtime, ...) are
+    // listed in `filters_ignored` so the UI can dim them.
+    if (q.watched_filter === 'watched') {
+      const userId = await app.requireAuth(req)
+      const offset = (q.page - 1) * WATCHED_PAGE_SIZE
+
+      const [items, totalRow] = await Promise.all([
+        db
+          .select()
+          .from(watchedMovies)
+          .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'movie')))
+          .orderBy(desc(watchedMovies.watchedAt))
+          .limit(WATCHED_PAGE_SIZE)
+          .offset(offset),
+        db
+          .select({ total: sql<number>`count(*)::int`.as('total') })
+          .from(watchedMovies)
+          .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'movie'))),
+      ])
+
+      const total = totalRow[0]?.total ?? 0
+      const totalPages = Math.max(1, Math.ceil(total / WATCHED_PAGE_SIZE))
+
+      return {
+        page: q.page,
+        total_pages: totalPages,
+        total_results: total,
+        // Shape mirrors TMDB's `results` so the frontend's card components
+        // don't need a separate code path. Missing TMDB-only fields (genre
+        // IDs, vote counts, etc.) are stubbed; the UI uses them for display
+        // only here, never for filtering.
+        results: items.map((r) => ({
+          id: r.tmdbId,
+          title: r.title,
+          original_title: r.title,
+          original_language: '',
+          overview: '',
+          poster_path: r.posterPath,
+          backdrop_path: null,
+          release_date: r.watchedAt.toISOString().slice(0, 10),
+          vote_average: r.myRating ?? 0,
+          vote_count: 0,
+          genre_ids: [],
+        })),
+        watched_filter: 'watched' as const,
+        filters_ignored: collectIgnored(q),
+      }
+    }
+
+    // --------------------- all / unwatched: hit TMDB ---------------------
     const defaultMinVotes = q.sort_by.startsWith('vote_average') ? '200' : undefined
 
-    return tmdb('/discover/movie', {
+    const data = await tmdb<{
+      results: { id: number; [k: string]: unknown }[]
+      page: number
+      total_pages: number
+      total_results: number
+    }>('/discover/movie', {
       language: q.ui_language,
       sort_by: q.sort_by,
       page: String(q.page),
@@ -44,5 +146,29 @@ export async function discoverRoutes(app: FastifyInstance) {
       'with_runtime.lte': q.runtime_to?.toString(),
       include_adult: 'false',
     })
+
+    if (q.watched_filter === 'all') {
+      return { ...data, watched_filter: 'all' as const, filtered_out: 0 }
+    }
+
+    // unwatched: subtract the user's watched set from this page's results.
+    // We deliberately don't chase additional TMDB pages to refill the slot —
+    // doing so would require stateful cross-page bookkeeping (skipped IDs)
+    // and TMDB has a 500-page hard cap anyway. The UI surfaces `filtered_out`
+    // so the user understands why a page can look shorter.
+    const userId = await app.requireAuth(req)
+    const watched = await db
+      .select({ tmdbId: watchedMovies.tmdbId })
+      .from(watchedMovies)
+      .where(and(eq(watchedMovies.userId, userId), eq(watchedMovies.mediaType, 'movie')))
+    const watchedIds = new Set(watched.map((w) => w.tmdbId))
+
+    const filtered = data.results.filter((r) => !watchedIds.has(r.id))
+    return {
+      ...data,
+      results: filtered,
+      watched_filter: 'unwatched' as const,
+      filtered_out: data.results.length - filtered.length,
+    }
   })
 }

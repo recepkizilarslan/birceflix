@@ -71,6 +71,24 @@ export interface DiscoverFilters {
   runtime_to?: number
   sort_by?: string
   page?: number
+  /** Server-side filter: 'unwatched' subtracts watched IDs from a TMDB page;
+   *  'watched' sources from the user's watched_movies directly (filters like
+   *  genre/year are ignored in that mode — see response.filters_ignored). */
+  watched_filter?: 'all' | 'unwatched' | 'watched'
+}
+
+export interface DiscoverResponse {
+  results: TmdbMovie[]
+  page: number
+  total_pages: number
+  total_results: number
+  /** Present when watched_filter is non-'all'. Echoes back what the server applied. */
+  watched_filter?: 'all' | 'unwatched' | 'watched'
+  /** Number of items removed from this page by the server-side watched filter. */
+  filtered_out?: number
+  /** Filter knobs that the watched-mode path couldn't honor (no metadata in
+   *  watched_movies). Frontend can dim these chips when present. */
+  filters_ignored?: string[]
 }
 
 import { intlLocale } from '../i18n'
@@ -121,7 +139,7 @@ export function getContentTitle(item: {
 }
 
 export function discover(f: DiscoverFilters) {
-  return get<{ results: TmdbMovie[]; page: number; total_pages: number; total_results: number }>('/api/discover', {
+  return get<DiscoverResponse>('/api/discover', {
     min_rating: f.min_rating?.toString(),
     original_language: f.original_language,
     origin_country: f.origin_country,
@@ -135,6 +153,8 @@ export function discover(f: DiscoverFilters) {
     sort_by: f.sort_by,
     page: f.page?.toString(),
     ui_language: intlLocale(),
+    // Omit when 'all' to keep URLs tidy; backend default matches.
+    watched_filter: f.watched_filter && f.watched_filter !== 'all' ? f.watched_filter : undefined,
   })
 }
 
