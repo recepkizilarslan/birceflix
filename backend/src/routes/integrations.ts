@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, timingSafeEqual } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { users, watchedMovies, watchHistory } from '../db/schema.js'
@@ -18,6 +18,23 @@ import { rlAuth, rlRead, rlWrite } from '../lib/rateLimit.js'
 import { encrypt, decrypt } from '../lib/crypto.js'
 
 const STATE_COOKIE = 'trakt_oauth_state'
+
+/**
+ * Constant-time string comparison for OAuth `state` round-trip. A direct
+ * `===` would short-circuit at the first mismatched byte; an attacker with
+ * a high-resolution timing channel could in principle learn the cookie's
+ * state prefix one byte at a time. The state is short-lived (10 min) and
+ * 24 bytes of randomness, so the practical attack is far-fetched — but
+ * timingSafeEqual is essentially free and removes the class of bug.
+ */
+function safeStateEqual(a: string, b: string): boolean {
+  // timingSafeEqual requires equal-length buffers; return false on length
+  // mismatch directly (length itself is not a secret here).
+  const ab = Buffer.from(a, 'utf8')
+  const bb = Buffer.from(b, 'utf8')
+  if (ab.length !== bb.length) return false
+  return timingSafeEqual(ab, bb)
+}
 
 function tokenExpiresAt(t: TraktTokens): Date {
   // Trakt returns created_at (unix seconds) + expires_in (seconds).
@@ -100,7 +117,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 
     const { code, state } = req.query as { code?: string; state?: string }
     const cookieState = req.cookies[STATE_COOKIE]
-    if (!code || !state || !cookieState || state !== cookieState) {
+    if (!code || !state || !cookieState || !safeStateEqual(state, cookieState)) {
       return reply.code(400).send({ error: 'invalid oauth state' })
     }
 

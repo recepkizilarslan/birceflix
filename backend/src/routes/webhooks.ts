@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { randomBytes, createHash } from 'node:crypto'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { watchedEpisodes, watchedMovies, watchHistory, webhookTokens } from '../db/schema.js'
 import { parseJellyfin, parsePlex, type ScrobbleEvent } from '../lib/scrobblers.js'
@@ -51,7 +51,41 @@ async function readPlexPayload(req: FastifyRequest): Promise<unknown> {
   return null
 }
 
-async function writeScrobble(userId: string, ev: ScrobbleEvent) {
+/**
+ * If a `watch_history` row already exists for this (user, tmdb_id) within
+ * SCROBBLE_DEDUP_WINDOW_MS of the incoming event, treat it as a duplicate.
+ *
+ * Plex sets `watchedAt = new Date()` at the receiver (see lib/scrobblers.ts),
+ * so an exact-timestamp match doesn't help — a retried `media.scrobble`
+ * lands seconds later with a different timestamp. A 2-minute window catches
+ * sane retries (Plex retry backoff is on the order of seconds) without
+ * swallowing legitimate rewatches in the same session.
+ */
+const SCROBBLE_DEDUP_WINDOW_MS = 2 * 60 * 1000
+
+async function watchHistoryDuplicateExists(
+  userId: string,
+  tmdbId: number,
+  at: Date,
+): Promise<boolean> {
+  const lo = new Date(at.getTime() - SCROBBLE_DEDUP_WINDOW_MS)
+  const hi = new Date(at.getTime() + SCROBBLE_DEDUP_WINDOW_MS)
+  const [row] = await db
+    .select({ id: watchHistory.id })
+    .from(watchHistory)
+    .where(
+      and(
+        eq(watchHistory.userId, userId),
+        eq(watchHistory.tmdbId, tmdbId),
+        gte(watchHistory.watchedAt, lo),
+        lte(watchHistory.watchedAt, hi),
+      ),
+    )
+    .limit(1)
+  return !!row
+}
+
+async function writeScrobble(userId: string, ev: ScrobbleEvent): Promise<'wrote' | 'deduped'> {
   if (ev.kind === 'movie') {
     await db
       .insert(watchedMovies)
@@ -68,15 +102,20 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
         target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
       })
 
+    if (await watchHistoryDuplicateExists(userId, ev.tmdbId, ev.watchedAt)) {
+      return 'deduped'
+    }
     await db.insert(watchHistory).values({
       userId,
       tmdbId: ev.tmdbId,
       watchedAt: ev.watchedAt,
     })
-    return
+    return 'wrote'
   }
 
-  // Episode
+  // Episode: dedup happens at the row level via the composite unique index;
+  // onConflictDoUpdate refreshes the watchedAt instead of stacking duplicates,
+  // so a Plex retry doesn't create a second episode row.
   await db
     .insert(watchedEpisodes)
     .values({
@@ -99,6 +138,7 @@ async function writeScrobble(userId: string, ev: ScrobbleEvent) {
       // Touch watchedAt so the scrobble timestamp wins over manual marks.
       set: { watchedAt: ev.watchedAt, episodeName: ev.episodeName, showName: ev.showName },
     })
+  return 'wrote'
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -172,14 +212,17 @@ export async function webhookRoutes(app: FastifyInstance) {
       return reply.code(204).send()
     }
 
-    await writeScrobble(row.userId, ev)
+    const result = await writeScrobble(row.userId, ev)
     await db
       .update(webhookTokens)
       .set({ lastUsedAt: new Date() })
       .where(eq(webhookTokens.id, row.id))
 
-    req.log.info({ source: ev.source, kind: ev.kind, userId: row.userId }, 'scrobble accepted')
-    return { ok: true, kind: ev.kind, source: ev.source }
+    req.log.info(
+      { source: ev.source, kind: ev.kind, userId: row.userId, deduped: result === 'deduped' },
+      result === 'deduped' ? 'scrobble deduped' : 'scrobble accepted',
+    )
+    return { ok: true, kind: ev.kind, source: ev.source, deduped: result === 'deduped' }
   })
 
   // Silence unused-import warning in some configurations
