@@ -89,6 +89,10 @@ export function Discover() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(1)
+  /** Total matching items across all pages — the number we show in
+   *  "{count} sonuç". null while loading or for endpoints we can't
+   *  size precisely (top mode, search). */
+  const [totalResults, setTotalResults] = useState<number | null>(null)
 
   // Watch-region is driven exclusively by the header preference now (no
   // separate dropdown inside the Platforms filter). When the user flips
@@ -137,6 +141,8 @@ export function Discover() {
           setTopResults(slice)
           setResults([])
           setTotalPages(total)
+          // Top mode knows the exact universe (the snapshot we just filtered).
+          setTotalResults(filtered.length)
           return
         }
         setTopResults(null)
@@ -146,6 +152,11 @@ export function Discover() {
         if (ctrl.cancelled) return
         setResults(data.results)
         setTotalPages(Math.min(data.total_pages, 500))
+        // total_results is present on /discover (movie + tv) responses; the
+        // search endpoints currently omit the field, so we fall back to null
+        // and the UI uses the page-local count instead.
+        const tr = (data as { total_results?: number }).total_results
+        setTotalResults(typeof tr === 'number' ? tr : null)
       } catch (e: any) {
         if (!ctrl.cancelled) setErr(e?.message ?? String(e))
       } finally {
@@ -311,7 +322,11 @@ export function Discover() {
             {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
               <div className="text-xs text-[var(--color-text-dim)]">
                 {t('discover.results', {
-                  count: visibleTopResults?.length ?? visibleResults.length,
+                  // Prefer the response's total over the page-local count so
+                  // users see "10000 sonuç" instead of "20 sonuç" once we
+                  // can size the universe. Falls back to page count for
+                  // search-style endpoints that don't expose total_results.
+                  count: totalResults ?? visibleTopResults?.length ?? visibleResults.length,
                   page,
                 })}
               </div>
@@ -339,7 +354,7 @@ export function Discover() {
           {!loading && (visibleTopResults?.length ?? visibleResults.length) > 0 && (
             <span className="shrink-0 ml-2">
               {t('discover.results', {
-                count: visibleTopResults?.length ?? visibleResults.length,
+                count: totalResults ?? visibleTopResults?.length ?? visibleResults.length,
                 page,
               })}
             </span>

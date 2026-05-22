@@ -252,11 +252,25 @@ export async function tvRoutes(app: FastifyInstance) {
       const watchedIds = new Set(watched.map((w) => w.tmdbId))
       const before = results.length
       results = results.filter((r) => !watchedIds.has(r.id))
+
+      // Estimate the unwatched-universe totals; see routes/discover.ts for
+      // why we subtract `watched.length` (conservative, undershoots when
+      // many watched items don't match the active filter).
+      const TMDB_PAGE_SIZE = 20
+      const totalResults = Math.max(0, data.total_results - watched.length)
+      const totalPages = Math.max(
+        1,
+        Math.min(data.total_pages, Math.ceil(totalResults / TMDB_PAGE_SIZE)),
+      )
+
       return {
         ...data,
         results,
+        total_results: totalResults,
+        total_pages: totalPages,
         filtered_out: countFilteredOut + (before - results.length),
         watched_filter: 'unwatched' as const,
+        total_results_unfiltered: data.total_results,
       }
     }
 

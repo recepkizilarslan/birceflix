@@ -165,11 +165,38 @@ export async function discoverRoutes(app: FastifyInstance) {
     const watchedIds = new Set(watched.map((w) => w.tmdbId))
 
     const filtered = data.results.filter((r) => !watchedIds.has(r.id))
+
+    // Adjust total_results / total_pages so the UI's "X sonuç • sayfa Y / Z"
+    // line reflects the unwatched universe, not TMDB's pre-filter one. We
+    // can't know precisely how many of TMDB's `total_results` overlap with
+    // the user's watched set without an exact join — TMDB doesn't expose
+    // that. Conservative estimate: subtract the user's total watched count
+    // for this media type. This UNDERSHOOTS when many of the user's
+    // watched items wouldn't match the active filter (e.g. user has 500
+    // watched movies but only 5 are Korean drama for a "Korean drama"
+    // filter — we still subtract 500, so the displayed total is lower
+    // than reality). That's the safer direction to err: the user might
+    // see "still 9500 to discover" instead of the true 9995, never the
+    // reverse ("0 left" when actually plenty remain).
+    const totalResults = Math.max(0, data.total_results - watched.length)
+    // TMDB always paginates at 20/page; using a literal here rather than
+    // data.results.length avoids divide-by-something-wrong on the last page.
+    const TMDB_PAGE_SIZE = 20
+    const totalPages = Math.max(
+      1,
+      Math.min(data.total_pages, Math.ceil(totalResults / TMDB_PAGE_SIZE)),
+    )
+
     return {
       ...data,
       results: filtered,
+      total_results: totalResults,
+      total_pages: totalPages,
       watched_filter: 'unwatched' as const,
       filtered_out: data.results.length - filtered.length,
+      /** TMDB's pre-filter count, kept around so the UI can show
+       *  "X of Y total, Y-X already watched" if it wants. */
+      total_results_unfiltered: data.total_results,
     }
   })
 }
