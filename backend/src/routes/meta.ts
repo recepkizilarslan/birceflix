@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 import { env } from '../env.js'
 
 interface ProviderRow {
@@ -11,7 +12,7 @@ interface ProviderRow {
 }
 
 const genresQuery = z.object({
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 export async function metaRoutes(app: FastifyInstance) {
@@ -27,7 +28,7 @@ export async function metaRoutes(app: FastifyInstance) {
     const { region, ui_language } = z
       .object({
         region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
-        ui_language: z.string().default('en-US'),
+        ui_language: uiLanguageSchema,
       })
       .parse(req.query)
     const data = await tmdb<{ results: ProviderRow[] }>('/watch/providers/movie', {

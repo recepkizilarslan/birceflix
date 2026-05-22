@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { tmdb } from '../lib/tmdb.js'
+import { uiLanguageSchema } from '../lib/locale.js'
 
 const querySchema = z.object({
   min_rating: z.coerce.number().optional(),
@@ -16,7 +17,7 @@ const querySchema = z.object({
   runtime_to: z.coerce.number().optional(),
   sort_by: z.string().default('popularity.desc'),
   page: z.coerce.number().default(1),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 export async function discoverRoutes(app: FastifyInstance) {
