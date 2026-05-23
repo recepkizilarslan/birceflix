@@ -41,7 +41,7 @@ export function AuthButton() {
     return (
       <button
         onClick={() => signInWithGoogle()}
-        className="text-xs px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
+        className="text-xs px-4 py-1.5 rounded-lg bg-[var(--color-brand)] text-white font-medium hover:brightness-110 shadow-[0_2px_10px_rgba(255,59,71,0.3)] transition-all duration-200"
       >
         {t('auth.signIn')}
       </button>
@@ -63,7 +63,7 @@ export function AuthButton() {
       </button>
 
       {open && (
-        <div className="fixed sm:absolute right-2 sm:right-0 top-14 sm:top-full sm:mt-2 z-50 w-[calc(100vw-1rem)] sm:w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl">
+        <div className="fixed sm:absolute right-2 sm:right-0 top-14 sm:top-full sm:mt-2 z-50 w-[calc(100vw-1rem)] sm:w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)]/95 backdrop-blur-xl border border-[var(--color-border)] shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
           <div className="flex items-center gap-3 p-4">
             <Avatar user={user} size="w-12 h-12" />
             <div className="min-w-0 flex-1">
