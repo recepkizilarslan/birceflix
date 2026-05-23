@@ -54,7 +54,9 @@
     "page": "Sayfa",
     "previous": "← Önceki",
     "next": "Sonraki →",
-    "pageOf": "Sayfa {{page}} / {{total}}"
+    "pageOf": "Sayfa {{page}} / {{total}}",
+    "backToTop": "Yukarı çık",
+    "loadingMore": "Daha fazlası yükleniyor…"
   },
   "prefs": {
     "title": "Tercihler",
@@ -66,7 +68,8 @@
     "open": "Tercihler"
   },
   "discover": {
-    "results": "{{count}} sonuç • sayfa {{page}}",
+    "results": "{{total}} sonuç",
+    "loadedOf": "{{loaded}} / {{total}} gösteriliyor",
     "searchResults": "\"{{query}}\" için sonuçlar",
     "loading": "Yükleniyor…",
     "filters": "Filtreler",
@@ -183,7 +186,6 @@
     "translatedLanguages": "Mevcut çeviri dilleri",
     "imdbPage": "IMDB sayfası →",
     "noProviderForRegion": "Bu bölgede platform bilgisi yok.",
-    "history": "🎞 İzleme geçmişim",
     "personalNote": "✎ Senin notların",
     "backToDiscover": "← Keşfet'e dön"
   },
@@ -193,15 +195,6 @@
     "yourNotes": "Notların",
     "notesPlaceholder": "Bu filmle ilgili kendi notların… (otomatik kaydedilir)",
     "ratePoint": "{{n}} puan"
-  },
-  "history": {
-    "empty": "Henüz tarihli bir izleme eklemedin.",
-    "addEntry": "+ İzleme ekle",
-    "date": "Tarih",
-    "note": "Not (opsiyonel)",
-    "notePlaceholder": "o izlemeyle ilgili kısa not…",
-    "confirmDelete": "Bu izleme kaydını silmek istediğine emin misin?",
-    "deleteFailed": "silinemedi"
   },
   "watched": {
     "signInPrompt": "İzlediğin filmleri saklamak için giriş yap",

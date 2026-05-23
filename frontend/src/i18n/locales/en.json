@@ -54,7 +54,9 @@
     "page": "Page",
     "previous": "← Previous",
     "next": "Next →",
-    "pageOf": "Page {{page}} / {{total}}"
+    "pageOf": "Page {{page}} / {{total}}",
+    "backToTop": "Back to top",
+    "loadingMore": "Loading more…"
   },
   "prefs": {
     "title": "Preferences",
@@ -66,7 +68,8 @@
     "open": "Preferences"
   },
   "discover": {
-    "results": "{{count}} results • page {{page}}",
+    "results": "{{total}} results",
+    "loadedOf": "Showing {{loaded}} of {{total}}",
     "searchResults": "Results for \"{{query}}\"",
     "loading": "Loading…",
     "filters": "Filters",
@@ -183,7 +186,6 @@
     "translatedLanguages": "Available translations",
     "imdbPage": "IMDB page →",
     "noProviderForRegion": "No streaming info for this region.",
-    "history": "🎞 My watch history",
     "personalNote": "✎ Your notes",
     "backToDiscover": "← Back to Discover"
   },
@@ -193,15 +195,6 @@
     "yourNotes": "Your notes",
     "notesPlaceholder": "Your notes about this movie… (auto-saved)",
     "ratePoint": "{{n}} points"
-  },
-  "history": {
-    "empty": "No dated viewings yet.",
-    "addEntry": "+ Add viewing",
-    "date": "Date",
-    "note": "Note (optional)",
-    "notePlaceholder": "a short note about this viewing…",
-    "confirmDelete": "Delete this viewing?",
-    "deleteFailed": "delete failed"
   },
   "watched": {
     "signInPrompt": "Sign in to save your watched movies",
