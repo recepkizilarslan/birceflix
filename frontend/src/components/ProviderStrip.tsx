@@ -30,8 +30,8 @@ export function ProviderStrip({ mediaType, region, selected, onToggle }: Props) 
   if (providers.length === 0) return null
 
   return (
-    <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto provider-scroll pb-2">
-      <div className="flex gap-2 pb-1">
+    <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto provider-scroll pb-2 pt-1">
+      <div className="flex gap-2 pb-1 pt-1">
         {providers.map((p) => {
           const active = selected.includes(p.provider_id)
           return (
@@ -40,7 +40,7 @@ export function ProviderStrip({ mediaType, region, selected, onToggle }: Props) 
               onClick={() => onToggle(p.provider_id)}
               title={p.provider_name}
               aria-pressed={active}
-              className={`shrink-0 flex flex-col items-center gap-1.5 w-[72px] sm:w-[84px] rounded-xl p-2 transition ${
+              className={`shrink-0 flex flex-col items-center justify-between gap-1.5 w-[72px] sm:w-[84px] min-h-[76px] sm:min-h-[88px] rounded-xl p-2 pb-2.5 transition ${
                 active
                   ? 'bg-[var(--color-surface-2)] ring-2 ring-[var(--color-accent)]'
                   : 'hover:bg-[var(--color-surface-2)]/60 active:scale-[0.97]'
