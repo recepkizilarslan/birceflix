@@ -83,6 +83,36 @@ interface ProviderRow {
   display_priority: number
 }
 
+interface TmdbTranslationRow {
+  iso_639_1: string
+  iso_3166_1: string
+  name: string
+  english_name: string
+  data?: { name?: string; overview?: string; tagline?: string }
+}
+
+export interface TranslatedLanguage {
+  iso_639_1: string
+  english_name: string
+  name: string
+}
+
+// TMDB ships ~40 locale variants per title, most with empty data.
+// Keep only languages where at least one locale actually translated
+// the name/overview/tagline, deduped on iso_639_1.
+function pickTranslatedLanguages(detail: { translations?: { translations?: TmdbTranslationRow[] } }): TranslatedLanguage[] {
+  const rows = detail.translations?.translations
+  if (!rows) return []
+  const seen = new Map<string, TranslatedLanguage>()
+  for (const r of rows) {
+    const hasContent = !!(r.data?.name || r.data?.overview || r.data?.tagline)
+    if (!hasContent) continue
+    if (seen.has(r.iso_639_1)) continue
+    seen.set(r.iso_639_1, { iso_639_1: r.iso_639_1, english_name: r.english_name, name: r.name })
+  }
+  return [...seen.values()].sort((a, b) => a.english_name.localeCompare(b.english_name))
+}
+
 export async function tvRoutes(app: FastifyInstance) {
   // TV show detail (with credits + external ids in case we want IMDB later).
   // `region` slices out per-region watch providers from the appended bag,
@@ -90,13 +120,16 @@ export async function tvRoutes(app: FastifyInstance) {
   app.get('/api/tv/:id', async (req) => {
     const { id } = idParam.parse(req.params)
     const { region, ui_language } = tvDetailQuery.parse(req.query)
-    const detail = await tmdb<{ id: number; [key: string]: unknown }>(`/tv/${id}`, {
-      append_to_response: 'credits,external_ids,videos,watch/providers',
+    const detail = await tmdb<{ id: number; [key: string]: unknown; translations?: { translations?: TmdbTranslationRow[] } }>(`/tv/${id}`, {
+      append_to_response: 'credits,external_ids,videos,watch/providers,translations',
       language: ui_language,
     })
     const providers = (detail as { 'watch/providers'?: { results?: Record<string, unknown> } })['watch/providers']
     const watchProviders = providers?.results?.[region] ?? null
-    return { ...detail, watch_providers: watchProviders }
+    const translatedLanguages = pickTranslatedLanguages(detail)
+    const { translations: _drop, ...rest } = detail
+    void _drop
+    return { ...rest, watch_providers: watchProviders, translated_languages: translatedLanguages }
   })
 
   // Single season — TMDB returns episode list with air_date, runtime, etc.

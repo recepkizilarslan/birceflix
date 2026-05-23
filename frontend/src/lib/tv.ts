@@ -21,6 +21,7 @@ export interface TvDetail extends TmdbTvShow {
   credits?: { cast: { id: number; name: string; character: string; profile_path: string | null }[] }
   external_ids?: { imdb_id?: string | null }
   episode_run_time?: number[]
+  translated_languages?: { iso_639_1: string; english_name: string; name: string }[]
   /** Region-scoped watch providers (flatrate / rent / buy). null when TMDB
    *  has no data for the requested region. */
   watch_providers?: {
