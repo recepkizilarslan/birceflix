@@ -60,79 +60,122 @@ export function MovieDetailPage() {
         </button>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6 sm:mb-8">
-        {poster(d.poster_path, 'w342') && (
-          <img
-            src={poster(d.poster_path, 'w342')!}
-            alt=""
-            className="w-32 sm:w-56 rounded-xl shadow-2xl shrink-0 mx-auto sm:mx-0"
-          />
+      {/* Title block: large, full width, left aligned. The original title sits
+          on a quieter line below so users can see both the localized name and
+          the source-language one without the two competing visually. */}
+      <div className="mb-5">
+        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05] break-words">{displayTitle}</h1>
+        {d.original_title && d.original_title !== displayTitle && (
+          <div className="text-base sm:text-lg text-[var(--color-text-dim)] mt-1.5">{d.original_title}</div>
         )}
-        <div className="flex-1 space-y-3 min-w-0">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight break-words">{displayTitle}</h1>
-            {d.original_title && d.original_title !== displayTitle && (
-              <div className="text-sm text-[var(--color-text-dim)] mt-1">{d.original_title}</div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            {year && <Pill>{year}</Pill>}
-            {d.runtime ? <Pill>{Math.floor(d.runtime / 60)}s {d.runtime % 60}d</Pill> : null}
-            <Pill>★ TMDB {d.vote_average.toFixed(1)}</Pill>
-            {d.imdb_rating && <Pill>★ IMDB {d.imdb_rating}</Pill>}
-          </div>
-          {d.genres && (
-            <div className="flex flex-wrap gap-1.5">
-              {d.genres.map((g) => <Pill key={g.id}>{g.name}</Pill>)}
-            </div>
-          )}
-          {d.imdb_id && (
-            <div>
-              <a href={`https://www.imdb.com/title/${d.imdb_id}`} target="_blank" rel="noreferrer" className="text-sm text-[var(--color-accent)] hover:underline">
-                {t('movie.imdbPage')}
-              </a>
-            </div>
-          )}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-2">
-            <button
-              disabled={!user}
-              onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
-              className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition active:scale-[0.98] ${
-                !user
-                  ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
-                  : watched
-                  ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
-                  : 'bg-[var(--color-accent)] text-black hover:opacity-90'
-              }`}
-              title={user ? '' : t('card.signInToMark')}
-            >
-              {watched ? t('movie.watchedRemove') : t('card.markWatched')}
-            </button>
-            <button
-              disabled={!user}
-              onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
-              className={`h-11 sm:h-auto sm:px-5 sm:py-2.5 px-3 rounded-lg text-sm font-medium transition border active:scale-[0.98] ${
-                !user
-                  ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'
-                  : inWatchlist
-                  ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/25'
-                  : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
-              }`}
-              title={user ? '' : t('movie.addToListSignInHint')}
-            >
-              {inWatchlist ? t('movie.watchlistRemove') : t('movie.watchlistAdd')}
-            </button>
-            {user && (
-              <div className="col-span-2 sm:col-auto">
-                <AddToListMenu tmdbId={d.id} mediaType="movie" title={displayTitle} posterPath={d.poster_path} />
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      {/* Action bar: anchored left, primary action first, all chunky enough
+          to be tap-friendly on mobile (h-11). The "Add to list" picker can
+          drop out when the user is signed out without leaving an awkward gap
+          because the row uses flex-wrap, not a fixed grid. */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <button
+          disabled={!user}
+          onClick={() => toggleWatched({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+          className={`h-11 px-5 rounded-lg text-sm font-semibold transition active:scale-[0.98] ${
+            !user
+              ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
+              : watched
+              ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+              : 'bg-[var(--color-accent)] text-black hover:opacity-90'
+          }`}
+          title={user ? '' : t('card.signInToMark')}
+        >
+          {watched ? t('movie.watchedRemove') : t('card.markWatched')}
+        </button>
+        <button
+          disabled={!user}
+          onClick={() => toggleWatchlist({ id: d.id, media_type: 'movie', title: displayTitle, poster_path: d.poster_path, imdb_id: d.imdb_id })}
+          className={`h-11 px-5 rounded-lg text-sm font-medium transition border active:scale-[0.98] ${
+            !user
+              ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] border-[var(--color-border)] cursor-not-allowed'
+              : inWatchlist
+              ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/25'
+              : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)]'
+          }`}
+          title={user ? '' : t('movie.addToListSignInHint')}
+        >
+          {inWatchlist ? t('movie.watchlistRemove') : t('movie.watchlistAdd')}
+        </button>
+        {user && <AddToListMenu tmdbId={d.id} mediaType="movie" title={displayTitle} posterPath={d.poster_path} />}
+        {d.imdb_id && (
+          <a
+            href={`https://www.imdb.com/title/${d.imdb_id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="h-11 px-4 inline-flex items-center text-sm text-[var(--color-accent)] hover:underline ml-auto"
+          >
+            {t('movie.imdbPage')}
+          </a>
+        )}
+      </div>
+
+      {/* Meta strip: a single line of facts (year, runtime, ratings) with
+          subtle bullet separators. Avoids the previous "wall of pills" feel
+          where every fact carried the same visual weight. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-text)] mb-3">
+        {year && <span>{year}</span>}
+        {year && d.runtime != null && <Sep />}
+        {d.runtime != null && <span>{Math.floor(d.runtime / 60)}s {d.runtime % 60}d</span>}
+        {(year || d.runtime != null) && <Sep />}
+        <span className="text-amber-300">★ TMDB {d.vote_average.toFixed(1)}</span>
+        {d.imdb_rating && (
+          <>
+            <Sep />
+            <span className="text-amber-300">★ IMDB {d.imdb_rating}</span>
+          </>
+        )}
+      </div>
+
+      {/* Categories: genre chips, given a touch of accent so they read as
+          "tap me" affordances rather than informational labels. */}
+      {d.genres && d.genres.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-8">
+          {d.genres.map((g) => (
+            <span
+              key={g.id}
+              className="px-2.5 py-1 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-xs font-medium text-[var(--color-text)] hover:border-[var(--color-accent)] transition"
+            >
+              {g.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Main content grid:
+          - Left rail (lg only): poster + dense facts (country, languages)
+          - Middle: the long-form bits (summary, cast, reviews)
+          - Right rail: personal data + provider chips + awards + translations
+          On mobile everything collapses to a single column, with the poster
+          centered above the summary so it still anchors the page visually. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_300px] gap-6 lg:gap-8">
+        <aside className="space-y-5 order-first lg:order-none">
+          {poster(d.poster_path, 'w342') && (
+            <img
+              src={poster(d.poster_path, 'w342')!}
+              alt=""
+              className="w-40 sm:w-56 lg:w-full rounded-xl shadow-2xl mx-auto lg:mx-0"
+            />
+          )}
+          {d.production_countries && d.production_countries.length > 0 && (
+            <Section title={t('movie.production')}>
+              <div className="text-sm space-y-1">
+                <div><span className="text-[var(--color-text-dim)]">{t('movie.country')}:</span> {d.production_countries.map((c) => c.name).join(', ')}</div>
+                {d.spoken_languages && d.spoken_languages.length > 0 && (
+                  <div><span className="text-[var(--color-text-dim)]">{t('movie.spokenLanguages')}:</span> {d.spoken_languages.map((l) => l.english_name).join(', ')}</div>
+                )}
+              </div>
+            </Section>
+          )}
+        </aside>
+
+        <div className="space-y-8 min-w-0">
           {d.overview && (
             <Section title={t('movie.summary')}>
               <p className="leading-relaxed">{d.overview}</p>
@@ -182,17 +225,6 @@ export function MovieDetailPage() {
             </Section>
           )}
 
-          {d.awards && (
-            <Section title={t('movie.awards')}>
-              <p className="text-sm leading-relaxed">{d.awards}</p>
-              {d.imdb_id && (
-                <a href={`https://www.imdb.com/title/${d.imdb_id}/awards`} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
-                  {t('movie.awardsLink')}
-                </a>
-              )}
-            </Section>
-          )}
-
           <Section title={t('movie.watchProviders', { region })}>
             {!d.watch_providers && <div className="text-sm text-[var(--color-text-dim)]">{t('movie.noProviderForRegion')}</div>}
             {d.watch_providers && (
@@ -207,14 +239,14 @@ export function MovieDetailPage() {
             )}
           </Section>
 
-          {d.production_countries && d.production_countries.length > 0 && (
-            <Section title={t('movie.production')}>
-              <div className="text-sm space-y-1">
-                <div><span className="text-[var(--color-text-dim)]">{t('movie.country')}:</span> {d.production_countries.map((c) => c.name).join(', ')}</div>
-                {d.spoken_languages && d.spoken_languages.length > 0 && (
-                  <div><span className="text-[var(--color-text-dim)]">{t('movie.spokenLanguages')}:</span> {d.spoken_languages.map((l) => l.english_name).join(', ')}</div>
-                )}
-              </div>
+          {d.awards && (
+            <Section title={t('movie.awards')}>
+              <p className="text-sm leading-relaxed">{d.awards}</p>
+              {d.imdb_id && (
+                <a href={`https://www.imdb.com/title/${d.imdb_id}/awards`} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
+                  {t('movie.awardsLink')}
+                </a>
+              )}
             </Section>
           )}
 
@@ -256,8 +288,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-xs">{children}</span>
+/** Subtle bullet separator used inside the meta strip. Rendered with
+ *  aria-hidden so screen readers see "2010 · 2h 28m · ..." as a plain
+ *  comma-list rather than reading each bullet glyph aloud. */
+function Sep() {
+  return <span aria-hidden="true" className="text-[var(--color-text-dim)]/60">·</span>
 }
 
 function ProviderRow({ label, items }: { label: string; items?: { provider_id: number; provider_name: string; logo_path: string }[] }) {
