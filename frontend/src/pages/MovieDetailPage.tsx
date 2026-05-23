@@ -7,7 +7,6 @@ import { mediaKey } from '../lib/watched'
 import { useRegion } from '../lib/preferences'
 import { PersonalNote } from '../components/PersonalNote'
 import { AddToListMenu } from '../components/AddToListMenu'
-import { WatchHistoryTimeline } from '../components/WatchHistoryTimeline'
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -137,12 +136,6 @@ export function MovieDetailPage() {
           {d.overview && (
             <Section title={t('movie.summary')}>
               <p className="leading-relaxed">{d.overview}</p>
-            </Section>
-          )}
-
-          {user && (
-            <Section title={t('movie.history')}>
-              <WatchHistoryTimeline tmdbId={d.id} />
             </Section>
           )}
 
