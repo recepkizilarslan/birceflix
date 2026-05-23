@@ -5,6 +5,7 @@ import type { LayoutContext } from '../Layout'
 import { tvDetail, tvSeason, type TvDetail, type TvSeasonDetail } from '../lib/tv'
 import { poster, getContentTitle } from '../lib/api'
 import { fmtDate } from '../lib/intl'
+import { useRegion } from '../lib/preferences'
 import { mediaKey } from '../lib/watched'
 import {
   listWatchedEpisodes,
@@ -30,6 +31,7 @@ export function TvDetailPage() {
     toggleWatchlist,
   } = useOutletContext<LayoutContext>()
 
+  const [region] = useRegion()
   const [show, setShow] = useState<TvDetail | null>(null)
   const [err, setErr] = useState<string | null>(null)
   /** Set of watched-episode keys ("season.episode") — fast .has() during render. */
@@ -43,13 +45,16 @@ export function TvDetailPage() {
     if (!id) return
     setShow(null); setErr(null); setWatchedKeys(new Set()); setSeasons(new Map()); setOpenSeason(null)
     const showId = Number(id)
-    tvDetail(showId).then(setShow).catch((e) => setErr(e.message))
+    // Pass region so the backend slices out the right per-region watch
+    // providers from TMDB's bag; without it TvDetail.watch_providers would
+    // always default to the env's DEFAULT_WATCH_REGION.
+    tvDetail(showId, region).then(setShow).catch((e) => setErr(e.message))
     if (user) {
       listWatchedEpisodes(showId)
         .then((rows) => setWatchedKeys(new Set(rows.map((r) => episodeKey(r.season_number, r.episode_number)))))
         .catch(() => {})
     }
-  }, [id, user, i18n.language])
+  }, [id, user, i18n.language, region])
 
   const loadSeason = async (n: number) => {
     if (!show || seasons.has(n)) {

@@ -6,12 +6,18 @@ import { db } from '../db/client.js'
 import { listItems, lists, users } from '../db/schema.js'
 import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
+const mediaTypeEnum = z.enum(['movie', 'tv'])
+
 const idParam = z.object({ id: z.string().uuid() })
 const slugParam = z.object({ slug: z.string().min(8).max(64) })
 const itemParam = z.object({
   id: z.string().uuid(),
   tmdbId: z.coerce.number().int().positive(),
 })
+// `media_type` is required to scope deletes correctly — movie 550 and TV 550
+// are distinct entities. We accept it via query string so the delete URL stays
+// RESTful (`DELETE /api/lists/:id/items/:tmdbId?media_type=tv`).
+const itemDeleteQuery = z.object({ media_type: mediaTypeEnum.default('movie') })
 
 const createBody = z.object({
   name: z.string().min(1).max(200),
@@ -27,6 +33,9 @@ const updateBody = z.object({
 
 const addItemBody = z.object({
   tmdb_id: z.number().int().positive(),
+  // Defaults to 'movie' so legacy clients (which never sent media_type) keep
+  // working; new movie+tv-aware code passes it explicitly.
+  media_type: mediaTypeEnum.default('movie'),
   title: z.string().min(1).max(500),
   poster_path: z.string().nullable().optional(),
   position: z.number().int().min(-32768).max(32767).optional(),
@@ -54,6 +63,7 @@ function serialiseItem(i: typeof listItems.$inferSelect) {
   return {
     list_id: i.listId,
     tmdb_id: i.tmdbId,
+    media_type: i.mediaType as 'movie' | 'tv',
     title: i.title,
     poster_path: i.posterPath,
     position: i.position,
@@ -190,12 +200,15 @@ export async function listsRoutes(app: FastifyInstance) {
       .values({
         listId: id,
         tmdbId: body.tmdb_id,
+        mediaType: body.media_type,
         title: body.title,
         posterPath: body.poster_path ?? null,
         position: body.position ?? 0,
       })
+      // Conflict target must include media_type — it's part of the PK now,
+      // so omitting it would make Postgres reject the upsert.
       .onConflictDoUpdate({
-        target: [listItems.listId, listItems.tmdbId],
+        target: [listItems.listId, listItems.tmdbId, listItems.mediaType],
         set: {
           title: body.title,
           posterPath: body.poster_path ?? null,
@@ -212,6 +225,7 @@ export async function listsRoutes(app: FastifyInstance) {
   app.delete('/api/lists/:id/items/:tmdbId', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
     const { id, tmdbId } = itemParam.parse(req.params)
+    const { media_type: mediaType } = itemDeleteQuery.parse(req.query)
 
     // Verify ownership
     const [existing] = await db
@@ -223,7 +237,13 @@ export async function listsRoutes(app: FastifyInstance) {
 
     await db
       .delete(listItems)
-      .where(and(eq(listItems.listId, id), eq(listItems.tmdbId, tmdbId)))
+      .where(
+        and(
+          eq(listItems.listId, id),
+          eq(listItems.tmdbId, tmdbId),
+          eq(listItems.mediaType, mediaType),
+        ),
+      )
     await db.update(lists).set({ updatedAt: new Date() }).where(eq(lists.id, id))
     return { ok: true }
   })

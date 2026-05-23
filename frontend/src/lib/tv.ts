@@ -22,6 +22,14 @@ export interface TvDetail extends TmdbTvShow {
   external_ids?: { imdb_id?: string | null }
   episode_run_time?: number[]
   translated_languages?: { iso_639_1: string; english_name: string; name: string }[]
+  /** Region-scoped watch providers (flatrate / rent / buy). null when TMDB
+   *  has no data for the requested region. */
+  watch_providers?: {
+    link?: string
+    flatrate?: { provider_id: number; provider_name: string; logo_path: string }[]
+    rent?: { provider_id: number; provider_name: string; logo_path: string }[]
+    buy?: { provider_id: number; provider_name: string; logo_path: string }[]
+  } | null
 }
 
 export interface TvSeasonSummary {
@@ -55,8 +63,9 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function tvDetail(id: number): Promise<TvDetail> {
+export async function tvDetail(id: number, region = 'TR'): Promise<TvDetail> {
   const u = new URL(`/api/tv/${id}`, window.location.origin)
+  u.searchParams.set('region', region)
   u.searchParams.set('ui_language', intlLocale())
   return json(await fetch(u.pathname + u.search, { credentials: 'include' }))
 }
@@ -99,9 +108,21 @@ export interface DiscoverTvFilters {
   episodes_to?: number
   sort_by?: string
   page?: number
+  /** See lib/api.ts DiscoverFilters for the semantics. */
+  watched_filter?: 'all' | 'unwatched' | 'watched'
 }
 
-export function discoverTv(f: DiscoverTvFilters) {
+export interface DiscoverTvResponse {
+  results: TmdbTvShow[]
+  page: number
+  total_pages: number
+  total_results?: number
+  filtered_out?: number
+  watched_filter?: 'all' | 'unwatched' | 'watched'
+  filters_ignored?: string[]
+}
+
+export function discoverTv(f: DiscoverTvFilters): Promise<DiscoverTvResponse> {
   const u = new URL('/api/tv/discover', window.location.origin)
   const set = (k: string, v: string | undefined) => { if (v !== undefined && v !== '') u.searchParams.set(k, v) }
   set('min_rating', f.min_rating?.toString())
@@ -121,12 +142,8 @@ export function discoverTv(f: DiscoverTvFilters) {
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
   set('ui_language', intlLocale())
-  return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<{
-    results: TmdbTvShow[]
-    page: number
-    total_pages: number
-    filtered_out?: number
-  }>
+  if (f.watched_filter && f.watched_filter !== 'all') set('watched_filter', f.watched_filter)
+  return fetch(u.pathname + u.search, { credentials: 'include' }).then(json) as Promise<DiscoverTvResponse>
 }
 
 export async function listTvGenres(): Promise<{ id: number; name: string }[]> {

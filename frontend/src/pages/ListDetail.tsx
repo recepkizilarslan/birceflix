@@ -76,9 +76,9 @@ export function ListDetailPage() {
     }
   }
 
-  const onRemoveItem = async (tmdbId: number) => {
+  const onRemoveItem = async (tmdbId: number, mediaType: 'movie' | 'tv') => {
     try {
-      await removeFromList(list.id, tmdbId)
+      await removeFromList(list.id, tmdbId, mediaType)
       await refresh()
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
@@ -89,8 +89,12 @@ export function ListDetailPage() {
     ? `${window.location.origin}/public/lists/${list.public_slug}`
     : null
 
-  const cards: TmdbMovie[] = list.items.map((it) => ({
+  // We carry `media_type` alongside the TmdbMovie payload so navigation /
+  // removal / watched-toggle can route to the right namespace (movie vs tv).
+  // The card UI itself is the same for both; only the URLs differ.
+  const cards: (TmdbMovie & { media_type: 'movie' | 'tv' })[] = list.items.map((it) => ({
     id: it.tmdb_id,
+    media_type: it.media_type,
     title: it.title,
     original_title: it.title,
     original_language: '',
@@ -214,16 +218,16 @@ export function ListDetailPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
           {cards.map((m) => (
-            <div key={m.id} className="relative group">
+            <div key={`${m.media_type}:${m.id}`} className="relative group">
               <MovieCard
                 movie={m}
-                watched={watchedKeys.has(mediaKey('movie', m.id))}
+                watched={watchedKeys.has(mediaKey(m.media_type, m.id))}
                 canMark={!!user}
-                onToggleWatched={(mv) => toggleWatched({ id: mv.id, media_type: 'movie', title: mv.title, poster_path: mv.poster_path })}
-                onOpen={(mv) => navigate(`/movie/${mv.id}`)}
+                onToggleWatched={(mv) => toggleWatched({ id: mv.id, media_type: m.media_type, title: mv.title, poster_path: mv.poster_path })}
+                onOpen={(mv) => navigate(m.media_type === 'tv' ? `/tv/${mv.id}` : `/movie/${mv.id}`)}
               />
               <button
-                onClick={() => onRemoveItem(m.id)}
+                onClick={() => onRemoveItem(m.id, m.media_type)}
                 className="absolute top-2 right-2 hidden group-hover:flex items-center justify-center w-7 h-7 rounded-full bg-black/70 text-white hover:bg-red-500/80 text-sm"
                 title={t('lists.removeItem')}
               >

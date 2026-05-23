@@ -125,7 +125,7 @@ export function MovieDetailPage() {
             </button>
             {user && (
               <div className="col-span-2 sm:col-auto">
-                <AddToListMenu tmdbId={d.id} title={displayTitle} posterPath={d.poster_path} />
+                <AddToListMenu tmdbId={d.id} mediaType="movie" title={displayTitle} posterPath={d.poster_path} />
               </div>
             )}
           </div>

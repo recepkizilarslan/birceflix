@@ -34,10 +34,11 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 /** GET /api/watched-episodes returns a paginated envelope
- *  (`{items, page, limit}`). The UI doesn't paginate yet, so we ask for
- *  the backend's max page size and unwrap items. */
+ *  (`{items, page, limit, total}`). The UI doesn't paginate yet, so we ask
+ *  for the backend's max page size and unwrap items. `total` is the count
+ *  of distinct shows; useful once the UI grows infinite scroll. */
 export async function listWatchedShows(): Promise<WatchedShowSummary[]> {
-  const body = await json<{ items: WatchedShowSummary[]; page: number; limit: number }>(
+  const body = await json<{ items: WatchedShowSummary[]; page: number; limit: number; total: number }>(
     await fetch('/api/watched-episodes?limit=100', { credentials: 'include' }),
   )
   return body.items

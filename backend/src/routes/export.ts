@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { asc, desc, eq } from 'drizzle-orm'
+import { asc, desc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import {
   listItems,
@@ -71,31 +71,44 @@ export async function exportRoutes(app: FastifyInstance) {
     ])
 
     // Hydrate list items for each list.
-    const listsWithItems = await Promise.all(
-      ls.map(async (l) => {
-        const items = await db
+    //
+    // Used to be Promise.all over `ls`, issuing one SELECT per list — N+1 in
+    // DB roundtrips for a user with many lists. Now: single query joining
+    // by listId IN (ids), then group by listId in JS. One roundtrip instead
+    // of N. Empty-lists case handled separately (IN () is a syntax error).
+    const listIds = ls.map((l) => l.id)
+    const allItems = listIds.length === 0
+      ? []
+      : await db
           .select()
           .from(listItems)
-          .where(eq(listItems.listId, l.id))
+          .where(inArray(listItems.listId, listIds))
           .orderBy(asc(listItems.position), asc(listItems.addedAt))
-        return {
-          id: l.id,
-          name: l.name,
-          description: l.description,
-          is_public: l.isPublic,
-          public_slug: l.publicSlug,
-          created_at: l.createdAt.toISOString(),
-          updated_at: l.updatedAt.toISOString(),
-          items: items.map((i) => ({
-            tmdb_id: i.tmdbId,
-            title: i.title,
-            poster_path: i.posterPath,
-            position: i.position,
-            added_at: i.addedAt.toISOString(),
-          })),
-        }
-      }),
-    )
+
+    const itemsByListId = new Map<string, typeof allItems>()
+    for (const it of allItems) {
+      const bucket = itemsByListId.get(it.listId) ?? []
+      bucket.push(it)
+      itemsByListId.set(it.listId, bucket)
+    }
+
+    const listsWithItems = ls.map((l) => ({
+      id: l.id,
+      name: l.name,
+      description: l.description,
+      is_public: l.isPublic,
+      public_slug: l.publicSlug,
+      created_at: l.createdAt.toISOString(),
+      updated_at: l.updatedAt.toISOString(),
+      items: (itemsByListId.get(l.id) ?? []).map((i) => ({
+        tmdb_id: i.tmdbId,
+        media_type: i.mediaType,
+        title: i.title,
+        poster_path: i.posterPath,
+        position: i.position,
+        added_at: i.addedAt.toISOString(),
+      })),
+    }))
 
     const payload = {
       schema_version: 1,

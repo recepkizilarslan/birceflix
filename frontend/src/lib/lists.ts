@@ -13,6 +13,10 @@ export interface ListSummary {
 export interface ListItem {
   list_id: string
   tmdb_id: number
+  /** 'movie' | 'tv'. Drives detail-page routing — without this a TV-show
+   * tmdb_id would silently navigate to /movie/<same id>, which is a
+   * completely different work in TMDB's namespace. */
+  media_type: 'movie' | 'tv'
   title: string
   poster_path: string | null
   position: number
@@ -76,7 +80,12 @@ export async function deleteList(id: string): Promise<void> {
 
 export async function addToList(
   listId: string,
-  item: { tmdb_id: number; title: string; poster_path?: string | null },
+  item: {
+    tmdb_id: number
+    media_type: 'movie' | 'tv'
+    title: string
+    poster_path?: string | null
+  },
 ): Promise<void> {
   await json<{ ok: true }>(await fetch(`/api/lists/${listId}/items`, {
     method: 'POST',
@@ -86,8 +95,15 @@ export async function addToList(
   }))
 }
 
-export async function removeFromList(listId: string, tmdbId: number): Promise<void> {
-  await json<{ ok: true }>(await fetch(`/api/lists/${listId}/items/${tmdbId}`, {
+export async function removeFromList(
+  listId: string,
+  tmdbId: number,
+  mediaType: 'movie' | 'tv',
+): Promise<void> {
+  // media_type goes in the query string so the URL stays clean; the backend
+  // needs it because (list_id, tmdb_id, media_type) is the composite key.
+  const qs = new URLSearchParams({ media_type: mediaType })
+  await json<{ ok: true }>(await fetch(`/api/lists/${listId}/items/${tmdbId}?${qs}`, {
     method: 'DELETE',
     credentials: 'include',
   }))
