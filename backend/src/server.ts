@@ -13,6 +13,7 @@ import services from './plugins/services.js'
 import { authRoutes } from './auth/routes.js'
 import { discoverRoutes } from './routes/discover.js'
 import { searchRoutes } from './routes/search.js'
+import { peopleRoutes } from './routes/people.js'
 import { movieRoutes } from './routes/movie.js'
 import { metaRoutes } from './routes/meta.js'
 import { watchedRoutes } from './routes/watched.js'
@@ -73,6 +74,7 @@ async function build() {
   await app.register(authRoutes)
   await app.register(discoverRoutes)
   await app.register(searchRoutes)
+  await app.register(peopleRoutes)
   await app.register(movieRoutes)
   await app.register(metaRoutes)
   await app.register(watchedRoutes)

@@ -333,7 +333,7 @@ export function Discover() {
                 className={`flex-1 text-sm py-2 rounded-lg transition font-medium ${
                   active
                     ? 'bg-[var(--color-accent)] text-black'
-                    : 'text-[var(--color-text-dim)] hover:text-white'
+                    : 'text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
                 }`}
               >
                 {t(`filters.mediaTypes.${mt}`)}
@@ -725,6 +725,7 @@ async function runDiscoverRequest(mediaType: MediaType, f: FilterState, page: nu
       seasons_to: typeof f.seasons_to === 'number' ? f.seasons_to : undefined,
       episodes_from: typeof f.episodes_from === 'number' ? f.episodes_from : undefined,
       episodes_to: typeof f.episodes_to === 'number' ? f.episodes_to : undefined,
+      with_people: f.with_people.length ? f.with_people : undefined,
       sort_by: f.sort_by,
       page,
       watched_filter: f.watched_filter,
@@ -745,6 +746,7 @@ async function runDiscoverRequest(mediaType: MediaType, f: FilterState, page: nu
     watch_region: f.with_watch_providers.length ? f.watch_region : undefined,
     runtime_from: typeof f.runtime_from === 'number' ? f.runtime_from : undefined,
     runtime_to: typeof f.runtime_to === 'number' ? f.runtime_to : undefined,
+    with_people: f.with_people.length ? f.with_people : undefined,
     sort_by: f.sort_by,
     page,
     watched_filter: f.watched_filter,

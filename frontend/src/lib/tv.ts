@@ -106,6 +106,8 @@ export interface DiscoverTvFilters {
   seasons_to?: number
   episodes_from?: number
   episodes_to?: number
+  /** See lib/api.ts DiscoverFilters for the with_people semantics. */
+  with_people?: number[]
   sort_by?: string
   page?: number
   /** See lib/api.ts DiscoverFilters for the semantics. */
@@ -139,6 +141,7 @@ export function discoverTv(f: DiscoverTvFilters): Promise<DiscoverTvResponse> {
   set('seasons_to', f.seasons_to?.toString())
   set('episodes_from', f.episodes_from?.toString())
   set('episodes_to', f.episodes_to?.toString())
+  if (f.with_people?.length) set('with_people', f.with_people.join(','))
   set('sort_by', f.sort_by)
   set('page', f.page?.toString())
   set('ui_language', intlLocale())

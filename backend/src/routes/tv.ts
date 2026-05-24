@@ -40,6 +40,9 @@ const discoverQuery = z.object({
   watch_region: z.string().optional(),
   runtime_from: z.coerce.number().optional(),
   runtime_to: z.coerce.number().optional(),
+  /** Comma-separated TMDB person IDs; see routes/discover.ts for the
+   *  with_people semantics (AND across the list). */
+  with_people: z.string().optional(),
   // Post-filter (TMDB doesn't natively filter by total season/episode counts)
   seasons_from: z.coerce.number().int().min(0).optional(),
   seasons_to: z.coerce.number().int().min(0).optional(),
@@ -201,6 +204,7 @@ export async function tvRoutes(app: FastifyInstance) {
       if (q.origin_country) ignored.push('origin_country')
       if (q.seasons_from != null || q.seasons_to != null) ignored.push('seasons')
       if (q.episodes_from != null || q.episodes_to != null) ignored.push('episodes')
+      if (q.with_people) ignored.push('with_people')
       if (q.sort_by && q.sort_by !== 'popularity.desc') ignored.push('sort_by')
 
       return {
@@ -248,6 +252,7 @@ export async function tvRoutes(app: FastifyInstance) {
       watch_region: q.watch_region,
       'with_runtime.gte': q.runtime_from?.toString(),
       'with_runtime.lte': q.runtime_to?.toString(),
+      with_people: q.with_people,
       include_adult: 'false',
     })
 

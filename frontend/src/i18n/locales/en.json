@@ -67,6 +67,11 @@
     "regionHint": "Used for watch providers and the calendar",
     "open": "Preferences"
   },
+  "theme": {
+    "toggle": "Toggle theme",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme"
+  },
   "discover": {
     "results": "{{total}} results",
     "loadedOf": "Showing {{loaded}} of {{total}}",
@@ -88,6 +93,11 @@
     "minRating": "Min. rating",
     "minRatingHint": "TMDB-based. IMDB rating shows on cards and the detail page.",
     "genres": "Genres",
+    "people": "People",
+    "peoplePlaceholder": "Search actor, director, writer…",
+    "peopleLoading": "Searching…",
+    "peopleNoResults": "No people match.",
+    "peopleRemove": "Remove person",
     "platforms": "Platforms",
     "platformLoading": "Loading…",
     "platformNone": "No platforms for this region.",
