@@ -26,6 +26,7 @@ import { getTop } from '../lib/topCache.js'
 import { env } from '../env.js'
 import { uiLanguageSchema } from '../lib/locale.js'
 import { tmdb } from '../lib/tmdb.js'
+import { rlRead, rlWrite } from '../lib/rateLimit.js'
 
 // ---------------------------------------------------------------------------
 // Category definitions
@@ -165,7 +166,8 @@ function currentDuel(remaining: number[]): [number, number] | null {
 // ---------------------------------------------------------------------------
 export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/categories ─────────────────────────────────────────────
-  app.get('/api/quiz/categories', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/categories', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     void userId // auth check only
 
@@ -222,7 +224,8 @@ export async function quizRoutes(app: FastifyInstance) {
     platform_id: z.coerce.number().int().positive().optional(),
   })
 
-  app.post('/api/quiz/sessions', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const body = createSchema.parse(req.body)
 
@@ -280,7 +283,8 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id ───────────────────────────────────────────
-  app.get('/api/quiz/sessions/:id', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -301,7 +305,8 @@ export async function quizRoutes(app: FastifyInstance) {
     loser: z.number().int().positive(),
   })
 
-  app.post('/api/quiz/sessions/:id/vote', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions/:id/vote', rlWrite, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
     const body = voteSchema.parse(req.body)
@@ -406,7 +411,8 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── Lightweight metadata fetch for missing items (docs, platform filters) ──
-  app.post('/api/quiz/metadata', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/metadata', rlRead, async (req) => {
     const body = z.object({
       items: z.array(z.object({ id: z.number(), type: z.enum(['movie', 'tv']) })),
       language: uiLanguageSchema,
@@ -433,7 +439,8 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
-  app.get('/api/quiz/sessions/:id/result', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id/result', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -457,7 +464,8 @@ export async function quizRoutes(app: FastifyInstance) {
     media_type: z.enum(['movie', 'tv', 'doc']).default('movie'),
   })
 
-  app.get('/api/quiz/stats', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/stats', rlRead, async (req) => {
     await app.requireAuth(req)
     const { a, b, media_type } = statsSchema.parse(req.query)
     const [statA, statB] = orderedPair(a, b)
@@ -492,7 +500,8 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // ── GET /api/quiz/history ────────────────────────────────────────────────
   // Returns the user's completed sessions (most recent first).
-  app.get('/api/quiz/history', async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/history', rlRead, async (req) => {
     const userId = await app.requireAuth(req)
 
     const rows = await db
