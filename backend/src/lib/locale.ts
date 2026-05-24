@@ -11,7 +11,7 @@ import { z } from 'zod'
  * - Header smuggling — even though TMDB doesn't dispatch on full locale
  *   strings the way HTTP does, defense-in-depth is cheap here.
  */
-const SUPPORTED_UI_LANGUAGES = ['en-US', 'tr-TR', 'de-DE', 'it-IT', 'pl-PL', 'es-ES'] as const
+const SUPPORTED_UI_LANGUAGES = ['en-US', 'tr-TR', 'de-DE', 'it-IT', 'pl-PL', 'es-ES', 'pt-BR'] as const
 
 export const uiLanguageSchema = z
   .enum(SUPPORTED_UI_LANGUAGES)
