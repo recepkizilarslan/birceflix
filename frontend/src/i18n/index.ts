@@ -7,6 +7,7 @@ import de from './locales/de.json'
 import it from './locales/it.json'
 import pl from './locales/pl.json'
 import es from './locales/es.json'
+import pt from './locales/pt.json'
 
 void i18n
   .use(LanguageDetector)
@@ -19,9 +20,10 @@ void i18n
       it: { translation: it },
       pl: { translation: pl },
       es: { translation: es },
+      pt: { translation: pt },
     },
     fallbackLng: 'tr',
-    supportedLngs: ['tr', 'en', 'de', 'it', 'pl', 'es'],
+    supportedLngs: ['tr', 'en', 'de', 'it', 'pl', 'es', 'pt'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
@@ -42,6 +44,7 @@ export function intlLocale(): string {
   if (lng.startsWith('it')) return 'it-IT'
   if (lng.startsWith('pl')) return 'pl-PL'
   if (lng.startsWith('es')) return 'es-ES'
+  if (lng.startsWith('pt')) return 'pt-BR'
   return 'tr-TR'
 }
 
