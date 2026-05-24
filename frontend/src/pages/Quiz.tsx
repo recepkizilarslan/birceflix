@@ -34,23 +34,23 @@ interface FilterPreset {
 }
 
 const MOVIE_FILTERS: FilterPreset[] = [
-  { id: 'top16',    label: 'Top 16',         bracket_size: 16, description: 'En yüksek puanlı 16 film' },
-  { id: 'top32',    label: 'Top 32',         bracket_size: 32, description: 'En yüksek puanlı 32 film' },
-  { id: 'top64',    label: 'Top 64',         bracket_size: 64, description: 'En yüksek puanlı 64 film' },
+  { id: 'top16',    label: 'Top 16',         bracket_size: 16, description: 'quiz.filterMovies' },
+  { id: 'top32',    label: 'Top 32',         bracket_size: 32, description: 'quiz.filterMovies' },
+  { id: 'top64',    label: 'Top 64',         bracket_size: 64, description: 'quiz.filterMovies' },
   { id: 'netflix',  label: 'Netflix',        bracket_size: 32, platform_id: 8,   description: 'Netflix filmler' },
   { id: 'prime',    label: 'Prime Video',    bracket_size: 32, platform_id: 9,   description: 'Amazon Prime filmler' },
   { id: 'disney',   label: 'Disney+',        bracket_size: 32, platform_id: 337, description: 'Disney+ filmler' },
 ]
 const TV_FILTERS: FilterPreset[] = [
-  { id: 'top16',    label: 'Top 16',      bracket_size: 16, description: 'En yüksek puanlı 16 dizi' },
-  { id: 'top32',    label: 'Top 32',      bracket_size: 32, description: 'En yüksek puanlı 32 dizi' },
-  { id: 'top64',    label: 'Top 64',      bracket_size: 64, description: 'En yüksek puanlı 64 dizi' },
+  { id: 'top16',    label: 'Top 16',      bracket_size: 16, description: 'quiz.filterTv' },
+  { id: 'top32',    label: 'Top 32',      bracket_size: 32, description: 'quiz.filterTv' },
+  { id: 'top64',    label: 'Top 64',      bracket_size: 64, description: 'quiz.filterTv' },
   { id: 'netflix',  label: 'Netflix',     bracket_size: 32, platform_id: 8,   description: 'Netflix diziler' },
   { id: 'prime',    label: 'Prime Video', bracket_size: 32, platform_id: 9,   description: 'Amazon Prime diziler' },
 ]
 const DOC_FILTERS: FilterPreset[] = [
-  { id: 'top16',    label: 'Top 16',  bracket_size: 16, description: 'En yüksek puanlı 16 belgesel' },
-  { id: 'top32',    label: 'Top 32',  bracket_size: 32, description: 'En yüksek puanlı 32 belgesel' },
+  { id: 'top16',    label: 'Top 16',  bracket_size: 16, description: 'quiz.filterDocs' },
+  { id: 'top32',    label: 'Top 32',  bracket_size: 32, description: 'quiz.filterDocs' },
   { id: 'netflix',  label: 'Netflix', bracket_size: 16, platform_id: 8, description: 'Netflix belgeseller' },
 ]
 const FILTER_MAP: Record<string, FilterPreset[]> = {
@@ -249,9 +249,9 @@ export function QuizPage() {
                 {selectedFilter?.description ?? ''}
               </p>
               <div className="flex items-center gap-3 mt-4 text-white/60 text-xs">
-                <span>{selectedFilter?.bracket_size ?? '?'} içerik</span>
+                <span>{t('quiz.itemsCount', { count: selectedFilter?.bracket_size ?? '?' })}</span>
                 <span>·</span>
-                <span>{(selectedFilter?.bracket_size ?? 1) - 1} maç</span>
+                <span>{t('quiz.matchesCount', { count: (selectedFilter?.bracket_size ?? 1) - 1 })}</span>
               </div>
             </div>
           </div>
@@ -262,8 +262,8 @@ export function QuizPage() {
             {active && (
               <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
                 <div>
-                  <p className="text-orange-400 text-sm font-bold">Kaldığın yerden devam et</p>
-                  <p className="text-white/50 text-xs mt-0.5">Tur {active.current_round} · {active.remaining_count} içerik kaldı</p>
+                  <p className="text-orange-400 text-sm font-bold">{t('quiz.resumeHint')}</p>
+                  <p className="text-white/50 text-xs mt-0.5">{t('quiz.resumeItemsLeft', { round: active.current_round, count: active.remaining_count })}</p>
                 </div>
                 <button
                   onClick={() => handleStartSession(true)}
@@ -297,7 +297,7 @@ export function QuizPage() {
                     )}
                     <div>
                       <p className="text-sm font-semibold leading-tight">{f.label}</p>
-                      <p className="text-xs opacity-60">{f.bracket_size} içerik</p>
+                      <p className="text-xs opacity-60">{t('quiz.itemsCount', { count: f.bracket_size })}</p>
                     </div>
                   </button>
                 ))}
@@ -308,7 +308,7 @@ export function QuizPage() {
             {selectedFilter && (
               <div className="px-4 py-3 rounded-xl bg-[var(--color-surface-2)]/60 text-xs text-[var(--color-text-dim)]">
                 <span className="font-semibold text-[var(--color-text)]">{selectedFilter.label}</span>
-                {' · '}{selectedFilter.bracket_size} içerik · {selectedFilter.bracket_size - 1} 1v1 maç
+                {' · '}{t('quiz.itemsCount', { count: selectedFilter.bracket_size })} {' · '} {t('quiz.matchesCount', { count: selectedFilter.bracket_size - 1 })}
               </div>
             )}
 
@@ -319,7 +319,7 @@ export function QuizPage() {
               className="mt-auto w-full py-4 rounded-xl bg-[var(--color-brand)] text-white font-black text-lg hover:opacity-90 transition disabled:opacity-50 shadow-lg shadow-[var(--color-brand)]/30"
               style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.08em' }}
             >
-              {starting ? 'Yükleniyor…' : '🏆  BAŞLA'}
+              {starting ? t('common.loading') : t('quiz.startBtn')}
             </button>
           </div>
         </div>
@@ -334,7 +334,7 @@ export function QuizPage() {
         <h1 className="text-5xl sm:text-7xl font-black text-[var(--color-text)] mb-2" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.06em' }}>
           BIRCERANK
         </h1>
-        <p className="text-[var(--color-text-dim)] text-sm">Kategori seç, filtrele ve şampiyonu bul</p>
+        <p className="text-[var(--color-text-dim)] text-sm">{t('quiz.pageSubtitle')}</p>
       </div>
 
       {loadingCats ? (
@@ -343,10 +343,10 @@ export function QuizPage() {
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.3" />
             <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
           </svg>
-          Yükleniyor…
+          {t('common.loading')}
         </div>
       ) : catError ? (
-        <p className="text-center text-[var(--color-text-dim)] py-24">Kategoriler yüklenemedi.</p>
+        <p className="text-center text-[var(--color-text-dim)] py-24">{t('quiz.failedLoad')}</p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-3">
           {categories.map((cat) => {
@@ -367,7 +367,7 @@ export function QuizPage() {
                     <h3 className="text-3xl sm:text-4xl font-black text-white leading-tight" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.04em' }}>
                       {cat.label_tr}
                     </h3>
-                    <p className="text-white/60 text-sm mt-1">{cat.max_items} içerikten seç</p>
+                    <p className="text-white/60 text-sm mt-1">{t('quiz.selectFromItems', { count: cat.max_items })}</p>
                   </div>
                   {active && (
                     <div className="inline-flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/15 px-2.5 py-1 rounded-full border border-orange-500/30 w-fit">
@@ -377,7 +377,7 @@ export function QuizPage() {
                   )}
                   <div className="flex items-center gap-1.5 text-white font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <Crown size={14} className="text-yellow-400" />
-                    Turnuvayı başlat →
+                    {t('quiz.startTourney')}
                   </div>
                 </div>
               </button>

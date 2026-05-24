@@ -64,13 +64,13 @@ export function QuizDuel({ session, itemMap, onSessionUpdate }: QuizDuelProps) {
           {t('quiz.pickOne')}
         </p>
         <div className="flex items-center gap-2 text-xs text-[var(--color-text-dim)]">
-          <span>Tur {currentRound}</span>
+          <span>{t('quiz.round', { round: currentRound })}</span>
           <span>·</span>
-          <span>{remaining.length} kaldı</span>
+          <span>{t('quiz.remaining', { count: remaining.length })}</span>
           {totalMatchups > 0 && (
             <>
               <span>·</span>
-              <span>{doneMatchups}/{totalMatchups} tamamlandı</span>
+              <span>{t('quiz.completedMatches', { done: doneMatchups, total: totalMatchups })}</span>
             </>
           )}
         </div>

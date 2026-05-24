@@ -166,7 +166,9 @@ function currentDuel(remaining: number[]): [number, number] | null {
 // ---------------------------------------------------------------------------
 export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/categories ─────────────────────────────────────────────
-  app.get('/api/quiz/categories', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/categories', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     void userId // auth check only
 
@@ -223,7 +225,9 @@ export async function quizRoutes(app: FastifyInstance) {
     platform_id: z.coerce.number().int().positive().optional(),
   })
 
-  app.post('/api/quiz/sessions', { config: rlWrite.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions', rlWrite, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const body = createSchema.parse(req.body)
 
@@ -281,7 +285,9 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id ───────────────────────────────────────────
-  app.get('/api/quiz/sessions/:id', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -302,7 +308,9 @@ export async function quizRoutes(app: FastifyInstance) {
     loser: z.number().int().positive(),
   })
 
-  app.post('/api/quiz/sessions/:id/vote', { config: rlWrite.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions/:id/vote', rlWrite, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
     const body = voteSchema.parse(req.body)
@@ -348,66 +356,72 @@ export async function quizRoutes(app: FastifyInstance) {
     const roundJustCompleted = nextLen > 0 && prevLen % 2 === 0 && nextLen === prevLen / 2
     const newRound = roundJustCompleted ? session.currentRound + 1 : session.currentRound
 
-    // Record the vote
-    await db.insert(quizVotes).values({
-      sessionId: session.id,
-      userId,
-      round: session.currentRound,
-      candidateA: candA,
-      candidateB: candB,
-      winner,
+    const updated = await db.transaction(async (tx) => {
+      // Record the vote
+      await tx.insert(quizVotes).values({
+        sessionId: session.id,
+        userId,
+        round: session.currentRound,
+        candidateA: candA,
+        candidateB: candB,
+        winner,
+      })
+
+      // Update global stats (candidate_a < candidate_b invariant)
+      const [statA, statB] = orderedPair(candA, candB)
+      const mediaType =
+        CATEGORIES.find((c) => c.id === session.category)?.mediaType ?? 'movie'
+
+      await tx
+        .insert(quizGlobalStats)
+        .values({
+          candidateA: statA,
+          candidateB: statB,
+          mediaType,
+          winsA: winner === statA ? 1 : 0,
+          winsB: winner === statB ? 1 : 0,
+        })
+        .onConflictDoUpdate({
+          target: [quizGlobalStats.candidateA, quizGlobalStats.candidateB, quizGlobalStats.mediaType],
+          set: {
+            winsA: sql`${quizGlobalStats.winsA} + ${winner === statA ? 1 : 0}`,
+            winsB: sql`${quizGlobalStats.winsB} + ${winner === statB ? 1 : 0}`,
+            updatedAt: sql`now()`,
+          },
+        })
+
+      // Check if tournament is over
+      const isComplete = newRemaining.length === 1
+      const winnerId = isComplete ? newRemaining[0]! : null
+
+      // Update session
+      const [res] = await tx
+        .update(quizSessions)
+        .set({
+          remaining: newRemaining,
+          eliminated: newEliminated,
+          currentRound: newRound,
+          ...(isComplete
+            ? {
+              winnerId,
+              completedAt: new Date(),
+            }
+            : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(quizSessions.id, id))
+        .returning()
+      
+      return res
     })
-
-    // Update global stats (candidate_a < candidate_b invariant)
-    const [statA, statB] = orderedPair(candA, candB)
-    const mediaType =
-      CATEGORIES.find((c) => c.id === session.category)?.mediaType ?? 'movie'
-
-    await db
-      .insert(quizGlobalStats)
-      .values({
-        candidateA: statA,
-        candidateB: statB,
-        mediaType,
-        winsA: winner === statA ? 1 : 0,
-        winsB: winner === statB ? 1 : 0,
-      })
-      .onConflictDoUpdate({
-        target: [quizGlobalStats.candidateA, quizGlobalStats.candidateB, quizGlobalStats.mediaType],
-        set: {
-          winsA: sql`${quizGlobalStats.winsA} + ${winner === statA ? 1 : 0}`,
-          winsB: sql`${quizGlobalStats.winsB} + ${winner === statB ? 1 : 0}`,
-          updatedAt: sql`now()`,
-        },
-      })
-
-    // Check if tournament is over
-    const isComplete = newRemaining.length === 1
-    const winnerId = isComplete ? newRemaining[0]! : null
-
-    // Update session
-    const [updated] = await db
-      .update(quizSessions)
-      .set({
-        remaining: newRemaining,
-        eliminated: newEliminated,
-        currentRound: newRound,
-        ...(isComplete
-          ? {
-            winnerId,
-            completedAt: new Date(),
-          }
-          : {}),
-        updatedAt: new Date(),
-      })
-      .where(eq(quizSessions.id, id))
-      .returning()
 
     return updated
   })
 
   // ── Lightweight metadata fetch for missing items (docs, platform filters) ──
-  app.post('/api/quiz/metadata', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/metadata', rlRead, async (req) => {
+    await app.requireAuth(req)
     const body = z.object({
       items: z.array(z.object({ id: z.number(), type: z.enum(['movie', 'tv']) })),
       language: uiLanguageSchema,
@@ -434,7 +448,9 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
-  app.get('/api/quiz/sessions/:id/result', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id/result', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -458,7 +474,9 @@ export async function quizRoutes(app: FastifyInstance) {
     media_type: z.enum(['movie', 'tv', 'doc']).default('movie'),
   })
 
-  app.get('/api/quiz/stats', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/stats', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     await app.requireAuth(req)
     const { a, b, media_type } = statsSchema.parse(req.query)
     const [statA, statB] = orderedPair(a, b)
@@ -493,7 +511,9 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // ── GET /api/quiz/history ────────────────────────────────────────────────
   // Returns the user's completed sessions (most recent first).
-  app.get('/api/quiz/history', { config: rlRead.config }, async (req) => {
+  // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/history', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
 
     const rows = await db

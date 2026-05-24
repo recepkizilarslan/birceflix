@@ -38,7 +38,7 @@ export function QuizResult({ session, itemMap, onPlayAgain }: QuizResultProps) {
           {t('quiz.resultTitle')}
         </h1>
         <p className="text-[var(--color-text-dim)] text-sm">
-          {session.categoryLabel} · {session.totalItems} içerik · {session.currentRound} tur
+          {session.categoryLabel} · {t('quiz.itemsCount', { count: session.totalItems })} · {session.currentRound} {t('quiz.roundSub')}
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export function QuizResult({ session, itemMap, onPlayAgain }: QuizResultProps) {
       {/* Full ranking */}
       {rankedIds.length > 3 && (
         <div className="mb-8">
-          <h2 className="text-[var(--color-text-dim)] text-xs font-semibold uppercase tracking-widest mb-3 px-1">Tam Sıralama</h2>
+          <h2 className="text-[var(--color-text-dim)] text-xs font-semibold uppercase tracking-widest mb-3 px-1">{t('quiz.fullRanking')}</h2>
           <div className="flex flex-col gap-1.5">
             {rankedIds.slice(3).map((id, idx) => {
               const item = getItem(id)

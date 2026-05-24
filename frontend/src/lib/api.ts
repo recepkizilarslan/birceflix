@@ -190,7 +190,7 @@ export function logo(path: string | null | undefined, size: 'w45' | 'w92' | 'ori
 async function get<T>(path: string, params: Record<string, string | undefined> = {}): Promise<T> {
   const u = new URL(path, window.location.origin)
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') u.searchParams.set(k, v)
-  const res = await fetch(u.pathname + u.search)
+  const res = await fetch(u.pathname + u.search, { credentials: 'include' })
   if (!res.ok) throw new Error(`${path} -> ${res.status}`)
   return res.json() as Promise<T>
 }
@@ -381,6 +381,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(body),
   })
   if (!res.ok) {
