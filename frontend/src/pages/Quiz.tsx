@@ -76,7 +76,7 @@ const CAT_CFG: Record<string, { gradient: string; accent: string; img: string }>
   top_docs: {
     gradient: 'from-teal-950/60 via-teal-900/40 to-black/90',
     accent: '#14b8a6',
-    img: 'https://image.tmdb.org/t/p/w780/vF5ZgB987l2gGZJ3Kq7z4xW2E3r.jpg',
+    img: 'https://image.tmdb.org/t/p/w780/8rft8A9nH43IReybFtYt21ezfMK.jpg',
   },
 }
 
