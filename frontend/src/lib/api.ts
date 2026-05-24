@@ -429,5 +429,9 @@ export function getQuizStats(a: number, b: number, mediaType: QuizMediaType = 'm
 }
 
 export function getQuizHistory() {
-  return get<QuizHistoryItem[]>('/api/quiz/history')
+  return get<QuizSession[]>('/api/quiz/history')
+}
+
+export function getQuizMetadata(items: { id: number, type: 'movie'|'tv' }[]) {
+  return post<{ id: number, title: string, poster_path: string | null, year: string | null }[]>('/api/quiz/metadata', { items, language: intlLocale() })
 }

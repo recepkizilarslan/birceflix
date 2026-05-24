@@ -405,6 +405,33 @@ export async function quizRoutes(app: FastifyInstance) {
     return updated
   })
 
+  // ── Lightweight metadata fetch for missing items (docs, platform filters) ──
+  app.post('/api/quiz/metadata', async (req) => {
+    const body = z.object({
+      items: z.array(z.object({ id: z.number(), type: z.enum(['movie', 'tv']) })),
+      language: uiLanguageSchema,
+    }).parse(req.body)
+
+    const results = await Promise.allSettled(
+      body.items.map(async (item) => {
+        const detail = await tmdb<any>(`/${item.type}/${item.id}`, { language: body.language })
+        const title = detail.title || detail.name || `#${item.id}`
+        const date = detail.release_date || detail.first_air_date || null
+        const year = date ? date.split('-')[0] : null
+        return {
+          id: item.id,
+          title,
+          poster_path: detail.poster_path || null,
+          year,
+        }
+      })
+    )
+
+    return results
+      .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+      .map(r => r.value)
+  })
+
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
   app.get('/api/quiz/sessions/:id/result', async (req) => {
     const userId = await app.requireAuth(req)

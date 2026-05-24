@@ -10,8 +10,7 @@ import {
   createQuizSession,
   top,
   poster,
-  movieDetail,
-  tvDetail,
+  getQuizMetadata,
   type QuizCategory,
   type QuizSession,
   type QuizMediaType,
@@ -123,22 +122,19 @@ export function QuizPage() {
     const missingIds = allIds.filter(id => !map.has(id))
     
     if (missingIds.length > 0) {
-      const fetchFn = mediaType === 'tv' ? tvDetail : movieDetail
-      // Fetch details in parallel (max 32-64 items, backend caching will handle it gracefully)
-      await Promise.all(
-        missingIds.map(async (id) => {
-          try {
-            const detail = await fetchFn(id, region ?? 'TR')
-            const title = detail.title || detail.name || `#${id}`
-            const date = detail.release_date || detail.first_air_date || null
-            const year = date ? date.split('-')[0] : null
-            map.set(id, { title, poster_path: detail.poster_path || null, year })
-          } catch (err) {
-            console.warn(`Failed to fetch metadata for ${mediaType} ${id}`)
-            map.set(id, { title: `#${id}`, poster_path: null, year: null })
-          }
-        })
-      )
+      try {
+        const metadata = await getQuizMetadata(missingIds.map(id => ({ id, type: mediaType })))
+        for (const meta of metadata) {
+          map.set(meta.id, { title: meta.title, poster_path: meta.poster_path, year: meta.year })
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch batch metadata`, err)
+      }
+      
+      // Fallback for any still missing
+      for (const id of missingIds) {
+        if (!map.has(id)) map.set(id, { title: `#${id}`, poster_path: null, year: null })
+      }
     }
 
     return map
