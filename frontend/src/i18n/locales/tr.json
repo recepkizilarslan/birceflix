@@ -9,7 +9,7 @@
     "lists": "Listelerim",
     "import": "İçe / Dışa aktar",
     "menu": "Menü",
-    "quiz": "Turnuva"
+    "quiz": "BirceRank"
   },
   "auth": {
     "signIn": "Google ile giriş",
@@ -393,6 +393,8 @@
     "mediaMovie": "Film",
     "mediaTv": "Dizi",
     "mediaDoc": "Belgesel",
-    "items": "{{count}} içerik"
+    "items": "{{count}} içerik",
+    "matchupsDone": "maçup tamamlandı",
+    "fullRanking": "Tam sıralama"
   }
 }

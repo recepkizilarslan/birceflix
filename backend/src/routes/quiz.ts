@@ -194,9 +194,9 @@ export async function quizRoutes(app: FastifyInstance) {
     category: z.string(),
     region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
     ui_language: uiLanguageSchema,
-    /** If true, return the active unfinished session for this category
-     *  instead of creating a new one. */
     resume: z.coerce.boolean().default(false),
+    /** Optional bracket size override. Must be a power of 2. */
+    bracket_size: z.coerce.number().int().positive().optional(),
   })
 
   app.post('/api/quiz/sessions', async (req) => {
@@ -226,7 +226,8 @@ export async function quizRoutes(app: FastifyInstance) {
 
     // New session: fetch ids, shuffle, size the bracket.
     const allIds = await fetchCategoryIds(cat, body.region.toUpperCase(), body.ui_language, app.log)
-    const bracketSize = nearestPow2(allIds.length, cat.maxItems)
+    const requestedSize = body.bracket_size ?? cat.maxItems
+    const bracketSize = nearestPow2(Math.min(allIds.length, requestedSize), cat.maxItems)
     // Shuffle then take bracketSize items so the bracket is random each time.
     const remaining = shuffle(allIds.slice()).slice(0, bracketSize)
 

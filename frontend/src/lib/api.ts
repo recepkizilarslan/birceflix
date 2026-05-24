@@ -391,13 +391,14 @@ export function listQuizCategories() {
 
 export function createQuizSession(
   category: string,
-  opts: { region?: string; ui_language?: string; resume?: boolean } = {},
+  opts: { region?: string; ui_language?: string; resume?: boolean; bracket_size?: number } = {},
 ) {
   return post<QuizSession>('/api/quiz/sessions', {
     category,
     region: opts.region ?? 'TR',
     ui_language: opts.ui_language ?? intlLocale(),
     resume: opts.resume ?? false,
+    bracket_size: opts.bracket_size,
   })
 }
 
