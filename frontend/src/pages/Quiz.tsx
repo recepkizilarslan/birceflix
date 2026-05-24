@@ -9,11 +9,9 @@ import {
   listQuizCategories,
   createQuizSession,
   top,
-  poster,
   getQuizMetadata,
   type QuizCategory,
   type QuizSession,
-  type QuizMediaType,
 } from '../lib/api'
 import { QuizDuel } from '../components/quiz/QuizDuel'
 import { QuizResult } from '../components/quiz/QuizResult'

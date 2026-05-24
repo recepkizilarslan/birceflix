@@ -83,7 +83,7 @@ export function QuizResult({ session, itemMap, onPlayAgain }: QuizResultProps) {
           <div className="flex flex-col gap-1.5">
             {rankedIds.slice(3).map((id, idx) => {
               const item = getItem(id)
-              const imgSrc = item.poster_path ? poster(item.poster_path, 'w92') : null
+              const imgSrc = item.poster_path ? poster(item.poster_path, 'w185') : null
               return (
                 <div key={id} className="flex items-center gap-3 rounded-xl px-3 py-2 bg-[var(--color-surface-2)]/60 hover:bg-[var(--color-surface-2)] transition-colors">
                   <span className="w-7 text-center text-[var(--color-text-dim)] text-sm font-bold tabular-nums shrink-0">{idx + 4}</span>
