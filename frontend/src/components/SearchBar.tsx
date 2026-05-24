@@ -66,7 +66,7 @@ export function SearchBar({ value, onSearch, onClear, mediaType }: Props) {
             type="button"
             onClick={clear}
             aria-label={t('search.clear')}
-            className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-[var(--color-text-dim)] hover:text-white hover:bg-[var(--color-surface-2)]"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
           >
             ✕
           </button>

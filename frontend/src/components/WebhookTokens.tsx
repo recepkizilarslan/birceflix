@@ -89,7 +89,7 @@ export function WebhookTokens() {
           </div>
           <button
             onClick={() => setFreshUrl(null)}
-            className="text-xs text-[var(--color-text-dim)] hover:text-white"
+            className="text-xs text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
           >
             {t('webhooks.freshAck')}
           </button>

@@ -136,7 +136,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       onClick={onClick}
       className={`px-3 py-1.5 rounded-md text-sm transition ${active
         ? 'bg-[var(--color-accent)] text-black font-medium'
-        : 'text-[var(--color-text-dim)] hover:text-white'
+        : 'text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
         }`}
     >
       {children}

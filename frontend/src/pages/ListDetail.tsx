@@ -111,7 +111,7 @@ export function ListDetailPage() {
       <header>
         <button
           onClick={() => navigate('/lists')}
-          className="text-sm text-[var(--color-text-dim)] hover:text-white mb-3"
+          className="text-sm text-[var(--color-text-dim)] hover:text-[var(--color-text)] mb-3"
         >
           {t('lists.back')}
         </button>

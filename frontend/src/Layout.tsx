@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Compass, Calendar, Bookmark, CheckSquare, List, ArrowLeftRight, Menu, X } from 'lucide-react'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
+import { ThemeToggle } from './components/ThemeToggle'
 import { useAuth } from './hooks/useAuth'
 import { getWatchedKeySet, listWatched, markWatched, mediaKey, unmarkWatched, type MediaType, type WatchedRow } from './lib/watched'
 import { addToWatchlist, listWatchlist, removeFromWatchlist, type WatchlistRow } from './lib/watchlist'
@@ -150,6 +151,7 @@ export function Layout() {
           )}
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <ThemeToggle />
             <PreferencesMenu />
             <AuthButton />
           </div>
@@ -232,9 +234,9 @@ function TabLink({ to, children }: { to: string; children: React.ReactNode }) {
       end
       className={({ isActive }: { isActive: boolean }) =>
         `relative px-3.5 py-1.5 text-[15px] sm:text-base transition-all duration-200 ${
-          isActive 
-            ? 'text-white font-medium' 
-            : 'text-[var(--color-text-dim)] hover:text-white'
+          isActive
+            ? 'text-[var(--color-text)] font-medium'
+            : 'text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
         }`
       }
     >
@@ -261,7 +263,7 @@ function DrawerLink({
       className={({ isActive }: { isActive: boolean }) =>
         `flex items-center gap-3 px-3 py-3.5 rounded-lg text-base transition-all duration-300 ${
           isActive
-            ? 'bg-gradient-to-r from-[var(--color-brand)]/20 to-transparent text-white font-medium border-l-2 border-[var(--color-brand)]'
+            ? 'bg-gradient-to-r from-[var(--color-brand)]/20 to-transparent text-[var(--color-text)] font-medium border-l-2 border-[var(--color-brand)]'
             : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)] border-l-2 border-transparent'
         }`
       }

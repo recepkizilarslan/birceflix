@@ -11,6 +11,32 @@
   --color-brand: #FF3B47;
 }
 
+/* Light theme palette. Accent flips to a dark slate so the existing
+   `bg-[var(--color-accent)] text-black` pattern would be unreadable;
+   the override below flips text to white whenever a bg-accent surface
+   is rendered in light mode. */
+:root[data-theme="light"] {
+  --color-bg: #ffffff;
+  --color-surface: #f3f4f6;
+  --color-surface-2: #e5e7eb;
+  --color-border: #d1d5db;
+  --color-text: #111827;
+  --color-text-dim: #6b7280;
+  --color-accent: #111827;
+  --color-brand: #FF3B47;
+}
+
+:root[data-theme="light"] .bg-\[var\(--color-accent\)\] {
+  color: #ffffff;
+}
+
+/* Detail-page backdrop images use opacity-60 to blend into the dark page
+   bg. Over a white bg the same image looks washed out, so let the full
+   image show through in light mode. */
+:root[data-theme="light"] [data-backdrop-img] {
+  opacity: 1;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
