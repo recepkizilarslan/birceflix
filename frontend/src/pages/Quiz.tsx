@@ -10,6 +10,8 @@ import {
   createQuizSession,
   top,
   poster,
+  movieDetail,
+  tvDetail,
   type QuizCategory,
   type QuizSession,
   type QuizMediaType,
@@ -61,24 +63,21 @@ const FILTER_MAP: Record<string, FilterPreset[]> = {
 }
 
 // Visual config for category cards
-const CAT_CFG: Record<string, { gradient: string; accent: string; img: string; emoji: string }> = {
+const CAT_CFG: Record<string, { gradient: string; accent: string; img: string }> = {
   top_movies: {
-    gradient: 'from-red-950/90 via-red-900/70 to-black',
+    gradient: 'from-red-950/60 via-red-900/40 to-black/90',
     accent: '#ef4444',
-    img: 'https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg',
-    emoji: '🎬',
+    img: 'https://image.tmdb.org/t/p/w780/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg',
   },
   top_tv: {
-    gradient: 'from-purple-950/90 via-purple-900/70 to-black',
+    gradient: 'from-purple-950/60 via-purple-900/40 to-black/90',
     accent: '#a855f7',
-    img: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-    emoji: '📺',
+    img: 'https://image.tmdb.org/t/p/w780/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
   },
   top_docs: {
-    gradient: 'from-teal-950/90 via-teal-900/70 to-black',
+    gradient: 'from-teal-950/60 via-teal-900/40 to-black/90',
     accent: '#14b8a6',
-    img: 'https://image.tmdb.org/t/p/w500/apnpwnDA3iwfe7ZEnBSXGlRFaZ9.jpg',
-    emoji: '🌍',
+    img: 'https://image.tmdb.org/t/p/w780/vF5ZgB987l2gGZJ3Kq7z4xW2E3r.jpg',
   },
 }
 
@@ -119,9 +118,29 @@ export function QuizPage() {
       ...(sess.eliminated as number[]),
       ...(sess.winnerId != null ? [sess.winnerId] : []),
     ]
-    for (const id of allIds) {
-      if (!map.has(id)) map.set(id, { title: `#${id}`, poster_path: null, year: null })
+    
+    // Find missing IDs (e.g. Documentaries or Platform-filtered items not in the generic Top 100 cache)
+    const missingIds = allIds.filter(id => !map.has(id))
+    
+    if (missingIds.length > 0) {
+      const fetchFn = mediaType === 'tv' ? tvDetail : movieDetail
+      // Fetch details in parallel (max 32-64 items, backend caching will handle it gracefully)
+      await Promise.all(
+        missingIds.map(async (id) => {
+          try {
+            const detail = await fetchFn(id, region ?? 'TR')
+            const title = detail.title || detail.name || `#${id}`
+            const date = detail.release_date || detail.first_air_date || null
+            const year = date ? date.split('-')[0] : null
+            map.set(id, { title, poster_path: detail.poster_path || null, year })
+          } catch (err) {
+            console.warn(`Failed to fetch metadata for ${mediaType} ${id}`)
+            map.set(id, { title: `#${id}`, poster_path: null, year: null })
+          }
+        })
+      )
     }
+
     return map
   }, [region])
 
@@ -318,12 +337,8 @@ export function QuizPage() {
   return (
     <div className="max-w-4xl mx-auto py-4 px-2 sm:px-0">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 mb-4">
-          <Crown size={14} className="text-yellow-400" />
-          <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">1v1 Eleme Turnuvası</span>
-        </div>
         <h1 className="text-5xl sm:text-7xl font-black text-[var(--color-text)] mb-2" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.06em' }}>
-          BirceRank
+          BIRCERANK
         </h1>
         <p className="text-[var(--color-text-dim)] text-sm">Kategori seç, filtrele ve şampiyonu bul</p>
       </div>
@@ -341,25 +356,24 @@ export function QuizPage() {
       ) : (
         <div className="grid gap-5 sm:grid-cols-3">
           {categories.map((cat) => {
-            const cfg = CAT_CFG[cat.id] ?? { gradient: 'from-gray-900 to-black', accent: '#888', img: '', emoji: '🎯' }
+            const cfg = CAT_CFG[cat.id] ?? { gradient: 'from-gray-900 to-black', accent: '#888', img: '' }
             const active = cat.active_session
             return (
               <button
                 key={cat.id}
                 id={`bircerank-cat-${cat.id}`}
                 onClick={() => handleCategoryClick(cat)}
-                className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group hover:scale-[1.02] transition-transform duration-300 text-left"
-                style={{ minHeight: '240px' }}
+                className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl group hover:scale-[1.02] transition-transform duration-300 text-left"
+                style={{ minHeight: '340px' }}
               >
-                {cfg.img && <img src={cfg.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-45 transition-opacity duration-500" aria-hidden />}
+                {cfg.img && <img src={cfg.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" aria-hidden />}
                 <div className={`absolute inset-0 bg-gradient-to-br ${cfg.gradient}`} />
-                <div className="relative z-10 p-5 flex flex-col gap-3 h-full justify-end">
+                <div className="relative z-10 p-6 flex flex-col gap-3 h-full justify-end">
                   <div>
-                    <p className="text-4xl mb-2">{cfg.emoji}</p>
-                    <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.04em' }}>
+                    <h3 className="text-3xl sm:text-4xl font-black text-white leading-tight" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.04em' }}>
                       {cat.label_tr}
                     </h3>
-                    <p className="text-white/50 text-xs mt-1">{cat.max_items} içerikten seç</p>
+                    <p className="text-white/60 text-sm mt-1">{cat.max_items} içerikten seç</p>
                   </div>
                   {active && (
                     <div className="inline-flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/15 px-2.5 py-1 rounded-full border border-orange-500/30 w-fit">

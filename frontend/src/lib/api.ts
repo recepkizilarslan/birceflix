@@ -265,6 +265,11 @@ export function movieDetail(id: number, region = 'TR') {
   return get<MovieDetail>(`/api/movie/${id}`, { region, ui_language: intlLocale() })
 }
 
+export function tvDetail(id: number, region = 'TR') {
+  // We use MovieDetail as a generic return type here, or any for simplicity since we only need title/poster/date
+  return get<any>(`/api/tv/${id}`, { region, ui_language: intlLocale() })
+}
+
 export function listProviders(region = 'TR') {
   return get<ProviderListItem[]>('/api/providers', { region, ui_language: intlLocale() })
 }

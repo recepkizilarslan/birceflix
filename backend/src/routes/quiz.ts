@@ -257,7 +257,11 @@ export async function quizRoutes(app: FastifyInstance) {
     )
     const requestedSize = body.bracket_size ?? cat.maxItems
     const bracketSize = nearestPow2(Math.min(allIds.length, requestedSize), cat.maxItems)
-    const remaining = shuffle(allIds.slice()).slice(0, bracketSize)
+    
+    // First, take the absolute Top N items from the sorted list
+    const topIds = allIds.slice(0, bracketSize)
+    // Then shuffle them so the tournament bracket matchups are random
+    const remaining = shuffle(topIds)
 
     const [session] = await db
       .insert(quizSessions)
