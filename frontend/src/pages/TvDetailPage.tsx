@@ -204,7 +204,7 @@ export function TvDetailPage() {
                   onClick={() => toggleWatched(ref)}
                   className={`text-sm h-11 sm:h-auto sm:px-4 sm:py-2 px-3 rounded-lg transition active:scale-[0.98] ${
                     isWatched
-                      ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                      ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/40 hover:bg-[var(--color-brand)]/25'
                       : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
                   }`}
                 >
@@ -317,7 +317,7 @@ export function TvDetailPage() {
                               !user
                                 ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
                                 : watched
-                                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                                ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/40 hover:bg-[var(--color-brand)]/25'
                                 : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)] border border-transparent'
                             }`}
                             title={user ? '' : t('card.signInToMark')}

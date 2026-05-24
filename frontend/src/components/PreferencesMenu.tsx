@@ -11,6 +11,10 @@ const LANG_LABEL_KEY: Record<Lang, string> = {
   tr: 'prefs.languageTr',
   en: 'prefs.languageEn',
   de: 'prefs.languageDe',
+  it: 'prefs.languageIt',
+  pl: 'prefs.languagePl',
+  es: 'prefs.languageEs',
+  pt: 'prefs.languagePt',
 }
 
 /**
@@ -51,20 +55,20 @@ export function PreferencesMenu({ className = '' }: { className?: string }) {
         <div className="fixed sm:absolute right-2 sm:right-0 z-50 top-14 sm:top-full sm:mt-2 w-[calc(100vw-1rem)] sm:w-auto sm:min-w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)]/95 backdrop-blur-xl border border-[var(--color-border)] shadow-[0_8px_30px_rgb(0,0,0,0.5)] p-4 space-y-4">
           <div>
             <div className="text-[13px] text-[var(--color-text-dim)] mb-2">{t('prefs.language')}</div>
-            <div className="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">
+            {/* Selectbox instead of pills - with seven supported locales
+             *  the pill row wraps awkwardly on the menu's ~260px width.
+             *  Mirrors the region selector below for visual consistency. */}
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as Lang)}
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]"
+            >
               {SUPPORTED_LANGS.map((code) => (
-                <button
-                  key={code}
-                  onClick={() => setLang(code)}
-                  className={`flex-1 text-[13px] px-3 py-1.5 rounded-md transition-all duration-200 border ${lang === code
-                    ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)] font-medium shadow-sm'
-                    : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]/50'
-                    }`}
-                >
+                <option key={code} value={code}>
                   {t(LANG_LABEL_KEY[code])}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
           </div>
 
           <div>

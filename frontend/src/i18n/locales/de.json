@@ -7,7 +7,6 @@
     "watchlist": "Merkliste",
     "watched": "Gesehen",
     "lists": "Listen",
-    "import": "Import / Export",
     "menu": "Menü"
   },
   "auth": {
@@ -64,6 +63,10 @@
     "languageTr": "Türkçe",
     "languageEn": "English",
     "languageDe": "Deutsch",
+    "languageIt": "Italiano",
+    "languagePl": "Polski",
+    "languageEs": "Español",
+    "languagePt": "Português",
     "region": "Region",
     "regionHint": "Wird für Streaming-Anbieter und den Kalender verwendet",
     "open": "Einstellungen"
@@ -289,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} gesehen",
     "watchedToggle": "Gesehen",
     "watchedToggleOn": "✓ Gesehen"
-  },
-  "import": {
-    "title": "Import / Export",
-    "subtitle": "Importiere Daten über Letterboxd-CSVs, Trakt OAuth oder den Plex/Jellyfin-Scrobbler. Unten kannst du einen JSON-Dump oder eine Letterboxd-CSV herunterladen.",
-    "signInPrompt": "Melde dich an, um deine Daten zu importieren",
-    "letterboxdWatchedDesc": "Eine einfache Liste deiner gesehenen Filme. Werden nur als 'gesehen' markiert.",
-    "letterboxdDiaryDesc": "Datierte Sichtungen. Jede Zeile wird als gesehen markiert. Datum und Bewertung pro Sichtung bleiben nicht erhalten.",
-    "upload": "Hochladen",
-    "uploading": "Wird importiert…",
-    "matched": "<b>{{matched}}</b> / {{total}} zugeordnet.",
-    "unmatched": "Nicht zugeordnet: <b>{{count}}</b>",
-    "unmatchedToggle": "Nicht zugeordnete anzeigen",
-    "uploadFailed": "Import fehlgeschlagen"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "Live-API",
-    "sectionDesc": "Verbinde dein Trakt-Konto per OAuth und importiere deine Sehhistorie direkt. Trakt-Einträge tragen TMDB-IDs - anders als bei Letterboxd-CSVs ist die Zuordnung exakt.",
-    "statusLoading": "Status wird geladen…",
-    "notConfigured": "Die Trakt-Integration ist auf diesem Server nicht konfiguriert. Bitte den Admin, TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET und TRAKT_REDIRECT_URI zu setzen.",
-    "connectIntro": "Sobald dein Trakt-Konto verbunden ist, kannst du deine Sehhistorie importieren. Jeder Titel wird als gesehen markiert (Rewatches bleiben nicht erhalten). Trakt-Einträge tragen bereits TMDB-IDs, die Zuordnung ist exakt.",
-    "connect": "Trakt verbinden",
-    "connectedBadge": "✓ verbunden",
-    "lastSync": "Letzte Synchronisierung: {{when}}",
-    "import": "Verlauf importieren",
-    "importing": "Wird importiert…",
-    "disconnect": "Trennen",
-    "confirmDisconnect": "Verbindung zu Trakt trennen?",
-    "imported": "<b>{{count}}</b> Sichtungen importiert.",
-    "skipped": "<b>{{count}}</b> Einträge übersprungen (keine TMDB-ID).",
-    "pagesRead": "({{count}} Seiten gelesen)"
-  },
-  "webhooks": {
-    "sectionTitle": "Plex / Jellyfin Scrobbler",
-    "sectionTag": "Webhook",
-    "intro": "Füge die URL unten in deine Plex- oder Jellyfin-Webhook-Einstellungen ein. Bei jedem Trigger extrahieren wir die TMDB-ID aus dem Scrobble-Payload und markieren den Titel als gesehen. Plex benötigt nur media.scrobble; das Webhook-Plugin von Jellyfin sollte PlaybackStop / UserDataSaved / MarkPlayed senden.",
-    "newToken": "Neuer Token",
-    "label": "Label",
-    "labelPlaceholder": "z. B. Plex (zu Hause)",
-    "creating": "Wird erstellt…",
-    "freshWarn": "⚠ Diese URL wird nur jetzt angezeigt. Kopiere sie und füge sie in Plex/Jellyfin ein.",
-    "freshAck": "Verstanden, schließen",
-    "neverTriggered": "noch nie ausgelöst",
-    "tokenSuffix": "Token: …{{suffix}}",
-    "lastTriggered": "Zuletzt ausgelöst: {{when}}",
-    "confirmDelete": "Token \"{{label}}\" löschen? Dies kann nicht rückgängig gemacht werden.",
-    "empty": "Du hast noch keine Webhook-Tokens.",
-    "loading": "Wird geladen…"
-  },
-  "exports": {
-    "sectionTitle": "Export",
-    "sectionTag": "Backup",
-    "intro": "Lade deine Daten jederzeit herunter. Der JSON-Dump enthält jeden Datensatz (gesehen, Merkliste, Sichtungslisten, Episoden, eigene Listen). Mit der Letterboxd-CSV kannst du zu einer anderen Plattform wechseln.",
-    "jsonButton": "Vollständigen JSON-Dump herunterladen",
-    "csvButton": "Letterboxd-CSV herunterladen",
-    "note": "Aus Sicherheitsgründen enthält der JSON-Dump bewusst keine Geheimnisse (Trakt-Tokens, Webhook-Tokens). Es ist ein 'das sind meine Daten'-Download, kein Anmeldedaten-Backup. Die Letterboxd-CSV trägt Datum / Titel / Bewertung; die Jahresspalte ist leer (nicht gespeichert), Letterboxd ordnet anhand des Titels zu."
   },
   "calendar": {
     "title": "Veröffentlichungskalender",

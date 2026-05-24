@@ -18,11 +18,6 @@ export const users = pgTable('users', {
   lastName: text('last_name'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  // Trakt integration — null until the user connects.
-  traktAccessToken: text('trakt_access_token'),
-  traktRefreshToken: text('trakt_refresh_token'),
-  traktExpiresAt: timestamp('trakt_expires_at', { withTimezone: true }),
-  traktLastSyncAt: timestamp('trakt_last_sync_at', { withTimezone: true }),
 })
 
 // ---------------------------------------------------------------------------
@@ -173,31 +168,6 @@ export const listItems = pgTable(
   (t) => ({
     pk: primaryKey({ columns: [t.listId, t.tmdbId, t.mediaType] }),
     listOrderIdx: index('list_items_list_order_idx').on(t.listId, t.position, t.addedAt),
-  }),
-)
-
-// ---------------------------------------------------------------------------
-// Webhook tokens — per-user opaque secrets used by Plex/Jellyfin to POST
-// scrobble events. Multiple tokens are supported per user so a single
-// compromised host can be rotated without touching the others.
-// ---------------------------------------------------------------------------
-export const webhookTokens = pgTable(
-  'webhook_tokens',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    /** Opaque random string used in the public webhook URL. */
-    token: text('token').notNull().unique(),
-    /** User-facing label, e.g. 'Plex (ev)' or 'Jellyfin (sunucu)'. */
-    label: text('label').notNull(),
-    /** When the token was last hit by a scrobble. Null until first use. */
-    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  },
-  (t) => ({
-    userIdx: index('webhook_tokens_user_idx').on(t.userId),
   }),
 )
 
