@@ -7,7 +7,6 @@
     "watchlist": "Do obejrzenia",
     "watched": "Obejrzane",
     "lists": "Listy",
-    "import": "Import / Eksport",
     "menu": "Menu"
   },
   "auth": {
@@ -293,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} obejrzanych",
     "watchedToggle": "Obejrzane",
     "watchedToggleOn": "✓ Obejrzane"
-  },
-  "import": {
-    "title": "Import / Eksport",
-    "subtitle": "Importuj dane z CSV Letterboxd, Trakt OAuth lub scrobblera Plex/Jellyfin. Na dole możesz pobrać zrzut JSON lub CSV Letterboxd.",
-    "signInPrompt": "Zaloguj się, aby importować dane",
-    "letterboxdWatchedDesc": "Prosta lista obejrzanych filmów. Zapisywane tylko jako oznaczenie 'obejrzane'.",
-    "letterboxdDiaryDesc": "Datowane seanse. Każdy wiersz jest oznaczany jako obejrzany. Daty i oceny pojedynczych seansów nie są zachowywane.",
-    "upload": "Wgraj",
-    "uploading": "Importowanie…",
-    "matched": "<b>{{matched}}</b> / {{total}} dopasowano.",
-    "unmatched": "Niedopasowane: <b>{{count}}</b>",
-    "unmatchedToggle": "Pokaż niedopasowane",
-    "uploadFailed": "import nie powiódł się"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "API na żywo",
-    "sectionDesc": "Połącz konto Trakt przez OAuth i importuj historię oglądania bezpośrednio. Wpisy z Trakt zawierają identyfikatory TMDB, więc w przeciwieństwie do CSV Letterboxd dopasowanie jest dokładne.",
-    "statusLoading": "Ładowanie statusu…",
-    "notConfigured": "Integracja z Trakt nie jest skonfigurowana na tym serwerze. Poproś administratora o ustawienie TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET i TRAKT_REDIRECT_URI.",
-    "connectIntro": "Po połączeniu konta Trakt możesz importować swoją historię oglądania. Każdy tytuł jest oznaczany jako obejrzany (powtórki nie są zachowywane). Wpisy z Trakt zawierają już identyfikatory TMDB, więc dopasowanie jest dokładne.",
-    "connect": "Połącz Trakt",
-    "connectedBadge": "✓ połączono",
-    "lastSync": "ostatnia synchronizacja: {{when}}",
-    "import": "Importuj historię",
-    "importing": "Importowanie…",
-    "disconnect": "Rozłącz",
-    "confirmDisconnect": "Rozłączyć z Trakt?",
-    "imported": "<b>{{count}}</b> seansów zaimportowano.",
-    "skipped": "<b>{{count}}</b> wpisów pominięto (brak ID TMDB).",
-    "pagesRead": "({{count}} stron przeczytanych)"
-  },
-  "webhooks": {
-    "sectionTitle": "Scrobbler Plex / Jellyfin",
-    "sectionTag": "webhook",
-    "intro": "Wklej poniższy URL w ustawieniach webhooka Plex lub Jellyfin. Przy każdym wyzwoleniu wyciągamy ID TMDB z payloadu scrobble i oznaczamy tytuł jako obejrzany. Plex potrzebuje tylko zdarzenia media.scrobble; wtyczka Webhook w Jellyfin powinna wysyłać PlaybackStop / UserDataSaved / MarkPlayed.",
-    "newToken": "Nowy token",
-    "label": "Etykieta",
-    "labelPlaceholder": "np. Plex (dom)",
-    "creating": "Tworzenie…",
-    "freshWarn": "⚠ Ten URL jest pokazywany tylko teraz. Skopiuj go i wklej w Plex/Jellyfin.",
-    "freshAck": "Rozumiem, zamknij",
-    "neverTriggered": "nigdy nie wyzwolony",
-    "tokenSuffix": "token: …{{suffix}}",
-    "lastTriggered": "ostatnie wyzwolenie: {{when}}",
-    "confirmDelete": "Usunąć token \"{{label}}\"? Tej operacji nie można cofnąć.",
-    "empty": "Nie masz jeszcze żadnych tokenów webhook.",
-    "loading": "Ładowanie…"
-  },
-  "exports": {
-    "sectionTitle": "Eksport",
-    "sectionTag": "kopia zapasowa",
-    "intro": "Pobierz swoje dane w dowolnym momencie. Zrzut JSON zawiera wszystkie rekordy (obejrzane, lista do obejrzenia, listy seansów, odcinki, listy własne). CSV Letterboxd pozwala przejść na inną platformę.",
-    "jsonButton": "Pobierz pełny zrzut JSON",
-    "csvButton": "Pobierz CSV Letterboxd",
-    "note": "Ze względów bezpieczeństwa zrzut JSON celowo nie zawiera żadnych poufnych danych (tokenów Trakt, tokenów webhook). To pobranie 'to są moje dane', a nie kopia zapasowa danych uwierzytelniających. CSV Letterboxd zawiera datę / tytuł / ocenę; kolumna roku jest pusta (nie jest przechowywana), Letterboxd dopasowuje po tytule."
   },
   "calendar": {
     "title": "Kalendarz premier",

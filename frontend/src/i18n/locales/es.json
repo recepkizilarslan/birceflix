@@ -7,7 +7,6 @@
     "watchlist": "Mi lista",
     "watched": "Vistas",
     "lists": "Listas",
-    "import": "Importar / Exportar",
     "menu": "Menú"
   },
   "auth": {
@@ -293,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} vistos",
     "watchedToggle": "Visto",
     "watchedToggleOn": "✓ Visto"
-  },
-  "import": {
-    "title": "Importar / Exportar",
-    "subtitle": "Importa datos desde CSVs de Letterboxd, Trakt OAuth o el scrobbler de Plex/Jellyfin. Abajo puedes descargar un volcado JSON o un CSV de Letterboxd.",
-    "signInPrompt": "Inicia sesión para importar tus datos",
-    "letterboxdWatchedDesc": "Lista simple de tus películas vistas. Solo se guardan como marca 'vista'.",
-    "letterboxdDiaryDesc": "Visionados con fecha. Cada fila se marca como vista. Las fechas y notas por visionado no se conservan.",
-    "upload": "Subir",
-    "uploading": "Importando…",
-    "matched": "<b>{{matched}}</b> / {{total}} asociadas.",
-    "unmatched": "Sin asociar: <b>{{count}}</b>",
-    "unmatchedToggle": "Mostrar sin asociar",
-    "uploadFailed": "importación fallida"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "API en vivo",
-    "sectionDesc": "Conecta tu cuenta de Trakt vía OAuth e importa tu historial de visionados directamente. Las entradas de Trakt llevan IDs de TMDB, así que a diferencia de los CSV de Letterboxd la asociación es exacta.",
-    "statusLoading": "Cargando estado…",
-    "notConfigured": "La integración con Trakt no está configurada en este servidor. Pide al administrador que defina TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET y TRAKT_REDIRECT_URI.",
-    "connectIntro": "Una vez conectada tu cuenta de Trakt podrás importar tu historial de visionados. Cada título se marca como visto (los revisionados no se conservan). Las entradas de Trakt ya llevan IDs de TMDB, así que la asociación es exacta.",
-    "connect": "Conectar Trakt",
-    "connectedBadge": "✓ conectada",
-    "lastSync": "última sincronización: {{when}}",
-    "import": "Importar historial",
-    "importing": "Importando…",
-    "disconnect": "Desconectar",
-    "confirmDisconnect": "¿Desconectar de Trakt?",
-    "imported": "<b>{{count}}</b> visionados importados.",
-    "skipped": "<b>{{count}}</b> entradas saltadas (sin ID de TMDB).",
-    "pagesRead": "({{count}} páginas leídas)"
-  },
-  "webhooks": {
-    "sectionTitle": "Scrobbler de Plex / Jellyfin",
-    "sectionTag": "webhook",
-    "intro": "Pega la URL de abajo en los ajustes de webhook de Plex o Jellyfin. En cada activación extraemos el ID de TMDB del payload del scrobble y marcamos el título como visto. Plex solo necesita media.scrobble; el plugin Webhook de Jellyfin debería enviar PlaybackStop / UserDataSaved / MarkPlayed.",
-    "newToken": "Nuevo token",
-    "label": "Etiqueta",
-    "labelPlaceholder": "p. ej. Plex (casa)",
-    "creating": "Creando…",
-    "freshWarn": "⚠ Esta URL solo se muestra ahora. Cópiala y pégala en Plex/Jellyfin.",
-    "freshAck": "Entendido, cerrar",
-    "neverTriggered": "nunca activado",
-    "tokenSuffix": "token: …{{suffix}}",
-    "lastTriggered": "última activación: {{when}}",
-    "confirmDelete": "¿Eliminar el token \"{{label}}\"? No se puede deshacer.",
-    "empty": "Aún no tienes tokens de webhook.",
-    "loading": "Cargando…"
-  },
-  "exports": {
-    "sectionTitle": "Exportar",
-    "sectionTag": "copia de seguridad",
-    "intro": "Descarga tus datos cuando quieras. El volcado JSON contiene cada registro (vistos, mi lista, listas de visionado, episodios, listas personalizadas). El CSV de Letterboxd te permite mudarte a otra plataforma.",
-    "jsonButton": "Descargar volcado JSON completo",
-    "csvButton": "Descargar CSV de Letterboxd",
-    "note": "Por seguridad, el volcado JSON excluye deliberadamente cualquier credencial (tokens de Trakt, tokens de webhook). Es una descarga 'estos son mis datos', no una copia de credenciales. El CSV de Letterboxd lleva fecha / título / nota; la columna de año va vacía (no se almacena), Letterboxd asocia por título."
   },
   "calendar": {
     "title": "Calendario de estrenos",

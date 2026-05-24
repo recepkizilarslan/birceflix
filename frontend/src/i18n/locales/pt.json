@@ -7,7 +7,6 @@
     "watchlist": "Minha lista",
     "watched": "Assistidos",
     "lists": "Listas",
-    "import": "Importar / Exportar",
     "menu": "Menu"
   },
   "auth": {
@@ -293,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} assistidos",
     "watchedToggle": "Assistido",
     "watchedToggleOn": "✓ Assistido"
-  },
-  "import": {
-    "title": "Importar / Exportar",
-    "subtitle": "Importe dados via CSVs do Letterboxd, OAuth do Trakt ou scrobbler do Plex/Jellyfin. Embaixo você pode baixar um dump JSON ou um CSV do Letterboxd.",
-    "signInPrompt": "Entre para importar seus dados",
-    "letterboxdWatchedDesc": "Lista simples dos seus filmes assistidos. Salvos apenas como marca de 'assistido'.",
-    "letterboxdDiaryDesc": "Sessões datadas. Cada linha é marcada como assistida. Datas e notas por sessão não são preservadas.",
-    "upload": "Enviar",
-    "uploading": "Importando…",
-    "matched": "<b>{{matched}}</b> / {{total}} associados.",
-    "unmatched": "Não associados: <b>{{count}}</b>",
-    "unmatchedToggle": "Mostrar não associados",
-    "uploadFailed": "falha na importação"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "API ao vivo",
-    "sectionDesc": "Conecte sua conta do Trakt via OAuth e importe seu histórico de exibição diretamente. As entradas do Trakt carregam IDs do TMDB, então, ao contrário dos CSVs do Letterboxd, a associação é exata.",
-    "statusLoading": "Carregando status…",
-    "notConfigured": "A integração com o Trakt não está configurada neste servidor. Peça ao administrador para definir TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET e TRAKT_REDIRECT_URI.",
-    "connectIntro": "Depois de conectar sua conta do Trakt você pode importar seu histórico de exibição. Cada título é marcado como assistido (reexibições não são preservadas). As entradas do Trakt já trazem IDs do TMDB, a associação é exata.",
-    "connect": "Conectar Trakt",
-    "connectedBadge": "✓ conectado",
-    "lastSync": "última sincronização: {{when}}",
-    "import": "Importar histórico",
-    "importing": "Importando…",
-    "disconnect": "Desconectar",
-    "confirmDisconnect": "Desconectar do Trakt?",
-    "imported": "<b>{{count}}</b> sessões importadas.",
-    "skipped": "<b>{{count}}</b> entradas ignoradas (sem ID do TMDB).",
-    "pagesRead": "({{count}} páginas lidas)"
-  },
-  "webhooks": {
-    "sectionTitle": "Scrobbler do Plex / Jellyfin",
-    "sectionTag": "webhook",
-    "intro": "Cole a URL abaixo nas configurações de webhook do Plex ou Jellyfin. A cada disparo extraímos o ID do TMDB do payload do scrobble e marcamos o título como assistido. O Plex precisa só do media.scrobble; o plugin Webhook do Jellyfin deve enviar PlaybackStop / UserDataSaved / MarkPlayed.",
-    "newToken": "Novo token",
-    "label": "Rótulo",
-    "labelPlaceholder": "ex.: Plex (casa)",
-    "creating": "Criando…",
-    "freshWarn": "⚠ Esta URL é exibida apenas agora. Copie e cole no Plex/Jellyfin.",
-    "freshAck": "Entendi, fechar",
-    "neverTriggered": "nunca disparado",
-    "tokenSuffix": "token: …{{suffix}}",
-    "lastTriggered": "último disparo: {{when}}",
-    "confirmDelete": "Excluir o token \"{{label}}\"? Isso não pode ser desfeito.",
-    "empty": "Você ainda não tem tokens de webhook.",
-    "loading": "Carregando…"
-  },
-  "exports": {
-    "sectionTitle": "Exportar",
-    "sectionTag": "backup",
-    "intro": "Baixe seus dados quando quiser. O dump JSON contém todos os registros (assistidos, minha lista, listas de exibição, episódios, listas personalizadas). O CSV do Letterboxd permite migrar para outra plataforma.",
-    "jsonButton": "Baixar dump JSON completo",
-    "csvButton": "Baixar CSV do Letterboxd",
-    "note": "Por segurança, o dump JSON exclui propositalmente qualquer credencial (tokens do Trakt, tokens de webhook). É um download de 'estes são meus dados', não um backup de credenciais. O CSV do Letterboxd traz data / título / nota; a coluna de ano fica vazia (não armazenada), o Letterboxd associa pelo título."
   },
   "calendar": {
     "title": "Calendário de lançamentos",

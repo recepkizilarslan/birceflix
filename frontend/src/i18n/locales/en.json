@@ -7,7 +7,6 @@
     "watchlist": "Watchlist",
     "watched": "Watched",
     "lists": "Lists",
-    "import": "Import / Export",
     "menu": "Menu"
   },
   "auth": {
@@ -293,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} watched",
     "watchedToggle": "Watched",
     "watchedToggleOn": "✓ Watched"
-  },
-  "import": {
-    "title": "Import / Export",
-    "subtitle": "Pull data in via Letterboxd CSVs, Trakt OAuth, or Plex/Jellyfin scrobbler; download a JSON dump or Letterboxd CSV from the bottom.",
-    "signInPrompt": "Sign in to import your data",
-    "letterboxdWatchedDesc": "A flat list of your watched movies. Stored only as 'watched' marks.",
-    "letterboxdDiaryDesc": "Dated viewings. Each row is marked as watched. Per-viewing dates and ratings are not preserved.",
-    "upload": "Upload",
-    "uploading": "Importing…",
-    "matched": "<b>{{matched}}</b> / {{total}} matched.",
-    "unmatched": "Unmatched: <b>{{count}}</b>",
-    "unmatchedToggle": "Show unmatched",
-    "uploadFailed": "import failed"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "live API",
-    "sectionDesc": "Connect your Trakt account via OAuth and import your watch history directly. Trakt entries carry TMDB IDs — unlike Letterboxd CSVs, matching is exact.",
-    "statusLoading": "Loading status…",
-    "notConfigured": "Trakt integration is not configured on this server. Ask the admin to set TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET and TRAKT_REDIRECT_URI.",
-    "connectIntro": "Once your Trakt account is connected you can import your watch history. Each title is marked as watched (rewatches are not preserved). Trakt entries already carry TMDB IDs, so matching is exact.",
-    "connect": "Connect Trakt",
-    "connectedBadge": "✓ connected",
-    "lastSync": "last sync: {{when}}",
-    "import": "Import history",
-    "importing": "Importing…",
-    "disconnect": "Disconnect",
-    "confirmDisconnect": "Disconnect from Trakt?",
-    "imported": "<b>{{count}}</b> viewings imported.",
-    "skipped": "<b>{{count}}</b> entries skipped (no TMDB ID).",
-    "pagesRead": "({{count}} pages read)"
-  },
-  "webhooks": {
-    "sectionTitle": "Plex / Jellyfin scrobbler",
-    "sectionTag": "webhook",
-    "intro": "Paste the URL below into your Plex or Jellyfin webhook settings. On each trigger we extract the TMDB ID from the scrobble payload and mark the title as watched. Plex only needs media.scrobble; Jellyfin's Webhook plugin should send PlaybackStop / UserDataSaved / MarkPlayed.",
-    "newToken": "New token",
-    "label": "Label",
-    "labelPlaceholder": "e.g. Plex (home)",
-    "creating": "Creating…",
-    "freshWarn": "⚠ This URL is shown only now — copy it and paste it into Plex/Jellyfin.",
-    "freshAck": "Got it, close",
-    "neverTriggered": "never triggered",
-    "tokenSuffix": "token: …{{suffix}}",
-    "lastTriggered": "last triggered: {{when}}",
-    "confirmDelete": "Delete the token \"{{label}}\"? This can't be undone.",
-    "empty": "You don't have any webhook tokens yet.",
-    "loading": "Loading…"
-  },
-  "exports": {
-    "sectionTitle": "Export",
-    "sectionTag": "backup",
-    "intro": "Download your data any time. The JSON dump contains every record (watched, watchlist, viewing list, episodes, custom lists). The Letterboxd CSV lets you move to another platform.",
-    "jsonButton": "Download full JSON dump",
-    "csvButton": "Download Letterboxd CSV",
-    "note": "For security, the JSON dump deliberately excludes any secrets (Trakt tokens, webhook tokens) — it's a 'this is my data' download, not a credential backup. The Letterboxd CSV carries date / title / rating; the year column is empty (not stored), Letterboxd matches by title."
   },
   "calendar": {
     "title": "Release calendar",

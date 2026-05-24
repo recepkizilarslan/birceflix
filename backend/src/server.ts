@@ -2,7 +2,6 @@ import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
-import multipart from '@fastify/multipart'
 import sensible from '@fastify/sensible'
 import rateLimit from '@fastify/rate-limit'
 import { ZodError } from 'zod'
@@ -18,15 +17,11 @@ import { movieRoutes } from './routes/movie.js'
 import { metaRoutes } from './routes/meta.js'
 import { watchedRoutes } from './routes/watched.js'
 import { watchlistRoutes } from './routes/watchlist.js'
-import { importRoutes } from './routes/import.js'
-import { integrationsRoutes } from './routes/integrations.js'
 import { tvRoutes } from './routes/tv.js'
 import { watchedEpisodeRoutes } from './routes/watchedEpisodes.js'
 import { listsRoutes } from './routes/lists.js'
 import { savedFiltersRoutes } from './routes/savedFilters.js'
-import { webhookRoutes } from './routes/webhooks.js'
 import { calendarRoutes } from './routes/calendar.js'
-import { exportRoutes } from './routes/export.js'
 import { topRoutes } from './routes/top.js'
 import { startTopRefresh } from './lib/topCache.js'
 import { purgeExpired } from './auth/session.js'
@@ -49,9 +44,6 @@ async function build() {
   await app.register(rateLimit, {
     max: 300,
     timeWindow: '1 minute',
-  })
-  await app.register(multipart, {
-    limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   })
 
   await app.register(authGuard)
@@ -79,15 +71,11 @@ async function build() {
   await app.register(metaRoutes)
   await app.register(watchedRoutes)
   await app.register(watchlistRoutes)
-  await app.register(importRoutes)
-  await app.register(integrationsRoutes)
   await app.register(tvRoutes)
   await app.register(watchedEpisodeRoutes)
   await app.register(listsRoutes)
   await app.register(savedFiltersRoutes)
-  await app.register(webhookRoutes)
   await app.register(calendarRoutes)
-  await app.register(exportRoutes)
   await app.register(topRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))

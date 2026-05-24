@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Compass, Calendar, Bookmark, CheckSquare, List, ArrowLeftRight, Menu, X } from 'lucide-react'
+import { Compass, Calendar, Bookmark, CheckSquare, List, Menu, X } from 'lucide-react'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
 import { ThemeToggle } from './components/ThemeToggle'
@@ -146,7 +146,6 @@ export function Layout() {
               <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
               <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
               <TabLink to="/lists">{t('nav.lists')}</TabLink>
-              <TabLink to="/import">{t('nav.import')}</TabLink>
             </nav>
           )}
 
@@ -194,7 +193,6 @@ export function Layout() {
               <DrawerLink to="/watchlist" onSelect={() => setMenuOpen(false)} icon={<Bookmark size={18} />} badge={watchlistCount}>{t('nav.watchlist')}</DrawerLink>
               <DrawerLink to="/watched"   onSelect={() => setMenuOpen(false)} icon={<CheckSquare size={18} />}  badge={watchedCount}>{t('nav.watched')}</DrawerLink>
               <DrawerLink to="/lists"     onSelect={() => setMenuOpen(false)} icon={<List size={18} />}>{t('nav.lists')}</DrawerLink>
-              <DrawerLink to="/import"    onSelect={() => setMenuOpen(false)} icon={<ArrowLeftRight size={18} />}>{t('nav.import')}</DrawerLink>
             </nav>
             <div className="p-3 border-t border-[var(--color-border)] pb-safe text-[11px] text-[var(--color-text-dim)] text-center">
               Birceflix
