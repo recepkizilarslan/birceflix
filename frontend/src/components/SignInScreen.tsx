@@ -34,7 +34,14 @@ function safeNext(raw: string | null): string {
 }
 
 export function SignInScreen() {
-  const { t } = useTranslation()
+  // Sign-in is intentionally pinned to English regardless of the user's
+  // chosen UI language: at this point the user might not be the account
+  // owner (shared device, new visitor), and English is the lingua franca
+  // the screen's marketing copy was written in. getFixedT binds t() to
+  // 'en' without touching the global i18n state, so the rest of the app
+  // keeps the user's selected language once they're inside.
+  const { i18n } = useTranslation()
+  const t = i18n.getFixedT('en')
   const { user, loading: authLoading, signInWithGoogle } = useAuth()
   const [searchParams] = useSearchParams()
   const next = safeNext(searchParams.get('next'))
