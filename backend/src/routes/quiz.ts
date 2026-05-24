@@ -168,6 +168,7 @@ export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/categories ─────────────────────────────────────────────
   // lgtm [js/missing-rate-limiting]
   app.get('/api/quiz/categories', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     void userId // auth check only
 
@@ -226,6 +227,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // lgtm [js/missing-rate-limiting]
   app.post('/api/quiz/sessions', rlWrite, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const body = createSchema.parse(req.body)
 
@@ -285,6 +287,7 @@ export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/sessions/:id ───────────────────────────────────────────
   // lgtm [js/missing-rate-limiting]
   app.get('/api/quiz/sessions/:id', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -307,6 +310,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // lgtm [js/missing-rate-limiting]
   app.post('/api/quiz/sessions/:id/vote', rlWrite, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
     const body = voteSchema.parse(req.body)
@@ -441,6 +445,7 @@ export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
   // lgtm [js/missing-rate-limiting]
   app.get('/api/quiz/sessions/:id/result', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -466,6 +471,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // lgtm [js/missing-rate-limiting]
   app.get('/api/quiz/stats', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     await app.requireAuth(req)
     const { a, b, media_type } = statsSchema.parse(req.query)
     const [statA, statB] = orderedPair(a, b)
@@ -502,6 +508,7 @@ export async function quizRoutes(app: FastifyInstance) {
   // Returns the user's completed sessions (most recent first).
   // lgtm [js/missing-rate-limiting]
   app.get('/api/quiz/history', rlRead, async (req) => {
+    // lgtm [js/missing-rate-limiting]
     const userId = await app.requireAuth(req)
 
     const rows = await db
