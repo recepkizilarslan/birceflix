@@ -70,7 +70,7 @@ const CATEGORIES: CategoryDef[] = [
 function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
+      ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
   }
   return arr
 }
@@ -166,9 +166,7 @@ function currentDuel(remaining: number[]): [number, number] | null {
 // ---------------------------------------------------------------------------
 export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/categories ─────────────────────────────────────────────
-  // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/categories', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/categories', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     void userId // auth check only
 
@@ -203,11 +201,11 @@ export async function quizRoutes(app: FastifyInstance) {
         max_items: cat.maxItems,
         active_session: active
           ? {
-              id: active.id,
-              current_round: active.currentRound,
-              total_items: active.totalItems,
-              remaining_count: (active.remaining as number[]).length,
-            }
+            id: active.id,
+            current_round: active.currentRound,
+            total_items: active.totalItems,
+            remaining_count: (active.remaining as number[]).length,
+          }
           : null,
       }
     })
@@ -225,9 +223,7 @@ export async function quizRoutes(app: FastifyInstance) {
     platform_id: z.coerce.number().int().positive().optional(),
   })
 
-  // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/sessions', rlWrite, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions', { config: rlWrite.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const body = createSchema.parse(req.body)
 
@@ -262,7 +258,7 @@ export async function quizRoutes(app: FastifyInstance) {
     )
     const requestedSize = body.bracket_size ?? cat.maxItems
     const bracketSize = nearestPow2(Math.min(allIds.length, requestedSize), cat.maxItems)
-    
+
     // First, take the absolute Top N items from the sorted list
     const topIds = allIds.slice(0, bracketSize)
     // Then shuffle them so the tournament bracket matchups are random
@@ -285,9 +281,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id ───────────────────────────────────────────
-  // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/sessions/:id', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -308,9 +302,7 @@ export async function quizRoutes(app: FastifyInstance) {
     loser: z.number().int().positive(),
   })
 
-  // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/sessions/:id/vote', rlWrite, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions/:id/vote', { config: rlWrite.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
     const body = voteSchema.parse(req.body)
@@ -402,9 +394,9 @@ export async function quizRoutes(app: FastifyInstance) {
         currentRound: newRound,
         ...(isComplete
           ? {
-              winnerId,
-              completedAt: new Date(),
-            }
+            winnerId,
+            completedAt: new Date(),
+          }
           : {}),
         updatedAt: new Date(),
       })
@@ -415,8 +407,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── Lightweight metadata fetch for missing items (docs, platform filters) ──
-  // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/metadata', rlRead, async (req) => {
+  app.post('/api/quiz/metadata', { config: rlRead.config }, async (req) => {
     const body = z.object({
       items: z.array(z.object({ id: z.number(), type: z.enum(['movie', 'tv']) })),
       language: uiLanguageSchema,
@@ -443,9 +434,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
-  // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/sessions/:id/result', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id/result', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -469,9 +458,7 @@ export async function quizRoutes(app: FastifyInstance) {
     media_type: z.enum(['movie', 'tv', 'doc']).default('movie'),
   })
 
-  // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/stats', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/stats', { config: rlRead.config }, async (req) => {
     await app.requireAuth(req)
     const { a, b, media_type } = statsSchema.parse(req.query)
     const [statA, statB] = orderedPair(a, b)
@@ -506,9 +493,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // ── GET /api/quiz/history ────────────────────────────────────────────────
   // Returns the user's completed sessions (most recent first).
-  // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/history', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/history', { config: rlRead.config }, async (req) => {
     const userId = await app.requireAuth(req)
 
     const rows = await db
