@@ -7,6 +7,7 @@ import { Watchlist } from './pages/Watchlist'
 import { ImportPage } from './pages/Import'
 import { MovieDetailPage } from './pages/MovieDetailPage'
 import { TvDetailPage } from './pages/TvDetailPage'
+import { PersonDetailPage } from './pages/PersonDetailPage'
 import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
@@ -45,6 +46,7 @@ function App() {
             {/* /tv is the old separate TV discover route — redirect into the unified discover */}
             <Route path="tv" element={<Navigate to="/discover?type=tv" replace />} />
             <Route path="tv/:id" element={<TvDetailPage />} />
+            <Route path="person/:id" element={<PersonDetailPage />} />
             <Route path="lists" element={<ListsPage />} />
             <Route path="lists/:id" element={<ListDetailPage />} />
             <Route path="calendar" element={<CalendarPage />} />

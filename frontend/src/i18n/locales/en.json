@@ -199,6 +199,23 @@
     "personalNote": "✎ Your notes",
     "backToDiscover": "← Back to Discover"
   },
+  "person": {
+    "noPhoto": "No photo",
+    "born": "Born",
+    "died": "Died",
+    "alsoKnownAs": "Also known as",
+    "biography": "Biography",
+    "bioExpand": "Read more",
+    "bioCollapse": "Show less",
+    "filterDiscover": "Filter Discover by this person",
+    "imdbProfile": "IMDB profile →",
+    "homepage": "Homepage →",
+    "actingMovies": "Acting · movies ({{count}})",
+    "actingTv": "Acting · TV ({{count}})",
+    "crewMovies": "Directing / writing · movies ({{count}})",
+    "crewTv": "Directing / writing · TV ({{count}})",
+    "episodesShort": "{{count}} ep"
+  },
   "personalNote": {
     "markFirst": "Mark this as watched first, then rate and add notes here.",
     "yourRating": "Your rating",

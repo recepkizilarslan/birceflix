@@ -199,6 +199,23 @@
     "personalNote": "✎ Senin notların",
     "backToDiscover": "← Keşfet'e dön"
   },
+  "person": {
+    "noPhoto": "Fotoğraf yok",
+    "born": "Doğum",
+    "died": "Vefat",
+    "alsoKnownAs": "Diğer isimleri",
+    "biography": "Biyografi",
+    "bioExpand": "Devamını oku",
+    "bioCollapse": "Daha az göster",
+    "filterDiscover": "Keşfet'i bu kişiye göre filtrele",
+    "imdbProfile": "IMDB profili →",
+    "homepage": "Ana sayfa →",
+    "actingMovies": "Oyunculuk · filmler ({{count}})",
+    "actingTv": "Oyunculuk · diziler ({{count}})",
+    "crewMovies": "Yönetmen / senarist · filmler ({{count}})",
+    "crewTv": "Yönetmen / senarist · diziler ({{count}})",
+    "episodesShort": "{{count}} bölüm"
+  },
   "personalNote": {
     "markFirst": "Önce \"İzledim\" olarak işaretle, sonra buradan puan ver ve not ekle.",
     "yourRating": "Senin puanın",

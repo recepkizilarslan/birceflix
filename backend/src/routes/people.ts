@@ -71,22 +71,135 @@ export async function peopleRoutes(app: FastifyInstance) {
     }
   })
 
-  // Detail lookup for a single person ID. Used by the picker to rehydrate
-  // chips when the URL carries IDs but the in-memory cache is empty
-  // (page reload, shared link, ...). Calling /person/{id} per ID is fine
-  // for the 1-3 people typically pinned in a filter.
+  // Detail lookup for a single person ID. Used by two distinct surfaces:
+  //
+  // 1. The People filter picker hydrating chips from the URL on reload.
+  //    Only needs id/name/profile_path/department; the heavier fields are
+  //    cheap to ship since the TMDB call cost is the same either way.
+  //
+  // 2. The PersonDetailPage. Pulls in biography, dates, and the full
+  //    filmography via append_to_response so the whole page is one TMDB
+  //    round-trip.
+  //
+  // The filmography arrays are condensed to the fields each card actually
+  // renders; raw TMDB credit objects carry ~25 fields per row, most unused.
   app.get('/api/person/:id', async (req) => {
     const { id } = idParam.parse(req.params)
     const { ui_language } = detailQuery.parse(req.query)
-    const row = await tmdb<TmdbPersonRow & { id: number }>(`/person/${id}`, {
+    const detail = await tmdb<TmdbPersonDetail>(`/person/${id}`, {
       language: ui_language,
+      append_to_response: 'movie_credits,tv_credits,external_ids',
     })
     return {
-      id: row.id,
-      name: row.name,
-      profile_path: row.profile_path,
-      known_for_department: row.known_for_department ?? null,
+      id: detail.id,
+      name: detail.name,
+      profile_path: detail.profile_path,
+      known_for_department: detail.known_for_department ?? null,
       known_for: '',
+      biography: detail.biography ?? '',
+      birthday: detail.birthday ?? null,
+      deathday: detail.deathday ?? null,
+      place_of_birth: detail.place_of_birth ?? null,
+      also_known_as: detail.also_known_as ?? [],
+      imdb_id: detail.external_ids?.imdb_id ?? null,
+      homepage: detail.homepage ?? null,
+      movie_cast: condenseMovieCredits(detail.movie_credits?.cast),
+      movie_crew: condenseMovieCrew(detail.movie_credits?.crew),
+      tv_cast: condenseTvCredits(detail.tv_credits?.cast),
+      tv_crew: condenseTvCrew(detail.tv_credits?.crew),
     }
   })
+}
+
+interface TmdbMovieCredit {
+  id: number
+  title?: string
+  original_title?: string
+  poster_path?: string | null
+  release_date?: string
+  vote_average?: number
+  character?: string
+  job?: string
+  department?: string
+}
+
+interface TmdbTvCredit {
+  id: number
+  name?: string
+  original_name?: string
+  poster_path?: string | null
+  first_air_date?: string
+  vote_average?: number
+  character?: string
+  job?: string
+  department?: string
+  episode_count?: number
+}
+
+interface TmdbPersonDetail {
+  id: number
+  name: string
+  profile_path: string | null
+  known_for_department?: string | null
+  biography?: string
+  birthday?: string | null
+  deathday?: string | null
+  place_of_birth?: string | null
+  also_known_as?: string[]
+  homepage?: string | null
+  external_ids?: { imdb_id?: string | null }
+  movie_credits?: { cast?: TmdbMovieCredit[]; crew?: TmdbMovieCredit[] }
+  tv_credits?: { cast?: TmdbTvCredit[]; crew?: TmdbTvCredit[] }
+}
+
+function condenseMovieCredits(rows: TmdbMovieCredit[] | undefined) {
+  if (!rows) return []
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title || r.original_title || '',
+    poster_path: r.poster_path ?? null,
+    release_date: r.release_date || null,
+    vote_average: r.vote_average ?? 0,
+    character: r.character || null,
+  }))
+}
+
+function condenseMovieCrew(rows: TmdbMovieCredit[] | undefined) {
+  if (!rows) return []
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title || r.original_title || '',
+    poster_path: r.poster_path ?? null,
+    release_date: r.release_date || null,
+    vote_average: r.vote_average ?? 0,
+    job: r.job || null,
+    department: r.department || null,
+  }))
+}
+
+function condenseTvCredits(rows: TmdbTvCredit[] | undefined) {
+  if (!rows) return []
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name || r.original_name || '',
+    poster_path: r.poster_path ?? null,
+    first_air_date: r.first_air_date || null,
+    vote_average: r.vote_average ?? 0,
+    character: r.character || null,
+    episode_count: r.episode_count ?? null,
+  }))
+}
+
+function condenseTvCrew(rows: TmdbTvCredit[] | undefined) {
+  if (!rows) return []
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name || r.original_name || '',
+    poster_path: r.poster_path ?? null,
+    first_air_date: r.first_air_date || null,
+    vote_average: r.vote_average ?? 0,
+    job: r.job || null,
+    department: r.department || null,
+    episode_count: r.episode_count ?? null,
+  }))
 }
