@@ -7,7 +7,9 @@
     "watchlist": "Merkliste",
     "watched": "Gesehen",
     "lists": "Listen",
-    "menu": "Menü"
+    "menu": "Menü",
+    "import": "İçe / Dışa aktar",
+    "quiz": "BirceRank"
   },
   "auth": {
     "signIn": "Mit Google anmelden",
@@ -311,5 +313,36 @@
     "placeholderTv": "Serien suchen…",
     "placeholderDoc": "Dokumentationen suchen…",
     "clear": "Löschen"
+  },
+  "quiz": {
+    "pageTitle": "Turnuva",
+    "pageSubtitle": "En iyisini seç, şampiyonu bul",
+    "chooseCategory": "Kategori seç",
+    "resume": "Devam et",
+    "resumeBadge": "Devam ediliyor · Tur {{round}}",
+    "startNew": "Yeni turnuva başlat",
+    "remaining": "{{count}} kaldı",
+    "round": "Tur {{round}}",
+    "vsLabel": "vs",
+    "pickOne": "Hangisi daha iyi?",
+    "progress": "{{done}} / {{total}} seçildi",
+    "globalStats": "Kullanıcıların %{{pct}}'i bunu seçti",
+    "globalStatsFirst": "Bu maçup ilk kez oynandı!",
+    "resultTitle": "Şampiyon!",
+    "resultSubtitle": "Bu kategorideki favorin:",
+    "playAgain": "Yeni turnuva başlat",
+    "viewHistory": "Geçmiş turnuvalar",
+    "historyTitle": "Geçmiş turnuvalar",
+    "historyEmpty": "Henüz tamamlanan turnuvan yok.",
+    "historyWinner": "Şampiyon: {{title}}",
+    "historyDate": "{{date}} tarihinde tamamlandı",
+    "loading": "Yükleniyor…",
+    "loadError": "Kategoriler yüklenemedi, tekrar dene.",
+    "mediaMovie": "Film",
+    "mediaTv": "Dizi",
+    "mediaDoc": "Belgesel",
+    "items": "{{count}} içerik",
+    "matchupsDone": "maçup tamamlandı",
+    "fullRanking": "Tam sıralama"
   }
 }
