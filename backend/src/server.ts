@@ -17,7 +17,6 @@ import { movieRoutes } from './routes/movie.js'
 import { metaRoutes } from './routes/meta.js'
 import { watchedRoutes } from './routes/watched.js'
 import { watchlistRoutes } from './routes/watchlist.js'
-import { historyRoutes } from './routes/history.js'
 import { importRoutes } from './routes/import.js'
 import { integrationsRoutes } from './routes/integrations.js'
 import { tvRoutes } from './routes/tv.js'
@@ -78,7 +77,6 @@ async function build() {
   await app.register(metaRoutes)
   await app.register(watchedRoutes)
   await app.register(watchlistRoutes)
-  await app.register(historyRoutes)
   await app.register(importRoutes)
   await app.register(integrationsRoutes)
   await app.register(tvRoutes)

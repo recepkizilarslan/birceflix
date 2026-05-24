@@ -98,27 +98,6 @@ export const watchlist = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Watch history — one row per viewing event (Movary-style rewatch support)
-// ---------------------------------------------------------------------------
-export const watchHistory = pgTable(
-  'watch_history',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    tmdbId: integer('tmdb_id').notNull(),
-    watchedAt: timestamp('watched_at', { withTimezone: true }).defaultNow().notNull(),
-    myRating: smallint('my_rating'),
-    notes: text('notes'),
-  },
-  (t) => ({
-    userIdx: index('history_user_idx').on(t.userId, t.watchedAt),
-    movieIdx: index('history_user_movie_idx').on(t.userId, t.tmdbId),
-  }),
-)
-
-// ---------------------------------------------------------------------------
 // Watched TV episodes — one row per (user, show, season, episode)
 // ---------------------------------------------------------------------------
 export const watchedEpisodes = pgTable(
@@ -251,5 +230,4 @@ export type User = typeof users.$inferSelect
 export type Session = typeof sessions.$inferSelect
 export type WatchedMovie = typeof watchedMovies.$inferSelect
 export type WatchlistItem = typeof watchlist.$inferSelect
-export type WatchHistoryItem = typeof watchHistory.$inferSelect
 export type SavedFilter = typeof savedFilters.$inferSelect
