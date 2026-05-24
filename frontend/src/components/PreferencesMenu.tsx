@@ -11,6 +11,7 @@ const LANG_LABEL_KEY: Record<Lang, string> = {
   tr: 'prefs.languageTr',
   en: 'prefs.languageEn',
   de: 'prefs.languageDe',
+  it: 'prefs.languageIt',
 }
 
 /**

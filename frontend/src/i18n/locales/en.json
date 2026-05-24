@@ -64,6 +64,7 @@
     "languageTr": "Türkçe",
     "languageEn": "English",
     "languageDe": "Deutsch",
+    "languageIt": "Italiano",
     "region": "Region",
     "regionHint": "Used for watch providers and the calendar",
     "open": "Preferences"
