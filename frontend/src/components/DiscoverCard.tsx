@@ -101,7 +101,7 @@ export function DiscoverCard({
             <>
               <div className="pointer-events-none absolute inset-0 bg-black/55" aria-hidden />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="-rotate-12 px-3 py-1 rounded-md border-2 border-emerald-300/80 text-emerald-200 text-[12px] sm:text-[13px] font-bold uppercase tracking-[0.18em] bg-black/35 backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
+                <div className="-rotate-12 px-3 py-1 rounded-md border-2 border-[var(--color-brand)]/80 text-[var(--color-brand)] text-[12px] sm:text-[13px] font-bold uppercase tracking-[0.18em] bg-black/35 backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
                   {t('card.watchedWatermark')}
                 </div>
               </div>
@@ -174,7 +174,7 @@ export function DiscoverCard({
             onClick={() => onToggleWatched(item)}
             className={`w-full text-[13px] sm:text-sm h-9 sm:h-auto sm:py-1.5 rounded-lg transition active:scale-[0.98] ${
               watched
-                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+                ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/40 hover:bg-[var(--color-brand)]/25'
                 : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
             }`}
           >

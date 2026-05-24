@@ -60,7 +60,7 @@ export function AddToListMenu({ tmdbId, mediaType, title, posterPath }: Props) {
       </button>
 
       {addedTo && (
-        <div className="absolute top-full left-0 mt-1 text-xs text-emerald-400 whitespace-nowrap">
+        <div className="absolute top-full left-0 mt-1 text-xs text-[var(--color-brand)] whitespace-nowrap">
           ✓ {addedTo}
         </div>
       )}

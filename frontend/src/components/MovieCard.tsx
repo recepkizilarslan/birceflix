@@ -55,7 +55,7 @@ export function MovieCard({ movie, watched, onToggleWatched, onOpen, canMark, my
             !canMark
               ? 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)] cursor-not-allowed'
               : watched
-              ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30'
+              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/40 hover:bg-[var(--color-brand)]/25'
               : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
           }`}
           title={canMark ? '' : t('card.signInToMark')}
