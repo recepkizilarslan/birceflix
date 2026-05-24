@@ -76,12 +76,33 @@ export interface DiscoverFilters {
   watch_region?: string
   runtime_from?: number
   runtime_to?: number
+  /** TMDB person IDs. AND semantics — every listed person must appear in
+   *  cast OR crew. Maps to /discover/movie?with_people=id1,id2,... */
+  with_people?: number[]
   sort_by?: string
   page?: number
   /** Server-side filter: 'unwatched' subtracts watched IDs from a TMDB page;
    *  'watched' sources from the user's watched_movies directly (filters like
    *  genre/year are ignored in that mode — see response.filters_ignored). */
   watched_filter?: 'all' | 'unwatched' | 'watched'
+}
+
+export interface Person {
+  id: number
+  name: string
+  profile_path: string | null
+  known_for_department: string | null
+  /** Comma-joined titles of the person's best-known credits, used as a
+   *  subtitle in the picker. Empty when we rehydrate from /api/person/:id
+   *  (TMDB's detail endpoint doesn't return known_for). */
+  known_for: string
+}
+
+export interface PersonSearchResponse {
+  page: number
+  total_pages: number
+  total_results: number
+  results: Person[]
 }
 
 export interface DiscoverResponse {
@@ -157,12 +178,25 @@ export function discover(f: DiscoverFilters) {
     watch_region: f.watch_region,
     runtime_from: f.runtime_from?.toString(),
     runtime_to: f.runtime_to?.toString(),
+    with_people: f.with_people?.length ? f.with_people.join(',') : undefined,
     sort_by: f.sort_by,
     page: f.page?.toString(),
     ui_language: intlLocale(),
     // Omit when 'all' to keep URLs tidy; backend default matches.
     watched_filter: f.watched_filter && f.watched_filter !== 'all' ? f.watched_filter : undefined,
   })
+}
+
+export function searchPerson(q: string, page = 1) {
+  return get<PersonSearchResponse>('/api/person/search', {
+    q,
+    page: page.toString(),
+    ui_language: intlLocale(),
+  })
+}
+
+export function getPerson(id: number) {
+  return get<Person>(`/api/person/${id}`, { ui_language: intlLocale() })
 }
 
 export function search(q: string, page = 1) {

@@ -20,6 +20,7 @@ import { SORT_OPTIONS, TV_SORT_OPTIONS } from './constants'
  *   rtf|rtt number 0..600          runtime from/to (minutes)
  *   sf|st  number 0..100           seasons from/to (TV only)
  *   ef|et  number 0..5000          episodes from/to (TV only)
+ *   pe     comma-sep person IDs    cast or crew (AND semantics)
  *   sort   TMDB sort key           omitted when default
  *   top    "1"                      top-rated-only mode (movies + tv only)
  *   w      "u" | "w"                watched filter (unwatched / only watched)
@@ -51,6 +52,7 @@ const KEY = {
   sort: 'sort',
   top: 'top',
   watched: 'w',
+  people: 'pe',
 } as const
 
 function parseMediaType(raw: string | null): MediaType {
@@ -123,6 +125,7 @@ export function parseDiscoverUrl(sp: URLSearchParams, defaultRegion: string): Di
     seasons_to: tv ? parseIntInRange(sp.get(KEY.seasonsTo), 0, 100) : '',
     episodes_from: tv ? parseIntInRange(sp.get(KEY.episodesFrom), 0, 5000) : '',
     episodes_to: tv ? parseIntInRange(sp.get(KEY.episodesTo), 0, 5000) : '',
+    with_people: parseIntList(sp.get(KEY.people)),
     sort_by: parseSort(sp.get(KEY.sort), mediaType),
     // top-mode flag, ignored for doc since there's no /doc top_rated.
     top_only: sp.get(KEY.top) === '1' && mediaType !== 'doc',
@@ -176,6 +179,8 @@ export function serializeDiscoverUrl(state: DiscoverUrlState): URLSearchParams {
     if (typeof f.episodes_from === 'number') sp.set(KEY.episodesFrom, String(f.episodes_from))
     if (typeof f.episodes_to === 'number') sp.set(KEY.episodesTo, String(f.episodes_to))
   }
+
+  if (f.with_people.length) sp.set(KEY.people, f.with_people.join(','))
 
   if (f.sort_by && f.sort_by !== DEFAULT_FILTERS.sort_by) sp.set(KEY.sort, f.sort_by)
 

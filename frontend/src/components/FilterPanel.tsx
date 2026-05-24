@@ -7,6 +7,7 @@ import { COUNTRIES, LANGUAGES } from '../lib/constants'
 import { getRegion } from '../lib/preferences'
 import { countryName, languageName } from '../lib/intl'
 import { useProviders } from '../lib/useProviders'
+import { PeoplePicker } from './PeoplePicker'
 import type { SavedFilter } from '../lib/savedFilters'
 
 /**
@@ -41,6 +42,11 @@ export interface FilterState {
   /** TV-only: total episodes range. Ignored for movies. */
   episodes_from: number | ''
   episodes_to: number | ''
+  /** TMDB person IDs (cast or crew). Picker writes these in; the filter
+   *  panel does NOT cache the picked person's name or photo - that lives
+   *  in the picker's own state, refetched from /api/person/:id on reload
+   *  so a shared URL still renders meaningful chips. */
+  with_people: number[]
   sort_by: string
   /** When true, the Discover results come from the prefetched top-rated
    * snapshot for (mediaType, region) instead of /discover. Other filters
@@ -70,6 +76,7 @@ export const DEFAULT_FILTERS: FilterState = {
   seasons_to: '',
   episodes_from: '',
   episodes_to: '',
+  with_people: [],
   sort_by: 'popularity.desc',
   top_only: false,
   watched_filter: 'all',
@@ -302,6 +309,16 @@ export function FilterPanel({
         </Section>
       )}
 
+      {/* People filter: TMDB's with_people matches anyone in cast OR crew,
+          so actors, directors, writers and producers all surface. Two-or-more
+          people are ANDed together (a movie must include all of them). */}
+      <Section title={`${t('filters.people')} ${value.with_people.length > 0 ? `(${value.with_people.length})` : ''}`}>
+        <PeoplePicker
+          value={value.with_people}
+          onChange={(next) => onChange({ ...value, with_people: next })}
+        />
+      </Section>
+
       <Section title={`${t('filters.language')} ${value.original_language ? '•' : ''}`}>
         <Select value={value.original_language} onChange={(v) => onChange({ ...value, original_language: v })}>
           {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{languageLabel(l.code)}</option>)}
@@ -439,6 +456,7 @@ export function countActiveFilters(f: FilterState): number {
   if (f.seasons_to !== '') n++
   if (f.episodes_from !== '') n++
   if (f.episodes_to !== '') n++
+  if (f.with_people.length) n++
   if (f.top_only) n++
   if (f.watched_filter !== 'all') n++
   // Note: sort_by is intentionally NOT counted — sorting lives outside

@@ -67,6 +67,11 @@
     "regionHint": "Watch provider ve takvim için kullanılır",
     "open": "Tercihler"
   },
+  "theme": {
+    "toggle": "Temayı değiştir",
+    "switchToLight": "Açık temaya geç",
+    "switchToDark": "Koyu temaya geç"
+  },
   "discover": {
     "results": "{{total}} sonuç",
     "loadedOf": "{{loaded}} / {{total}} gösteriliyor",
@@ -88,6 +93,11 @@
     "minRating": "Min. Puan",
     "minRatingHint": "TMDB tabanlı. IMDB rating'i kartta ve detayda görünür.",
     "genres": "Kategori",
+    "people": "Kişiler",
+    "peoplePlaceholder": "Aktör, yönetmen, senarist ara…",
+    "peopleLoading": "Aranıyor…",
+    "peopleNoResults": "Eşleşen kişi yok.",
+    "peopleRemove": "Kişiyi kaldır",
     "platforms": "Platform",
     "platformLoading": "Yükleniyor…",
     "platformNone": "Bu bölge için platform listesi yok.",

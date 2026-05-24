@@ -20,6 +20,10 @@ const querySchema = z.object({
   watch_region: z.string().optional(),
   runtime_from: z.coerce.number().optional(),
   runtime_to: z.coerce.number().optional(),
+  /** Comma-separated TMDB person IDs. Matches movies where ALL the listed
+   *  people appear in cast or crew (TMDB's `with_people` does an AND on
+   *  comma-separated values). */
+  with_people: z.string().optional(),
   sort_by: z.string().default('popularity.desc'),
   page: z.coerce.number().int().min(1).default(1),
   ui_language: uiLanguageSchema,
@@ -49,6 +53,7 @@ type IgnoredFilter =
   | 'with_watch_providers'
   | 'original_language'
   | 'origin_country'
+  | 'with_people'
   | 'sort_by'
 
 function collectIgnored(q: z.infer<typeof querySchema>): IgnoredFilter[] {
@@ -63,6 +68,7 @@ function collectIgnored(q: z.infer<typeof querySchema>): IgnoredFilter[] {
   if (q.with_watch_providers) ignored.push('with_watch_providers')
   if (q.original_language) ignored.push('original_language')
   if (q.origin_country) ignored.push('origin_country')
+  if (q.with_people) ignored.push('with_people')
   if (q.sort_by && q.sort_by !== 'popularity.desc') ignored.push('sort_by')
   return ignored
 }
@@ -145,6 +151,7 @@ export async function discoverRoutes(app: FastifyInstance) {
       watch_region: q.watch_region,
       'with_runtime.gte': q.runtime_from?.toString(),
       'with_runtime.lte': q.runtime_to?.toString(),
+      with_people: q.with_people,
       include_adult: 'false',
     })
 
