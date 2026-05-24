@@ -45,12 +45,12 @@ export function useRegion(): [string, (next: string) => void] {
   return [value, setRegion]
 }
 
-export type Lang = 'tr' | 'en' | 'de'
+export type Lang = 'tr' | 'en' | 'de' | 'it'
 
 /** Single source of truth for what the UI ships translations for. The
  *  order here matches the toggle order in PreferencesMenu, with TR first
  *  because Turkish is the project's primary locale. */
-export const SUPPORTED_LANGS: readonly Lang[] = ['tr', 'en', 'de'] as const
+export const SUPPORTED_LANGS: readonly Lang[] = ['tr', 'en', 'de', 'it'] as const
 
 /** Resolve i18n's possibly-regional code (en-US, de-AT, ...) down to one of
  *  our supported short codes. Anything that doesn't match falls back to

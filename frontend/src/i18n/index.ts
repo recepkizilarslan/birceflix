@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import tr from './locales/tr.json'
 import en from './locales/en.json'
 import de from './locales/de.json'
+import it from './locales/it.json'
 
 void i18n
   .use(LanguageDetector)
@@ -13,9 +14,10 @@ void i18n
       tr: { translation: tr },
       en: { translation: en },
       de: { translation: de },
+      it: { translation: it },
     },
     fallbackLng: 'tr',
-    supportedLngs: ['tr', 'en', 'de'],
+    supportedLngs: ['tr', 'en', 'de', 'it'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
@@ -33,6 +35,7 @@ export function intlLocale(): string {
   const lng = (i18n.language || 'tr').toLowerCase()
   if (lng.startsWith('en')) return 'en-US'
   if (lng.startsWith('de')) return 'de-DE'
+  if (lng.startsWith('it')) return 'it-IT'
   return 'tr-TR'
 }
 
