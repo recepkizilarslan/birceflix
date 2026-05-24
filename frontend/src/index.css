@@ -37,6 +37,26 @@
   opacity: 1;
 }
 
+/* The "watched" affordance (button on detail pages + chip on cards) is
+   styled with emerald-300/600 shades that have enough contrast on a near-
+   black surface but disappear into white in light mode. Re-skin the same
+   classes with emerald-700/100 so the active state reads as a clearly
+   tinted, dark-text chip on light backgrounds. We override the exact
+   Tailwind class strings the components use so we don't have to chase
+   every callsite. */
+:root[data-theme="light"] .bg-emerald-600\/20 {
+  background-color: rgb(209 250 229); /* emerald-100 */
+}
+:root[data-theme="light"] .hover\:bg-emerald-600\/30:hover {
+  background-color: rgb(167 243 208); /* emerald-200 */
+}
+:root[data-theme="light"] .text-emerald-300 {
+  color: rgb(6 95 70); /* emerald-800 */
+}
+:root[data-theme="light"] .border-emerald-500\/40 {
+  border-color: rgb(16 185 129); /* emerald-500 */
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
