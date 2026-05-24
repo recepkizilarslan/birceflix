@@ -63,6 +63,7 @@
     "language": "Dil",
     "languageTr": "Türkçe",
     "languageEn": "English",
+    "languageDe": "Deutsch",
     "region": "Bölge",
     "regionHint": "Watch provider ve takvim için kullanılır",
     "open": "Tercihler"

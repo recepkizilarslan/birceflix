@@ -45,7 +45,23 @@ export function useRegion(): [string, (next: string) => void] {
   return [value, setRegion]
 }
 
-export type Lang = 'tr' | 'en'
+export type Lang = 'tr' | 'en' | 'de'
+
+/** Single source of truth for what the UI ships translations for. The
+ *  order here matches the toggle order in PreferencesMenu, with TR first
+ *  because Turkish is the project's primary locale. */
+export const SUPPORTED_LANGS: readonly Lang[] = ['tr', 'en', 'de'] as const
+
+/** Resolve i18n's possibly-regional code (en-US, de-AT, ...) down to one of
+ *  our supported short codes. Anything that doesn't match falls back to
+ *  Turkish, matching the i18n init's `fallbackLng`. */
+export function normalizeLang(raw: string | undefined): Lang {
+  const lower = (raw || '').toLowerCase()
+  for (const code of SUPPORTED_LANGS) {
+    if (lower.startsWith(code)) return code
+  }
+  return 'tr'
+}
 
 export function setLanguage(next: Lang) {
   void i18n.changeLanguage(next)
@@ -53,11 +69,9 @@ export function setLanguage(next: Lang) {
 
 /** A stable hook into the current i18n language for non-translation use cases. */
 export function useLanguage(): [Lang, (next: Lang) => void] {
-  const [value, setValue] = useState<Lang>(() => ((i18n.language || 'tr').startsWith('en') ? 'en' : 'tr'))
+  const [value, setValue] = useState<Lang>(() => normalizeLang(i18n.language))
   useEffect(() => {
-    const handler = (lng: string) => {
-      setValue(lng.startsWith('en') ? 'en' : 'tr')
-    }
+    const handler = (lng: string) => setValue(normalizeLang(lng))
     i18n.on('languageChanged', handler)
     return () => { i18n.off('languageChanged', handler) }
   }, [])
