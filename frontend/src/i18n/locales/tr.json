@@ -4,7 +4,7 @@
     "movies": "Filmler",
     "tv": "Diziler",
     "calendar": "Takvim",
-    "watchlist": "Listem",
+    "watchlist": "İzleyeceklerim",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
     "import": "İçe / Dışa aktar",
@@ -158,15 +158,15 @@
     "watched": "✓ İzledim",
     "watchedWatermark": "İzlendi",
     "markWatched": "İzledim olarak işaretle",
-    "addToWatchlist": "+ Listeme ekle",
-    "inWatchlist": "✓ Listemde",
+    "addToWatchlist": "+ İzleyeceklerime ekle",
+    "inWatchlist": "✓ İzleyeceklerimde",
     "noPoster": "Poster yok",
     "signInToMark": "Giriş yapınca işaretleyebilirsin"
   },
   "movie": {
     "watchedRemove": "✓ İzledim — kaldır",
-    "watchlistAdd": "+ Listeme ekle",
-    "watchlistRemove": "✓ Listemde — çıkar",
+    "watchlistAdd": "+ İzleyeceklerime ekle",
+    "watchlistRemove": "✓ İzleyeceklerimde, çıkar",
     "addToList": "+ Listeye ekle",
     "addToListSignInHint": "Giriş yapınca listene ekleyebilirsin",
     "summary": "Özet",
@@ -201,8 +201,8 @@
     "empty": "Henüz izlediğin bir film yok."
   },
   "watchlist": {
-    "signInPrompt": "İzleme listeni saklamak için giriş yap",
-    "empty": "Listende henüz film yok. Detay sayfasında \"+ Listeme ekle\" diyebilirsin."
+    "signInPrompt": "İzleyeceklerini saklamak için giriş yap",
+    "empty": "İzleyeceklerinde henüz film yok. Detay sayfasında \"+ İzleyeceklerime ekle\" diyebilirsin."
   },
   "lists": {
     "title": "Listelerim",
@@ -313,7 +313,7 @@
   "exports": {
     "sectionTitle": "Dışa aktar",
     "sectionTag": "backup",
-    "intro": "Verini istediğin zaman indir. JSON dump tüm kayıtlarını içerir (izlenenler, watchlist, izleme listeleri, dizi bölümleri, kişisel listeler). Letterboxd CSV'si ile başka bir platforma taşıyabilirsin.",
+    "intro": "Verini istediğin zaman indir. JSON dump tüm kayıtlarını içerir (izlenenler, izleyecekler, izleme listeleri, dizi bölümleri, kişisel listeler). Letterboxd CSV'si ile başka bir platforma taşıyabilirsin.",
     "jsonButton": "Tam JSON dump indir",
     "csvButton": "Letterboxd CSV indir",
     "note": "JSON dump'ı güvenlik gerekçesiyle hiçbir secret (Trakt token, webhook token) içermez — yedek olmasından çok \"verim bende\" amaçlıdır. Letterboxd CSV'si tarih / başlık / puan içerir; yıl bilgisi depolanmadığı için boş kalır, Letterboxd başlığa göre eşleştirir."
