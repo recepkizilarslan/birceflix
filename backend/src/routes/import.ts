@@ -1,9 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/client.js'
-import { watchedMovies, watchHistory } from '../db/schema.js'
+import { watchedMovies } from '../db/schema.js'
 import {
   findTmdbMatch,
-  letterboxdRatingTo10,
   parseLetterboxdDiary,
   parseLetterboxdWatched,
   type LetterboxdDiaryRow,
@@ -87,7 +86,12 @@ export async function importRoutes(app: FastifyInstance) {
     return report
   })
 
-  // -------- Letterboxd: diary.csv → watch_history -------------------------
+  // -------- Letterboxd: diary.csv → watched_movies ------------------------
+  // Per-viewing history was dropped in migration 0012, so the diary import
+  // collapses onto watched_movies the same way the watched.csv import does.
+  // The CSV's per-viewing date and rewatch flag are not preserved; the row's
+  // watched_at is the timestamp of the first time we inserted it. Re-running
+  // the import on the same diary is a no-op (onConflictDoNothing).
   // lgtm [js/missing-rate-limiting]
   app.post('/api/import/letterboxd/diary', rlWrite, async (req, reply) => {
     const userId = await app.requireAuth(req)
@@ -113,13 +117,6 @@ export async function importRoutes(app: FastifyInstance) {
         report.unmatched.push({ name: row.name, year: row.year, reason: 'no tmdb result' })
         return
       }
-
-      const watchedDate = row.watchedDate ?? row.date
-      const watchedAt = watchedDate
-        ? new Date(`${watchedDate}T12:00:00Z`)
-        : undefined
-
-      // Ensure a corresponding watched_movies row exists (the user has clearly seen it).
       await db
         .insert(watchedMovies)
         .values({
@@ -132,13 +129,6 @@ export async function importRoutes(app: FastifyInstance) {
         .onConflictDoNothing({
           target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
         })
-
-      await db.insert(watchHistory).values({
-        userId,
-        tmdbId: match.id,
-        ...(watchedAt ? { watchedAt } : {}),
-        myRating: letterboxdRatingTo10(row.rating),
-      })
       report.matched++
     })
 

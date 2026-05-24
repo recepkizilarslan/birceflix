@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { randomBytes, timingSafeEqual } from 'node:crypto'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
-import { users, watchedMovies, watchHistory } from '../db/schema.js'
+import { users, watchedMovies } from '../db/schema.js'
 import { env } from '../env.js'
 import {
   authorizationUrl,
@@ -193,12 +193,12 @@ async function importOne(userId: string, item: TraktHistoryItem): Promise<'impor
   const tmdbId = item.movie.ids.tmdb
   if (!tmdbId) return 'skipped'
 
-  const watchedAt = new Date(item.watched_at)
-
-  // Make sure a watched_movies row exists (no rewrite if already there).
-  // The unique index on watched_movies is (user_id, tmdb_id, media_type) since
-  // migration 0009 — the conflict target must list all three columns or PG
-  // raises "no unique constraint matching ON CONFLICT specification".
+  // Trakt's history endpoint emits one event per viewing. Per-viewing history
+  // was dropped in migration 0012; we now collapse the import down to "did
+  // the user mark this as watched at all," handled by the unique index on
+  // watched_movies (user_id, tmdb_id, media_type). Re-running the import is
+  // a no-op for already-watched titles; the original watched_at on the row
+  // is preserved.
   await db
     .insert(watchedMovies)
     .values({
@@ -212,27 +212,6 @@ async function importOne(userId: string, item: TraktHistoryItem): Promise<'impor
     .onConflictDoNothing({
       target: [watchedMovies.userId, watchedMovies.tmdbId, watchedMovies.mediaType],
     })
-
-  // Append a viewing event if not already exists
-  const existing = await db
-    .select()
-    .from(watchHistory)
-    .where(
-      and(
-        eq(watchHistory.userId, userId),
-        eq(watchHistory.tmdbId, tmdbId),
-        eq(watchHistory.watchedAt, watchedAt)
-      )
-    )
-    .limit(1)
-
-  if (existing.length === 0) {
-    await db.insert(watchHistory).values({
-      userId,
-      tmdbId,
-      watchedAt,
-    })
-  }
 
   return 'imported'
 }
