@@ -144,13 +144,17 @@ export function MovieDetailPage() {
             <Section title={t('movie.cast')}>
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
                 {d.credits.cast.slice(0, 12).map((c) => (
-                  <div key={c.id} className="w-24 shrink-0 text-center">
-                    <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] mx-auto">
+                  <Link
+                    key={c.id}
+                    to={`/person/${c.id}`}
+                    className="w-24 shrink-0 text-center group"
+                  >
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] mx-auto ring-0 group-hover:ring-2 ring-[var(--color-accent)] transition">
                       {c.profile_path && <img src={`https://image.tmdb.org/t/p/w185${c.profile_path}`} alt="" className="w-full h-full object-cover" />}
                     </div>
-                    <div className="text-sm mt-2 truncate">{c.name}</div>
+                    <div className="text-sm mt-2 truncate group-hover:text-[var(--color-accent)] transition">{c.name}</div>
                     <div className="text-xs text-[var(--color-text-dim)] truncate">{c.character}</div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </Section>

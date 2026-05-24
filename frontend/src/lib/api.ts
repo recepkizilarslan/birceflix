@@ -98,6 +98,60 @@ export interface Person {
   known_for: string
 }
 
+export interface PersonMovieCastCredit {
+  id: number
+  title: string
+  poster_path: string | null
+  release_date: string | null
+  vote_average: number
+  character: string | null
+}
+
+export interface PersonMovieCrewCredit {
+  id: number
+  title: string
+  poster_path: string | null
+  release_date: string | null
+  vote_average: number
+  job: string | null
+  department: string | null
+}
+
+export interface PersonTvCastCredit {
+  id: number
+  name: string
+  poster_path: string | null
+  first_air_date: string | null
+  vote_average: number
+  character: string | null
+  episode_count: number | null
+}
+
+export interface PersonTvCrewCredit {
+  id: number
+  name: string
+  poster_path: string | null
+  first_air_date: string | null
+  vote_average: number
+  job: string | null
+  department: string | null
+  episode_count: number | null
+}
+
+export interface PersonDetail extends Person {
+  biography: string
+  birthday: string | null
+  deathday: string | null
+  place_of_birth: string | null
+  also_known_as: string[]
+  imdb_id: string | null
+  homepage: string | null
+  movie_cast: PersonMovieCastCredit[]
+  movie_crew: PersonMovieCrewCredit[]
+  tv_cast: PersonTvCastCredit[]
+  tv_crew: PersonTvCrewCredit[]
+}
+
 export interface PersonSearchResponse {
   page: number
   total_pages: number
@@ -196,7 +250,7 @@ export function searchPerson(q: string, page = 1) {
 }
 
 export function getPerson(id: number) {
-  return get<Person>(`/api/person/${id}`, { ui_language: intlLocale() })
+  return get<PersonDetail>(`/api/person/${id}`, { ui_language: intlLocale() })
 }
 
 export function search(q: string, page = 1) {
