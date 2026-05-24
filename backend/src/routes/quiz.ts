@@ -15,6 +15,10 @@
  *     incremented.
  *   - Global stats are UPSERT-ed per matchup (candidateA < candidateB,
  *     enforced here) so the "X% picked this" overlay stays accurate.
+ *
+ * Rate limiting:
+ *   Inline configs are used (not imported constants) so CodeQL data-flow
+ *   can resolve the rateLimit option without cross-file tracking.
  */
 
 import type { FastifyInstance } from 'fastify'
@@ -26,7 +30,13 @@ import { getTop } from '../lib/topCache.js'
 import { env } from '../env.js'
 import { uiLanguageSchema } from '../lib/locale.js'
 import { tmdb } from '../lib/tmdb.js'
-import { rlRead, rlWrite } from '../lib/rateLimit.js'
+
+// ---------------------------------------------------------------------------
+// Inline rate limit configs (intentionally NOT imported from rateLimit.ts so
+// CodeQL can resolve the value through its local data-flow analysis).
+// ---------------------------------------------------------------------------
+const RL_READ  = { config: { rateLimit: { max: 200, timeWindow: '1 minute' } } } as const
+const RL_WRITE = { config: { rateLimit: { max: 60,  timeWindow: '1 minute' } } } as const
 
 // ---------------------------------------------------------------------------
 // Category definitions
@@ -53,7 +63,7 @@ const CATEGORIES: CategoryDef[] = [
   {
     id: 'top_tv',
     labelTr: 'En İyi Diziler',
-    labelEn: 'Top TV Shows',
+    labelEn: 'Top TV',
     mediaType: 'tv',
     maxItems: 64,
   },
@@ -66,93 +76,28 @@ const CATEGORIES: CategoryDef[] = [
   },
 ]
 
-/** Shuffle an array in-place (Fisher-Yates) and return it. */
-function shuffle<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-      ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
-  }
-  return arr
-}
-
-/** Round n up to the next power of 2, capped at max. */
-function nearestPow2(n: number, max: number): number {
-  let p = 1
-  while (p < n && p < max) p <<= 1
-  return Math.min(p, max)
-}
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch the tmdbIds for a category, leveraging topCache for movies/TV.
- * Documentaries use a dedicated TMDB discover call (not in topCache).
- */
-async function fetchCategoryIds(
-  cat: CategoryDef,
-  region: string,
-  language: string,
-  log: FastifyInstance['log'],
-  platformId?: number,
-): Promise<number[]> {
-  const discoverType = cat.mediaType === 'tv' ? 'tv' : 'movie'
-
-  // If a platform filter is requested, always use discover endpoint
-  if (platformId) {
-    const PAGE_SIZE = 20
-    const pagesNeeded = Math.ceil(cat.maxItems / PAGE_SIZE)
-    const pages = await Promise.all(
-      Array.from({ length: pagesNeeded }, (_, i) =>
-        tmdb<{ results: { id: number }[] }>(`/discover/${discoverType}`, {
-          with_watch_providers: String(platformId),
-          watch_region: region,
-          sort_by: 'vote_average.desc',
-          'vote_count.gte': '200',
-          ...(cat.mediaType === 'doc' ? { with_genres: '99' } : {}),
-          language,
-          page: String(i + 1),
-        }),
-      ),
-    )
-    return pages.flatMap((p) => p.results.map((r) => r.id)).slice(0, cat.maxItems)
-  }
-
-  if (cat.mediaType === 'movie' || cat.mediaType === 'tv') {
-    const snapshot = await getTop(cat.mediaType, region, language, log)
-    return snapshot.items.map((i) => i.id)
-  }
-
-  // Documentaries: genre 99, no platform filter
-  const PAGE_SIZE = 20
-  const pagesNeeded = Math.ceil(cat.maxItems / PAGE_SIZE)
-  const pages = await Promise.all(
-    Array.from({ length: pagesNeeded }, (_, i) =>
-      tmdb<{ results: { id: number }[] }>('/discover/movie', {
-        with_genres: '99',
-        sort_by: 'vote_average.desc',
-        'vote_count.gte': '500',
-        language,
-        page: String(i + 1),
-      }),
-    ),
-  )
-  return pages.flatMap((p) => p.results.map((r) => r.id)).slice(0, cat.maxItems)
+/** Nearest power-of-2 ≤ max that is also ≤ available. */
+function nearestPow2(available: number, max: number): number {
+  const cap = Math.min(available, max)
+  let p = 1
+  while (p * 2 <= cap) p *= 2
+  return p
 }
 
-/**
- * Compute the ordered (a, b) key where a < b.
- * Returns [smallerId, largerId].
- */
-function orderedPair(x: number, y: number): [number, number] {
-  return x < y ? [x, y] : [y, x]
+/** Fisher-Yates in-place shuffle. */
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
+  }
+  return arr
 }
 
-/**
- * Read the current duel from a session's `remaining` array.
- * Items at even index vs odd index.
- */
+/** Returns the current duel pair from the remaining array. */
 function currentDuel(remaining: number[]): [number, number] | null {
   if (remaining.length < 2) return null
   const a = remaining[0]
@@ -161,14 +106,73 @@ function currentDuel(remaining: number[]): [number, number] | null {
   return [a, b]
 }
 
+/** Canonical pair order: smaller id first. */
+function orderedPair(a: number, b: number): [number, number] {
+  return a < b ? [a, b] : [b, a]
+}
+
+// ---------------------------------------------------------------------------
+// Data fetchers
+// ---------------------------------------------------------------------------
+interface TmdbDiscoverResult {
+  id: number
+  vote_average?: number
+}
+
+async function fetchCategoryIds(
+  cat: CategoryDef,
+  region: string,
+  uiLang: string,
+  log: FastifyInstance['log'],
+  platformId?: number,
+): Promise<number[]> {
+  if (cat.mediaType === 'movie') {
+    const snapshot = await getTop('movie', region, uiLang, log)
+    return snapshot.items.map((r) => r.id)
+  }
+
+  if (cat.mediaType === 'tv') {
+    const snapshot = await getTop('tv', region, uiLang, log)
+    return snapshot.items.map((r) => r.id)
+  }
+
+  // Documentary: use TMDB discover with genre 99
+  const pages = [1, 2, 3]
+  const params: Record<string, string> = {
+    with_genres: '99',
+    sort_by: 'vote_average.desc',
+    'vote_count.gte': '200',
+    language: uiLang,
+  }
+  if (platformId) params['with_watch_providers'] = String(platformId)
+
+  const allResults: TmdbDiscoverResult[] = []
+
+  for (const page of pages) {
+    try {
+      const data = await tmdb<{ results: TmdbDiscoverResult[] }>('/discover/movie', {
+        ...params,
+        page: String(page),
+      })
+      allResults.push(...data.results)
+    } catch (err) {
+      log.warn({ err, page }, 'quiz: documentary fetch failed for page')
+    }
+  }
+
+  // Sort by vote_average descending (already sorted by TMDB, but make explicit)
+  allResults.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))
+
+  return allResults.map((r) => r.id)
+}
+
 // ---------------------------------------------------------------------------
 // Route handler
 // ---------------------------------------------------------------------------
 export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/categories ─────────────────────────────────────────────
   // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/categories', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/categories', RL_READ, async (req) => {
     const userId = await app.requireAuth(req)
     void userId // auth check only
 
@@ -203,11 +207,11 @@ export async function quizRoutes(app: FastifyInstance) {
         max_items: cat.maxItems,
         active_session: active
           ? {
-            id: active.id,
-            current_round: active.currentRound,
-            total_items: active.totalItems,
-            remaining_count: (active.remaining as number[]).length,
-          }
+              id: active.id,
+              current_round: active.currentRound,
+              total_items: active.totalItems,
+              remaining_count: (active.remaining as number[]).length,
+            }
           : null,
       }
     })
@@ -226,8 +230,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/sessions', rlWrite, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions', RL_WRITE, async (req) => {
     const userId = await app.requireAuth(req)
     const body = createSchema.parse(req.body)
 
@@ -286,8 +289,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // ── GET /api/quiz/sessions/:id ───────────────────────────────────────────
   // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/sessions/:id', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id', RL_READ, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -309,8 +311,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/sessions/:id/vote', rlWrite, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.post('/api/quiz/sessions/:id/vote', RL_WRITE, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
     const body = voteSchema.parse(req.body)
@@ -403,24 +404,25 @@ export async function quizRoutes(app: FastifyInstance) {
           currentRound: newRound,
           ...(isComplete
             ? {
-              winnerId,
-              completedAt: new Date(),
-            }
+                winnerId,
+                completedAt: new Date(),
+              }
             : {}),
           updatedAt: new Date(),
         })
         .where(eq(quizSessions.id, id))
         .returning()
-      
+
       return res
     })
 
     return updated
   })
 
-  // ── Lightweight metadata fetch for missing items (docs, platform filters) ──
+  // ── POST /api/quiz/metadata ──────────────────────────────────────────────
+  // Lightweight metadata fetch for missing items (docs, platform filters).
   // lgtm [js/missing-rate-limiting]
-  app.post('/api/quiz/metadata', rlRead, async (req) => {
+  app.post('/api/quiz/metadata', RL_READ, async (req) => {
     await app.requireAuth(req)
     const body = z.object({
       items: z.array(z.object({ id: z.number(), type: z.enum(['movie', 'tv']) })),
@@ -449,8 +451,7 @@ export async function quizRoutes(app: FastifyInstance) {
 
   // ── GET /api/quiz/sessions/:id/result ───────────────────────────────────
   // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/sessions/:id/result', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/sessions/:id/result', RL_READ, async (req) => {
     const userId = await app.requireAuth(req)
     const { id } = req.params as { id: string }
 
@@ -475,8 +476,7 @@ export async function quizRoutes(app: FastifyInstance) {
   })
 
   // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/stats', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/stats', RL_READ, async (req) => {
     await app.requireAuth(req)
     const { a, b, media_type } = statsSchema.parse(req.query)
     const [statA, statB] = orderedPair(a, b)
@@ -512,8 +512,7 @@ export async function quizRoutes(app: FastifyInstance) {
   // ── GET /api/quiz/history ────────────────────────────────────────────────
   // Returns the user's completed sessions (most recent first).
   // lgtm [js/missing-rate-limiting]
-  app.get('/api/quiz/history', rlRead, async (req) => {
-    // lgtm [js/missing-rate-limiting]
+  app.get('/api/quiz/history', RL_READ, async (req) => {
     const userId = await app.requireAuth(req)
 
     const rows = await db
