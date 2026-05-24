@@ -310,3 +310,117 @@ export interface TopSnapshot {
 export function top(mediaType: 'movie' | 'tv', region = 'TR') {
   return get<TopSnapshot>('/api/top', { media_type: mediaType, region, ui_language: intlLocale() })
 }
+
+// ---------------------------------------------------------------------------
+// Quiz Tournament API
+// ---------------------------------------------------------------------------
+
+export type QuizMediaType = 'movie' | 'tv' | 'doc'
+
+export interface QuizActiveSession {
+  id: string
+  current_round: number
+  total_items: number
+  remaining_count: number
+}
+
+export interface QuizCategory {
+  id: string
+  label_tr: string
+  label_en: string
+  media_type: QuizMediaType
+  max_items: number
+  active_session: QuizActiveSession | null
+}
+
+export interface QuizSession {
+  id: string
+  user_id: string
+  category: string
+  category_label: string
+  total_items: number
+  current_round: number
+  remaining: number[]
+  eliminated: number[]
+  winner_id: number | null
+  winner_title: string | null
+  winner_poster_path: string | null
+  completed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface QuizStats {
+  candidate_a: number
+  candidate_b: number
+  wins_a: number
+  wins_b: number
+  total: number
+  pct_a: number
+  pct_b: number
+}
+
+export interface QuizHistoryItem {
+  id: string
+  category: string
+  category_label: string
+  total_items: number
+  winner_id: number | null
+  winner_title: string | null
+  winner_poster_path: string | null
+  completed_at: string | null
+  created_at: string
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText })) as { error: string }
+    throw new Error(err.error ?? `${path} -> ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
+export function listQuizCategories() {
+  return get<QuizCategory[]>('/api/quiz/categories')
+}
+
+export function createQuizSession(
+  category: string,
+  opts: { region?: string; ui_language?: string; resume?: boolean } = {},
+) {
+  return post<QuizSession>('/api/quiz/sessions', {
+    category,
+    region: opts.region ?? 'TR',
+    ui_language: opts.ui_language ?? intlLocale(),
+    resume: opts.resume ?? false,
+  })
+}
+
+export function getQuizSession(id: string) {
+  return get<QuizSession>(`/api/quiz/sessions/${id}`)
+}
+
+export function voteQuiz(sessionId: string, winner: number, loser: number) {
+  return post<QuizSession>(`/api/quiz/sessions/${sessionId}/vote`, { winner, loser })
+}
+
+export function getQuizResult(sessionId: string) {
+  return get<QuizSession>(`/api/quiz/sessions/${sessionId}/result`)
+}
+
+export function getQuizStats(a: number, b: number, mediaType: QuizMediaType = 'movie') {
+  return get<QuizStats>('/api/quiz/stats', {
+    a: String(a),
+    b: String(b),
+    media_type: mediaType,
+  })
+}
+
+export function getQuizHistory() {
+  return get<QuizHistoryItem[]>('/api/quiz/history')
+}

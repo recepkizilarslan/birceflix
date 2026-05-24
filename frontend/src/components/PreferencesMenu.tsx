@@ -56,11 +56,10 @@ export function PreferencesMenu({ className = '' }: { className?: string }) {
                 <button
                   key={code}
                   onClick={() => setLang(code)}
-                  className={`flex-1 text-[13px] px-3 py-1.5 rounded-md transition-all duration-200 border ${
-                    lang === code
-                      ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)] font-medium shadow-sm'
-                      : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]/50'
-                  }`}
+                  className={`flex-1 text-[13px] px-3 py-1.5 rounded-md transition-all duration-200 border ${lang === code
+                    ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)] font-medium shadow-sm'
+                    : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]/50'
+                    }`}
                 >
                   {t(LANG_LABEL_KEY[code])}
                 </button>
