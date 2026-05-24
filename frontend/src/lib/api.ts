@@ -335,19 +335,19 @@ export interface QuizCategory {
 
 export interface QuizSession {
   id: string
-  user_id: string
+  userId: string
   category: string
-  category_label: string
-  total_items: number
-  current_round: number
+  categoryLabel: string
+  totalItems: number
+  currentRound: number
   remaining: number[]
   eliminated: number[]
-  winner_id: number | null
-  winner_title: string | null
-  winner_poster_path: string | null
-  completed_at: string | null
-  created_at: string
-  updated_at: string
+  winnerId: number | null
+  winnerTitle: string | null
+  winnerPosterPath: string | null
+  completedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface QuizStats {
@@ -391,7 +391,7 @@ export function listQuizCategories() {
 
 export function createQuizSession(
   category: string,
-  opts: { region?: string; ui_language?: string; resume?: boolean; bracket_size?: number } = {},
+  opts: { region?: string; ui_language?: string; resume?: boolean; bracket_size?: number; platform_id?: number } = {},
 ) {
   return post<QuizSession>('/api/quiz/sessions', {
     category,
@@ -399,6 +399,7 @@ export function createQuizSession(
     ui_language: opts.ui_language ?? intlLocale(),
     resume: opts.resume ?? false,
     bracket_size: opts.bracket_size,
+    platform_id: opts.platform_id,
   })
 }
 

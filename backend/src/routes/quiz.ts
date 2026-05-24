@@ -94,13 +94,36 @@ async function fetchCategoryIds(
   region: string,
   language: string,
   log: FastifyInstance['log'],
+  platformId?: number,
 ): Promise<number[]> {
+  const discoverType = cat.mediaType === 'tv' ? 'tv' : 'movie'
+
+  // If a platform filter is requested, always use discover endpoint
+  if (platformId) {
+    const PAGE_SIZE = 20
+    const pagesNeeded = Math.ceil(cat.maxItems / PAGE_SIZE)
+    const pages = await Promise.all(
+      Array.from({ length: pagesNeeded }, (_, i) =>
+        tmdb<{ results: { id: number }[] }>(`/discover/${discoverType}`, {
+          with_watch_providers: String(platformId),
+          watch_region: region,
+          sort_by: 'vote_average.desc',
+          'vote_count.gte': '200',
+          ...(cat.mediaType === 'doc' ? { with_genres: '99' } : {}),
+          language,
+          page: String(i + 1),
+        }),
+      ),
+    )
+    return pages.flatMap((p) => p.results.map((r) => r.id)).slice(0, cat.maxItems)
+  }
+
   if (cat.mediaType === 'movie' || cat.mediaType === 'tv') {
     const snapshot = await getTop(cat.mediaType, region, language, log)
     return snapshot.items.map((i) => i.id)
   }
 
-  // Documentaries: genre 99 on TMDB, sorted by vote_average
+  // Documentaries: genre 99, no platform filter
   const PAGE_SIZE = 20
   const pagesNeeded = Math.ceil(cat.maxItems / PAGE_SIZE)
   const pages = await Promise.all(
@@ -195,8 +218,8 @@ export async function quizRoutes(app: FastifyInstance) {
     region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
     ui_language: uiLanguageSchema,
     resume: z.coerce.boolean().default(false),
-    /** Optional bracket size override. Must be a power of 2. */
     bracket_size: z.coerce.number().int().positive().optional(),
+    platform_id: z.coerce.number().int().positive().optional(),
   })
 
   app.post('/api/quiz/sessions', async (req) => {
@@ -225,10 +248,15 @@ export async function quizRoutes(app: FastifyInstance) {
     }
 
     // New session: fetch ids, shuffle, size the bracket.
-    const allIds = await fetchCategoryIds(cat, body.region.toUpperCase(), body.ui_language, app.log)
+    const allIds = await fetchCategoryIds(
+      cat,
+      body.region.toUpperCase(),
+      body.ui_language,
+      app.log,
+      body.platform_id,
+    )
     const requestedSize = body.bracket_size ?? cat.maxItems
     const bracketSize = nearestPow2(Math.min(allIds.length, requestedSize), cat.maxItems)
-    // Shuffle then take bracketSize items so the bracket is random each time.
     const remaining = shuffle(allIds.slice()).slice(0, bracketSize)
 
     const [session] = await db
