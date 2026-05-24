@@ -7,7 +7,9 @@
     "watchlist": "Merkliste",
     "watched": "Gesehen",
     "lists": "Listen",
-    "menu": "Menü"
+    "menu": "Menü",
+    "import": "İçe / Dışa aktar",
+    "quiz": "BirceRank"
   },
   "auth": {
     "signIn": "Mit Google anmelden",
@@ -311,5 +313,42 @@
     "placeholderTv": "Serien suchen…",
     "placeholderDoc": "Dokumentationen suchen…",
     "clear": "Löschen"
+  },
+  "quiz": {
+    "pageTitle": "Tournament",
+    "pageSubtitle": "Choose the best, find the champion",
+    "chooseCategory": "Choose category",
+    "resume": "Resume",
+    "resumeBadge": "In progress · Round {{round}}",
+    "startNew": "Start new tournament",
+    "remaining": "{{count}} left",
+    "round": "Round {{round}}",
+    "vsLabel": "vs",
+    "pickOne": "Which is better?",
+    "progress": "{{done}} / {{total}} picked",
+    "globalStats": "%{{pct}} of users picked this",
+    "globalStatsFirst": "First time this matchup is played!",
+    "resultTitle": "Champion!",
+    "resultSubtitle": "Your favorite in this category:",
+    "playAgain": "Start new tournament",
+    "viewHistory": "Past tournaments",
+    "historyTitle": "Past tournaments",
+    "historyEmpty": "You haven't completed any tournaments yet.",
+    "historyWinner": "Champion: {{title}}",
+    "filterMovies": "Top {{count}} rated movies",
+    "filterTv": "Top {{count}} rated TV series",
+    "filterDocs": "Top {{count}} rated documentaries",
+    "itemsCount": "{{count}} items",
+    "matchesCount": "{{count}} matches",
+    "resumeHint": "Resume where you left off",
+    "resumeItemsLeft": "Round {{round}} · {{count}} items left",
+    "startBtn": "🏆 START",
+    "failedLoad": "Failed to load categories.",
+    "selectFromItems": "Select from {{count}} items",
+    "startTourney": "Start tournament →",
+    "completedMatches": "{{done}}/{{total}} completed",
+    "fullRanking": "Full Ranking",
+    "itemsSub": "items",
+    "roundSub": "round"
   }
 }

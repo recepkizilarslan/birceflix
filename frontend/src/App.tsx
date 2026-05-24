@@ -11,6 +11,7 @@ import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
 import { CalendarPage } from './pages/Calendar'
+import { QuizPage } from './pages/Quiz'
 import { PWAUpdateToast } from './components/PWAUpdateToast'
 import { RequireAuth } from './components/RequireAuth'
 import { SignInScreen } from './components/SignInScreen'
@@ -48,6 +49,7 @@ function App() {
             <Route path="lists" element={<ListsPage />} />
             <Route path="lists/:id" element={<ListDetailPage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="quiz" element={<QuizPage />} />
           </Route>
         </Route>
       </Routes>

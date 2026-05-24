@@ -7,7 +7,9 @@
     "watchlist": "İzleyeceklerim",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
-    "menu": "Menü"
+    "import": "İçe / Dışa aktar",
+    "menu": "Menü",
+    "quiz": "BirceRank"
   },
   "auth": {
     "signIn": "Google ile giriş",
@@ -311,5 +313,42 @@
     "placeholderTv": "Dizi ara…",
     "placeholderDoc": "Belgesel ara…",
     "clear": "temizle"
+  },
+  "quiz": {
+    "pageTitle": "Turnuva",
+    "pageSubtitle": "En iyisini seç, şampiyonu bul",
+    "chooseCategory": "Kategori seç",
+    "resume": "Devam et",
+    "resumeBadge": "Devam ediliyor · Tur {{round}}",
+    "startNew": "Yeni turnuva başlat",
+    "remaining": "{{count}} kaldı",
+    "round": "Tur {{round}}",
+    "vsLabel": "vs",
+    "pickOne": "Hangisi daha iyi?",
+    "progress": "{{done}} / {{total}} seçildi",
+    "globalStats": "Kullanıcıların %{{pct}}'i bunu seçti",
+    "globalStatsFirst": "Bu maçup ilk kez oynandı!",
+    "resultTitle": "Şampiyon!",
+    "resultSubtitle": "Bu kategorideki favorin:",
+    "playAgain": "Yeni turnuva başlat",
+    "viewHistory": "Geçmiş turnuvalar",
+    "historyTitle": "Geçmiş turnuvalar",
+    "historyEmpty": "Henüz tamamlanan turnuvan yok.",
+    "historyWinner": "Şampiyon: {{title}}",
+    "filterMovies": "En yüksek puanlı {{count}} film",
+    "filterTv": "En yüksek puanlı {{count}} dizi",
+    "filterDocs": "En yüksek puanlı {{count}} belgesel",
+    "itemsCount": "{{count}} içerik",
+    "matchesCount": "{{count}} maç",
+    "resumeHint": "Kaldığın yerden devam et",
+    "resumeItemsLeft": "Tur {{round}} · {{count}} içerik kaldı",
+    "startBtn": "🏆 BAŞLA",
+    "failedLoad": "Kategoriler yüklenemedi.",
+    "selectFromItems": "{{count}} içerikten seç",
+    "startTourney": "Turnuvayı başlat →",
+    "completedMatches": "{{done}}/{{total}} tamamlandı",
+    "fullRanking": "Tam Sıralama",
+    "itemsSub": "içerik",
+    "roundSub": "tur"
   }
 }
