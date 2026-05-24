@@ -7,7 +7,6 @@ import {
   users,
   watchedEpisodes,
   watchedMovies,
-  watchHistory,
   watchlist,
 } from '../db/schema.js'
 import { rlRead } from '../lib/rateLimit.js'
@@ -62,9 +61,8 @@ export async function exportRoutes(app: FastifyInstance) {
       .where(eq(users.id, userId))
       .limit(1)
 
-    const [wm, wh, wl, we, ls] = await Promise.all([
+    const [wm, wl, we, ls] = await Promise.all([
       db.select().from(watchedMovies).where(eq(watchedMovies.userId, userId)).orderBy(desc(watchedMovies.watchedAt)),
-      db.select().from(watchHistory).where(eq(watchHistory.userId, userId)).orderBy(desc(watchHistory.watchedAt)),
       db.select().from(watchlist).where(eq(watchlist.userId, userId)).orderBy(desc(watchlist.addedAt)),
       db.select().from(watchedEpisodes).where(eq(watchedEpisodes.userId, userId)).orderBy(desc(watchedEpisodes.watchedAt)),
       db.select().from(lists).where(eq(lists.userId, userId)).orderBy(desc(lists.updatedAt)),
@@ -131,13 +129,6 @@ export async function exportRoutes(app: FastifyInstance) {
         my_rating: r.myRating,
         notes: r.notes,
       })),
-      watch_history: wh.map((r) => ({
-        id: r.id,
-        tmdb_id: r.tmdbId,
-        watched_at: r.watchedAt.toISOString(),
-        my_rating: r.myRating,
-        notes: r.notes,
-      })),
       watchlist: wl.map((r) => ({
         tmdb_id: r.tmdbId,
         title: r.title,
@@ -172,61 +163,33 @@ export async function exportRoutes(app: FastifyInstance) {
    * Columns (Letterboxd's diary import expects):
    *   Date, Name, Year, Letterboxd URI, Rating, Rewatch, Tags, Watched Date
    *
-   * Strategy:
-   *   - Every watch_history row → one diary entry with its actual date.
-   *   - For watched_movies that have NO matching history row, fall back to
-   *     emitting one undated entry (Letterboxd will still import it as a
-   *     diary-less watch).
+   * Per-viewing history was dropped in migration 0012, so every row here is
+   * sourced from watched_movies and the Rewatch column is always empty.
+   * Users who want true rewatch tracking on the way out should rely on
+   * Letterboxd's own diary on the destination side instead.
    */
   // lgtm [js/missing-rate-limiting]
   app.get('/api/export/letterboxd-diary.csv', rlRead, async (req, reply) => {
     const userId = await app.requireAuth(req)
 
-    const [wmRows, whRows] = await Promise.all([
-      db.select().from(watchedMovies).where(eq(watchedMovies.userId, userId)),
-      db.select().from(watchHistory).where(eq(watchHistory.userId, userId)).orderBy(asc(watchHistory.watchedAt)),
-    ])
+    const wmRows = await db
+      .select()
+      .from(watchedMovies)
+      .where(eq(watchedMovies.userId, userId))
+      .orderBy(asc(watchedMovies.watchedAt))
 
-    // Build a quick map of overall rating + title per movie so history rows
-    // (which don't carry the title) can resolve them.
-    const movieMeta = new Map<number, { title: string; rating: number | null }>()
-    for (const r of wmRows) {
-      movieMeta.set(r.tmdbId, { title: r.title, rating: r.myRating })
-    }
-
-    // Track which movies were already emitted via history so we can pick up
-    // any history-less watched_movies at the end.
-    const seenViaHistory = new Set<number>()
     const lines: string[] = []
     lines.push('Date,Name,Year,Letterboxd URI,Rating,Rewatch,Tags,Watched Date')
-
-    for (const h of whRows) {
-      const meta = movieMeta.get(h.tmdbId)
-      const date = isoDateOnly(h.watchedAt)
-      lines.push(csvRow([
-        date,
-        meta?.title ?? '',
-        '', // Year — not stored; Letterboxd matches by name (best-effort)
-        '', // Letterboxd URI — we don't have a mapping
-        ratingToStars(h.myRating ?? meta?.rating ?? null),
-        seenViaHistory.has(h.tmdbId) ? 'Yes' : '',
-        '', // Tags
-        date,
-      ]))
-      seenViaHistory.add(h.tmdbId)
-    }
-
     for (const w of wmRows) {
-      if (seenViaHistory.has(w.tmdbId)) continue
       const date = isoDateOnly(w.watchedAt)
       lines.push(csvRow([
         date,
         w.title,
-        '',
-        '',
+        '', // Year — not stored; Letterboxd matches by name (best-effort)
+        '', // Letterboxd URI — we don't have a mapping
         ratingToStars(w.myRating),
-        '',
-        '',
+        '', // Rewatch — never set, no per-viewing history to flag against
+        '', // Tags
         date,
       ]))
     }
