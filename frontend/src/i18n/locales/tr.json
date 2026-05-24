@@ -7,7 +7,6 @@
     "watchlist": "İzleyeceklerim",
     "watched": "İzlediklerim",
     "lists": "Listelerim",
-    "import": "İçe / Dışa aktar",
     "menu": "Menü"
   },
   "auth": {
@@ -293,62 +292,6 @@
     "watchedPartial": "{{watched}}/{{total}} izlendi",
     "watchedToggle": "İzledim",
     "watchedToggleOn": "✓ İzledim"
-  },
-  "import": {
-    "title": "İçe / Dışa aktar",
-    "subtitle": "Letterboxd CSV'leri, Trakt OAuth, Plex/Jellyfin scrobbler ile veriyi içeri al; sayfanın altından JSON dump veya Letterboxd CSV indir.",
-    "signInPrompt": "Letterboxd verini içe aktarmak için giriş yap",
-    "letterboxdWatchedDesc": "İzlediğin filmlerin tek satırlık listesi. Bunlar yalnızca 'izledim' işareti olarak yazılır.",
-    "letterboxdDiaryDesc": "Tarihli izleme kayıtları. Her satır 'izledim' olarak işaretlenir. Her izleyişin tarihi ve puanı saklanmaz.",
-    "upload": "Yükle",
-    "uploading": "İçe aktarılıyor…",
-    "matched": "<b>{{matched}}</b> / {{total}} eşleşti.",
-    "unmatched": "Eşleşmeyen: <b>{{count}}</b>",
-    "unmatchedToggle": "Eşleşmeyenleri göster",
-    "uploadFailed": "içe aktarım başarısız"
-  },
-  "trakt": {
-    "sectionTitle": "Trakt.tv",
-    "sectionTag": "canlı API",
-    "sectionDesc": "Trakt hesabını OAuth ile bağla, izleme geçmişini doğrudan içe aktar. Trakt kayıtları TMDB ID'si taşır — Letterboxd CSV'sinin aksine eşleştirme tek atışta, hatasız.",
-    "statusLoading": "Durum yükleniyor…",
-    "notConfigured": "Trakt entegrasyonu bu sunucuda yapılandırılmamış. Yöneticiye TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET ve TRAKT_REDIRECT_URI ortam değişkenlerini ayarlamasını söyle.",
-    "connectIntro": "Trakt hesabını bağladığında izleme geçmişini doğrudan içe aktarabilirsin. Her film 'izledim' olarak işaretlenir (rewatch'lar saklanmaz). Trakt'taki film kayıtları TMDB ID'leriyle birlikte gelir, eşleştirme hatasız.",
-    "connect": "Trakt'a bağlan",
-    "connectedBadge": "✓ bağlı",
-    "lastSync": "son senkron: {{when}}",
-    "import": "Geçmişi içe aktar",
-    "importing": "İçe aktarılıyor…",
-    "disconnect": "Bağlantıyı kes",
-    "confirmDisconnect": "Trakt bağlantısını kesmek istediğine emin misin?",
-    "imported": "<b>{{count}}</b> izleme kaydı içe aktarıldı.",
-    "skipped": "TMDB ID'si olmayan <b>{{count}}</b> kayıt atlandı.",
-    "pagesRead": "({{count}} sayfa okundu)"
-  },
-  "webhooks": {
-    "sectionTitle": "Plex / Jellyfin scrobbler",
-    "sectionTag": "webhook",
-    "intro": "Plex veya Jellyfin'in webhook ayarına aşağıdaki URL'i koy. Tetiklendiğinde scrobble payload'undan TMDB ID'sini çıkarıp filmi 'izledim' olarak işaretleriz. Plex için media.scrobble eventi yeterli; Jellyfin için Webhook plugin'inde PlaybackStop / UserDataSaved / MarkPlayed seçilmeli.",
-    "newToken": "Yeni token",
-    "label": "Etiket",
-    "labelPlaceholder": "Örn: Plex (ev)",
-    "creating": "Oluşturuluyor…",
-    "freshWarn": "⚠ Bu URL yalnızca şimdi gösterilir — kopyalayıp Plex/Jellyfin'e yapıştır.",
-    "freshAck": "Anladım, kapat",
-    "neverTriggered": "henüz tetiklenmedi",
-    "tokenSuffix": "token: …{{suffix}}",
-    "lastTriggered": "son tetik: {{when}}",
-    "confirmDelete": "\"{{label}}\" token'ını silmek istediğine emin misin? Geri alınamaz.",
-    "empty": "Henüz webhook token'ın yok.",
-    "loading": "Yükleniyor…"
-  },
-  "exports": {
-    "sectionTitle": "Dışa aktar",
-    "sectionTag": "backup",
-    "intro": "Verini istediğin zaman indir. JSON dump tüm kayıtlarını içerir (izlenenler, izleyecekler, izleme listeleri, dizi bölümleri, kişisel listeler). Letterboxd CSV'si ile başka bir platforma taşıyabilirsin.",
-    "jsonButton": "Tam JSON dump indir",
-    "csvButton": "Letterboxd CSV indir",
-    "note": "JSON dump'ı güvenlik gerekçesiyle hiçbir secret (Trakt token, webhook token) içermez — yedek olmasından çok \"verim bende\" amaçlıdır. Letterboxd CSV'si tarih / başlık / puan içerir; yıl bilgisi depolanmadığı için boş kalır, Letterboxd başlığa göre eşleştirir."
   },
   "calendar": {
     "title": "Vizyon takvimi",
