@@ -41,7 +41,7 @@ export function AuthButton() {
     return (
       <button
         onClick={() => signInWithGoogle()}
-        className="text-xs px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-black font-medium hover:opacity-90"
+        className="text-[14px] px-5 py-2 rounded-lg bg-[var(--color-brand)] text-white font-medium hover:brightness-110 shadow-[0_2px_10px_rgba(255,59,71,0.3)] transition-all duration-200"
       >
         {t('auth.signIn')}
       </button>
@@ -53,22 +53,22 @@ export function AuthButton() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-1.5 sm:gap-2 h-9 px-1.5 sm:px-2 rounded-lg hover:bg-[var(--color-surface-2)] transition"
+        className="flex items-center gap-1.5 sm:gap-2.5 h-10 px-2 sm:px-2.5 rounded-lg hover:bg-[var(--color-surface-2)] transition"
       >
-        <Avatar user={user} size="w-7 h-7" />
-        <span className="text-xs text-[var(--color-text)] hidden sm:inline max-w-[140px] truncate">
+        <Avatar user={user} size="w-8 h-8" />
+        <span className="text-[14px] sm:text-[15px] text-[var(--color-text)] hidden sm:inline max-w-[140px] truncate">
           {displayName(user)}
         </span>
-        <span className={`text-[10px] text-[var(--color-text-dim)] transition-transform hidden sm:inline ${open ? 'rotate-180' : ''}`}>▾</span>
+        <span className={`text-[11px] text-[var(--color-text-dim)] transition-transform hidden sm:inline ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
 
       {open && (
-        <div className="fixed sm:absolute right-2 sm:right-0 top-14 sm:top-full sm:mt-2 z-50 w-[calc(100vw-1rem)] sm:w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl">
+        <div className="fixed sm:absolute right-2 sm:right-0 top-14 sm:top-full sm:mt-2 z-50 w-[calc(100vw-1rem)] sm:w-[260px] max-w-sm rounded-xl bg-[var(--color-surface)]/95 backdrop-blur-xl border border-[var(--color-border)] shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
           <div className="flex items-center gap-3 p-4">
-            <Avatar user={user} size="w-12 h-12" />
+            <Avatar user={user} size="w-14 h-14" />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium truncate">{displayName(user)}</div>
-              <div className="text-[11px] text-[var(--color-text-dim)] truncate" title={user.email}>
+              <div className="text-[15px] font-medium truncate">{displayName(user)}</div>
+              <div className="text-[12px] text-[var(--color-text-dim)] truncate" title={user.email}>
                 {user.email}
               </div>
             </div>
@@ -77,7 +77,7 @@ export function AuthButton() {
           <div className="border-t border-[var(--color-border)] p-2">
             <button
               onClick={() => { setOpen(false); signOut() }}
-              className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-[var(--color-surface-2)] text-[var(--color-text-dim)] hover:text-red-400 transition"
+              className="w-full text-left text-[14px] px-3 py-2.5 rounded-lg hover:bg-[var(--color-surface-2)] text-[var(--color-text-dim)] hover:text-red-400 transition"
             >
               {t('auth.signOut')}
             </button>

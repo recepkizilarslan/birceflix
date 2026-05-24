@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Clapperboard, Tv, Video } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { listGenres, type Genre } from '../lib/api'
 import { listTvGenres } from '../lib/tv'
@@ -122,24 +123,24 @@ export function FilterPanel({
 
   return (
     <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">{t('filters.title')}</span>
+          <span className="font-semibold text-base">{t('filters.title')}</span>
           {activeCount > 0 && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-black font-medium">{activeCount}</span>
           )}
         </div>
         <div className="flex items-center gap-3">
           {activeCount > 0 && onSaveCurrent && (
             <button
               onClick={onSaveCurrent}
-              className="text-xs text-[var(--color-accent)] hover:underline font-medium"
+              className="text-sm text-[var(--color-accent)] hover:underline font-medium"
             >
               {t('savedFilters.saveButton')}
             </button>
           )}
           {activeCount > 0 && (
-            <button onClick={onReset} className="text-xs text-[var(--color-text-dim)] hover:text-[var(--color-accent)]">
+            <button onClick={onReset} className="text-sm text-[var(--color-text-dim)] hover:text-[var(--color-accent)]">
               {t('filters.clear')}
             </button>
           )}
@@ -159,18 +160,18 @@ export function FilterPanel({
                   className="flex-1 min-w-0 text-left"
                   title={s.description ?? undefined}
                 >
-                  <div className="text-sm font-medium truncate">{s.name}</div>
+                  <div className="text-[15px] font-medium truncate">{s.name}</div>
                   {s.description && (
-                    <div className="text-[11px] text-[var(--color-text-dim)] truncate">{s.description}</div>
+                    <div className="text-[12px] text-[var(--color-text-dim)] truncate">{s.description}</div>
                   )}
-                  <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">
+                  <div className="text-[11px] text-[var(--color-text-dim)] mt-0.5">
                     {t(`filters.mediaTypes.${s.media_type}`)}
                   </div>
                 </button>
                 {onDeleteSaved && (
                   <button
                     onClick={() => onDeleteSaved(s)}
-                    className="shrink-0 text-[var(--color-text-dim)] hover:text-red-400 text-xs px-1 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
+                    className="shrink-0 text-[var(--color-text-dim)] hover:text-red-400 text-sm px-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
                     title={t('common.delete')}
                   >
                     ✕
@@ -184,42 +185,42 @@ export function FilterPanel({
 
       {onMediaTypeChange && (
         <Section title={t('filters.mediaType')} defaultOpen>
-          <div className="flex flex-wrap gap-1.5">
-            <button onClick={() => onMediaTypeChange('movie')} className={chipCls(mediaType === 'movie')}>
-              🎬 {t('filters.mediaTypes.movie')}
+          <div className="flex flex-wrap gap-2 w-full">
+            <button onClick={() => onMediaTypeChange('movie')} className={chipCls(mediaType === 'movie') + ' flex-1 flex items-center justify-center gap-1.5 px-2'}>
+              <Clapperboard size={15} className="shrink-0" /> <span className="leading-none mt-[1px]">{t('filters.mediaTypes.movie')}</span>
             </button>
-            <button onClick={() => onMediaTypeChange('tv')} className={chipCls(mediaType === 'tv')}>
-              📺 {t('filters.mediaTypes.tv')}
+            <button onClick={() => onMediaTypeChange('tv')} className={chipCls(mediaType === 'tv') + ' flex-1 flex items-center justify-center gap-1.5 px-2'}>
+              <Tv size={15} className="shrink-0" /> <span className="leading-none mt-[1px]">{t('filters.mediaTypes.tv')}</span>
             </button>
-            <button onClick={() => onMediaTypeChange('doc')} className={chipCls(mediaType === 'doc')}>
-              🎥 {t('filters.mediaTypes.doc')}
+            <button onClick={() => onMediaTypeChange('doc')} className={chipCls(mediaType === 'doc') + ' w-full flex items-center justify-center gap-1.5 px-2'}>
+              <Video size={15} className="shrink-0" /> <span className="leading-none mt-[1px]">{t('filters.mediaTypes.doc')}</span>
             </button>
           </div>
         </Section>
       )}
 
       <Section title={`${t('filters.platforms')} ${value.with_watch_providers.length > 0 ? `(${value.with_watch_providers.length})` : ''}`} defaultOpen>
-        <div className="text-[11px] text-[var(--color-text-dim)] mb-2 leading-tight">
+        <div className="text-[12px] sm:text-xs text-[var(--color-text-dim)] mb-3 leading-tight">
           {t('filters.platformRegionHint', { region: countryLabel(value.watch_region) })}
         </div>
-        <div className="grid grid-cols-2 gap-1.5 max-h-72 sm:max-h-56 overflow-y-auto">
-          {providersLoading && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
-          {!providersLoading && providers.length === 0 && <div className="text-xs text-[var(--color-text-dim)] col-span-2">{t('filters.platformNone')}</div>}
+        <div className="grid grid-cols-2 gap-2 max-h-72 sm:max-h-64 overflow-y-auto pr-1">
+          {providersLoading && <div className="text-sm text-[var(--color-text-dim)] col-span-2">{t('filters.platformLoading')}</div>}
+          {!providersLoading && providers.length === 0 && <div className="text-sm text-[var(--color-text-dim)] col-span-2">{t('filters.platformNone')}</div>}
           {providers.map((p) => {
             const active = value.with_watch_providers.includes(p.provider_id)
             return (
               <button
                 key={p.provider_id}
                 onClick={() => onChange({ ...value, with_watch_providers: toggle(value.with_watch_providers, p.provider_id) })}
-                className={`flex items-center gap-2 px-2 py-2 sm:py-1 rounded-md border text-left transition ${
+                className={`flex items-center gap-2.5 px-3 py-2 sm:py-1.5 rounded-md border text-left transition ${
                   active
                     ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
                     : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)] active:scale-[0.98]'
                 }`}
                 title={p.provider_name}
               >
-                {p.logo_path && <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt="" className="h-6 w-6 sm:h-5 sm:w-5 rounded shrink-0" />}
-                <span className="text-[12px] sm:text-[11px] truncate">{p.provider_name}</span>
+                {p.logo_path && <img src={`https://image.tmdb.org/t/p/original${p.logo_path}`} alt="" className="h-7 w-7 sm:h-6 sm:w-6 rounded shrink-0" />}
+                <span className="text-[14px] sm:text-[13px] truncate">{p.provider_name}</span>
               </button>
             )
           })}
@@ -231,16 +232,16 @@ export function FilterPanel({
           fetches. /doc has no top_rated endpoint — hide the toggle there. */}
       {mediaType !== 'doc' && (
         <Section title={t('filters.top')} defaultOpen>
-          <label className="flex items-start gap-2.5 px-2 py-2 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] cursor-pointer transition">
+          <label className="flex items-start gap-3 px-3 py-3 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] hover:border-[var(--color-accent)] cursor-pointer transition">
             <input
               type="checkbox"
               checked={value.top_only}
               onChange={(e) => onChange({ ...value, top_only: e.target.checked })}
-              className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+              className="mt-1 h-4 w-4 accent-[var(--color-accent)]"
             />
             <span className="flex-1 leading-tight">
-              <span className="block text-[13px] sm:text-sm">{t('filters.topToggle')}</span>
-              <span className="block text-[11px] text-[var(--color-text-dim)] mt-0.5">
+              <span className="block text-[14px] sm:text-[15px]">{t('filters.topToggle')}</span>
+              <span className="block text-[12px] sm:text-[13px] text-[var(--color-text-dim)] mt-1">
                 {t(tvMode ? 'filters.topHintTv' : 'filters.topHintMovie')}
               </span>
             </span>
@@ -272,10 +273,10 @@ export function FilterPanel({
           onChange={(e) => onChange({ ...value, min_rating: Number(e.target.value) })}
           className="w-full h-2 accent-[var(--color-accent)]"
         />
-        <div className="flex justify-between text-[10px] text-[var(--color-text-dim)] mt-1">
+        <div className="flex justify-between text-[12px] text-[var(--color-text-dim)] mt-1.5">
           <span>0</span><span>5</span><span>10</span>
         </div>
-        <div className="text-[10px] text-[var(--color-text-dim)] mt-1.5 leading-tight">
+        <div className="text-[12px] text-[var(--color-text-dim)] mt-2 leading-tight">
           {t('filters.minRatingHint')}
         </div>
       </Section>
@@ -470,10 +471,10 @@ function Section({ title, children, defaultOpen, last }: { title: string; childr
     <div className={last ? '' : 'border-b border-[var(--color-border)]'}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 sm:py-3 hover:bg-[var(--color-surface-2)]/40 transition text-left min-h-[48px]"
+        className="w-full flex items-center justify-between px-4 py-4 sm:py-3.5 hover:bg-[var(--color-surface-2)]/40 transition text-left min-h-[52px]"
       >
-        <span className="text-sm font-medium">{title}</span>
-        <span className={`text-xs text-[var(--color-text-dim)] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+        <span className="text-[15px] sm:text-base font-medium">{title}</span>
+        <span className={`text-sm text-[var(--color-text-dim)] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
@@ -553,6 +554,6 @@ function Select({ value, onChange, children }: { value: string; onChange: (v: st
   )
 }
 
-const inputCls = 'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 sm:py-1.5 text-sm focus:outline-none focus:border-[var(--color-accent)]'
+const inputCls = 'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-3 sm:py-2 text-[15px] sm:text-sm focus:outline-none focus:border-[var(--color-accent)]'
 const chipCls = (active: boolean) =>
-  `px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-xs border transition ${active ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]' : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)] active:scale-[0.97]'}`
+  `px-4 py-2 sm:px-3 sm:py-1.5 rounded-full text-[13px] sm:text-[14px] border transition ${active ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]' : 'bg-[var(--color-surface-2)] border-[var(--color-border)] hover:border-[var(--color-accent)] active:scale-[0.97]'}`

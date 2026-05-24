@@ -110,7 +110,7 @@ export function Layout() {
     <div className="min-h-full">
       {/* ───────────── Header ───────────── */}
       <header className="sticky top-0 z-30 backdrop-blur bg-[var(--color-bg)]/90 border-b border-[var(--color-border)] pt-safe pl-safe pr-safe">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 h-14 sm:h-16 flex items-center gap-3 sm:gap-4">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 h-16 sm:h-[72px] flex items-center gap-3 sm:gap-4">
           {/* Mobile hamburger */}
           {showNav && (
             <button
@@ -128,8 +128,8 @@ export function Layout() {
               style={{
                 fontFamily: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
                 color: 'var(--color-brand)',
-                fontSize: 'clamp(1.5rem, 5vw, 1.875rem)',
-                letterSpacing: '0.01em',
+                fontSize: 'clamp(1.75rem, 5vw, 2.125rem)',
+                letterSpacing: '0.02em',
                 textShadow: '0 2px 4px rgba(0,0,0,0.5)',
               }}
             >
@@ -139,7 +139,7 @@ export function Layout() {
 
           {/* Desktop nav */}
           {showNav && (
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-2">
               <TabLink to="/discover">{t('nav.discover')}</TabLink>
               <TabLink to="/calendar">{t('nav.calendar')}</TabLink>
               <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
@@ -173,7 +173,7 @@ export function Layout() {
                 style={{
                   fontFamily: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
                   color: 'var(--color-brand)',
-                  fontSize: '1.5rem',
+                  fontSize: '1.75rem',
                 }}
               >
                 BIRCEFLIX
@@ -231,10 +231,21 @@ function TabLink({ to, children }: { to: string; children: React.ReactNode }) {
       to={to}
       end
       className={({ isActive }: { isActive: boolean }) =>
-        `px-3 py-1.5 rounded-md text-sm transition ${isActive ? 'bg-[var(--color-accent)] text-black font-medium' : 'text-[var(--color-text-dim)] hover:text-white'}`
+        `relative px-3.5 py-1.5 text-[15px] sm:text-base transition-all duration-200 ${
+          isActive 
+            ? 'text-white font-medium' 
+            : 'text-[var(--color-text-dim)] hover:text-white'
+        }`
       }
     >
-      {children}
+      {({ isActive }) => (
+        <>
+          {children}
+          {isActive && (
+            <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-t-md bg-[var(--color-brand)] shadow-[0_0_8px_var(--color-brand)]" />
+          )}
+        </>
+      )}
     </NavLink>
   )
 }
@@ -248,10 +259,10 @@ function DrawerLink({
       end
       onClick={onSelect}
       className={({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3 px-3 py-3 rounded-lg text-[15px] transition ${
+        `flex items-center gap-3 px-3 py-3.5 rounded-lg text-base transition-all duration-300 ${
           isActive
-            ? 'bg-[var(--color-accent)] text-black font-medium'
-            : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'
+            ? 'bg-gradient-to-r from-[var(--color-brand)]/20 to-transparent text-white font-medium border-l-2 border-[var(--color-brand)]'
+            : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)] border-l-2 border-transparent'
         }`
       }
     >
@@ -274,15 +285,15 @@ function BottomTab({
       to={to}
       end
       className={({ isActive }: { isActive: boolean }) =>
-        `relative flex flex-col items-center justify-center gap-0.5 text-[10px] transition ${
+        `relative flex flex-col items-center justify-center gap-0.5 text-[11px] transition ${
           isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <Icon size={20} className={isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'} />
-          <span className="leading-none truncate max-w-full px-1">{label}</span>
+          <Icon size={22} className={isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'} />
+          <span className="leading-none truncate max-w-full px-1 mt-0.5">{label}</span>
           {badge != null && badge > 0 && (
             <span className="absolute top-1 right-[18%] min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--color-brand)] text-white text-[9px] font-semibold flex items-center justify-center leading-none">
               {badge > 99 ? '99+' : badge}

@@ -121,19 +121,22 @@ export function SignInScreen() {
           </div>
 
           {/* Mode tabs — Login | Register */}
-          <div className="mt-7 flex p-1 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+          <div className="mt-7 flex border-b border-[var(--color-border)]">
             {(['login', 'register'] as Mode[]).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => { setMode(m); setErrCode(null) }}
-                className={`flex-1 h-10 rounded-lg text-sm font-medium transition ${
+                className={`relative flex-1 pb-3 text-[15px] font-medium transition-all duration-200 ${
                   mode === m
-                    ? 'bg-[var(--color-accent)] text-black'
+                    ? 'text-white'
                     : 'text-[var(--color-text-dim)] hover:text-white'
                 }`}
               >
                 {m === 'login' ? t('auth.login') : t('auth.register')}
+                {mode === m && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-md bg-[var(--color-brand)] shadow-[0_0_8px_var(--color-brand)]" />
+                )}
               </button>
             ))}
           </div>
