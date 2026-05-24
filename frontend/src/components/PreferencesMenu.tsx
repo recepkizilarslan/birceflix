@@ -2,7 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { COUNTRIES } from '../lib/constants'
 import { countryName } from '../lib/intl'
-import { useLanguage, useRegion, type Lang } from '../lib/preferences'
+import { SUPPORTED_LANGS, useLanguage, useRegion, type Lang } from '../lib/preferences'
+
+/** i18n key for each language's native-name label. Centralised here so the
+ *  selector loop stays a one-liner and so adding a new locale only touches
+ *  the SUPPORTED_LANGS list + the matching languageXx i18n keys + this map. */
+const LANG_LABEL_KEY: Record<Lang, string> = {
+  tr: 'prefs.languageTr',
+  en: 'prefs.languageEn',
+  de: 'prefs.languageDe',
+}
 
 /**
  * Header dropdown for language + region preferences.
@@ -43,7 +52,7 @@ export function PreferencesMenu({ className = '' }: { className?: string }) {
           <div>
             <div className="text-[13px] text-[var(--color-text-dim)] mb-2">{t('prefs.language')}</div>
             <div className="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">
-              {(['tr', 'en'] as Lang[]).map((code) => (
+              {SUPPORTED_LANGS.map((code) => (
                 <button
                   key={code}
                   onClick={() => setLang(code)}
@@ -53,7 +62,7 @@ export function PreferencesMenu({ className = '' }: { className?: string }) {
                       : 'border-transparent text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]/50'
                   }`}
                 >
-                  {code === 'tr' ? t('prefs.languageTr') : t('prefs.languageEn')}
+                  {t(LANG_LABEL_KEY[code])}
                 </button>
               ))}
             </div>
