@@ -149,13 +149,14 @@ export function TvDetailPage() {
           <img
             src={`https://image.tmdb.org/t/p/original${show.backdrop_path}`}
             alt=""
+            data-backdrop-img
             className="w-full h-full object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
           <button
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/tv'))}
             aria-label={t('common.back')}
-            className="absolute top-3 left-3 sm:top-4 sm:left-4 h-9 px-3 inline-flex items-center text-sm bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
+            className="absolute top-3 left-3 sm:top-4 sm:left-4 h-9 px-3 inline-flex items-center text-sm text-white bg-black/60 hover:bg-black/80 rounded-lg backdrop-blur"
           >
             {t('common.back')}
           </button>

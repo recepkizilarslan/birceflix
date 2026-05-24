@@ -108,7 +108,7 @@ export function DiscoverCard({
             </>
           )}
           {/* TMDB rating chip — corner badge stays readable over any poster. */}
-          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/65 backdrop-blur text-[10px] sm:text-[11px] font-semibold tabular-nums">
+          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/65 backdrop-blur text-white text-[10px] sm:text-[11px] font-semibold tabular-nums">
             ★ {item.vote_average.toFixed(1)}
           </div>
           {myRating != null && (

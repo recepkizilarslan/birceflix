@@ -63,3 +63,52 @@ export function useLanguage(): [Lang, (next: Lang) => void] {
   }, [])
   return [value, setLanguage]
 }
+
+export type Theme = 'dark' | 'light'
+
+const THEME_KEY = 'birceflix.theme'
+const themeSubscribers = new Set<() => void>()
+let cachedTheme: Theme | null = null
+
+function readTheme(): Theme {
+  if (cachedTheme) return cachedTheme
+  try {
+    const v = window.localStorage.getItem(THEME_KEY)
+    if (v === 'light' || v === 'dark') {
+      cachedTheme = v
+      return v
+    }
+  } catch {
+    // ignore (SSR / privacy modes)
+  }
+  cachedTheme = 'dark'
+  return 'dark'
+}
+
+function applyTheme(theme: Theme) {
+  const root = document.documentElement
+  root.setAttribute('data-theme', theme)
+  root.style.colorScheme = theme
+}
+
+/** Applies the persisted theme to <html>. Call once on boot to avoid FOUC. */
+export function initTheme() {
+  applyTheme(readTheme())
+}
+
+export function setTheme(next: Theme) {
+  cachedTheme = next
+  try { window.localStorage.setItem(THEME_KEY, next) } catch { /* noop */ }
+  applyTheme(next)
+  themeSubscribers.forEach((fn) => fn())
+}
+
+export function useTheme(): [Theme, (next: Theme) => void] {
+  const [value, setValue] = useState<Theme>(readTheme)
+  useEffect(() => {
+    const fn = () => setValue(readTheme())
+    themeSubscribers.add(fn)
+    return () => { themeSubscribers.delete(fn) }
+  }, [])
+  return [value, setTheme]
+}

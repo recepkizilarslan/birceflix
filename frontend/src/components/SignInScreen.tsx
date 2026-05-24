@@ -129,8 +129,8 @@ export function SignInScreen() {
                 onClick={() => { setMode(m); setErrCode(null) }}
                 className={`relative flex-1 pb-3 text-[15px] font-medium transition-all duration-200 ${
                   mode === m
-                    ? 'text-white'
-                    : 'text-[var(--color-text-dim)] hover:text-white'
+                    ? 'text-[var(--color-text)]'
+                    : 'text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
                 }`}
               >
                 {m === 'login' ? t('auth.login') : t('auth.register')}
@@ -183,7 +183,7 @@ export function SignInScreen() {
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-lg text-[var(--color-text-dim)] hover:text-white hover:bg-[var(--color-surface-2)]"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
               >
                 {showPw ? <EyeOffIcon /> : <EyeIcon />}
               </button>
