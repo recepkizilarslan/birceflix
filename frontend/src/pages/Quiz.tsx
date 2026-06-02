@@ -108,7 +108,6 @@ export function QuizPage() {
     }
     return t(f.description)
   }
-
   const buildItemMap = useCallback(async (sess: QuizSession, cat: QuizCategory): Promise<ItemMap> => {
     const map = new Map<number, ItemMeta>()
     const mediaType = cat.media_type === 'doc' ? 'movie' : cat.media_type as 'movie' | 'tv'
