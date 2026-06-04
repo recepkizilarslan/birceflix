@@ -33,7 +33,7 @@ export interface LayoutContext {
 }
 
 export function Layout() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [watchedKeys, setWatchedKeys] = useState<Set<string>>(new Set())
@@ -41,6 +41,12 @@ export function Layout() {
   const [watchlistKeys, setWatchlistKeys] = useState<Set<string>>(new Set())
   const [watchlistRows, setWatchlistRows] = useState<WatchlistRow[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (i18n.language) {
+      document.documentElement.lang = i18n.language.split('-')[0]
+    }
+  }, [i18n.language])
 
   const refreshWatched = useCallback(async () => {
     if (!user) { setWatchedKeys(new Set()); setWatchedRows([]); return }

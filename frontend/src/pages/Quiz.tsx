@@ -37,21 +37,21 @@ const MOVIE_FILTERS: FilterPreset[] = [
   { id: 'top16',    label: 'Top 16',         bracket_size: 16, description: 'quiz.filterMovies' },
   { id: 'top32',    label: 'Top 32',         bracket_size: 32, description: 'quiz.filterMovies' },
   { id: 'top64',    label: 'Top 64',         bracket_size: 64, description: 'quiz.filterMovies' },
-  { id: 'netflix',  label: 'Netflix',        bracket_size: 32, platform_id: 8,   description: 'Netflix filmler' },
-  { id: 'prime',    label: 'Prime Video',    bracket_size: 32, platform_id: 9,   description: 'Amazon Prime filmler' },
-  { id: 'disney',   label: 'Disney+',        bracket_size: 32, platform_id: 337, description: 'Disney+ filmler' },
+  { id: 'netflix',  label: 'Netflix',        bracket_size: 32, platform_id: 8,   description: 'quiz.filterNetflixMovies' },
+  { id: 'prime',    label: 'Prime Video',    bracket_size: 32, platform_id: 9,   description: 'quiz.filterPrimeMovies' },
+  { id: 'disney',   label: 'Disney+',        bracket_size: 32, platform_id: 337, description: 'quiz.filterDisneyMovies' },
 ]
 const TV_FILTERS: FilterPreset[] = [
   { id: 'top16',    label: 'Top 16',      bracket_size: 16, description: 'quiz.filterTv' },
   { id: 'top32',    label: 'Top 32',      bracket_size: 32, description: 'quiz.filterTv' },
   { id: 'top64',    label: 'Top 64',      bracket_size: 64, description: 'quiz.filterTv' },
-  { id: 'netflix',  label: 'Netflix',     bracket_size: 32, platform_id: 8,   description: 'Netflix diziler' },
-  { id: 'prime',    label: 'Prime Video', bracket_size: 32, platform_id: 9,   description: 'Amazon Prime diziler' },
+  { id: 'netflix',  label: 'Netflix',     bracket_size: 32, platform_id: 8,   description: 'quiz.filterNetflixTv' },
+  { id: 'prime',    label: 'Prime Video', bracket_size: 32, platform_id: 9,   description: 'quiz.filterPrimeTv' },
 ]
 const DOC_FILTERS: FilterPreset[] = [
   { id: 'top16',    label: 'Top 16',  bracket_size: 16, description: 'quiz.filterDocs' },
   { id: 'top32',    label: 'Top 32',  bracket_size: 32, description: 'quiz.filterDocs' },
-  { id: 'netflix',  label: 'Netflix', bracket_size: 16, platform_id: 8, description: 'Netflix belgeseller' },
+  { id: 'netflix',  label: 'Netflix', bracket_size: 16, platform_id: 8, description: 'quiz.filterNetflixDocs' },
 ]
 const FILTER_MAP: Record<string, FilterPreset[]> = {
   top_movies: MOVIE_FILTERS,
@@ -82,7 +82,7 @@ const CAT_CFG: Record<string, { gradient: string; accent: string; img: string }>
 // Page
 // ---------------------------------------------------------------------------
 export function QuizPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [region] = useRegion()
   const [view, setView] = useState<View>('categories')
   const [categories, setCategories] = useState<QuizCategory[]>([])
@@ -101,6 +101,13 @@ export function QuizPage() {
       .finally(() => setLoadingCats(false))
   }, [])
 
+  const getFilterDescription = (f: FilterPreset | null) => {
+    if (!f) return ''
+    if (f.description.startsWith('quiz.filter')) {
+      return t(f.description, { count: f.bracket_size })
+    }
+    return t(f.description)
+  }
   const buildItemMap = useCallback(async (sess: QuizSession, cat: QuizCategory): Promise<ItemMap> => {
     const map = new Map<number, ItemMeta>()
     const mediaType = cat.media_type === 'doc' ? 'movie' : cat.media_type as 'movie' | 'tv'
@@ -204,7 +211,7 @@ export function QuizPage() {
           <div className="flex items-center gap-2">
             <Crown size={14} className="text-yellow-400" />
             <span className="text-base font-black text-[var(--color-text)]" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.05em' }}>
-              BirceRank · {session.categoryLabel}
+              BirceRank · {t('quiz.category_' + session.category, { defaultValue: session.categoryLabel })}
             </span>
           </div>
           <div className="w-20" />
@@ -228,11 +235,13 @@ export function QuizPage() {
     const cfg = CAT_CFG[selectedCat.id] ?? { gradient: 'from-gray-900 to-black', accent: '#888', img: '', emoji: '🎯' }
     const filters = FILTER_MAP[selectedCat.id] ?? []
     const active = selectedCat.active_session
+    const isTr = i18n.language?.startsWith('tr')
+    const catLabel = isTr ? selectedCat.label_tr : selectedCat.label_en
 
     return (
       <div className="max-w-5xl mx-auto py-4 px-2 sm:px-0">
         <button onClick={() => setView('categories')} className="flex items-center gap-1.5 text-[var(--color-text-dim)] hover:text-[var(--color-text)] text-sm transition mb-6">
-          <ArrowLeft size={15} /> Kategoriler
+          <ArrowLeft size={15} /> {t('quiz.categories')}
         </button>
 
         <div className="grid sm:grid-cols-[1fr_1.2fr] gap-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
@@ -241,12 +250,14 @@ export function QuizPage() {
             {cfg.img && <img src={cfg.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" aria-hidden />}
             <div className={`absolute inset-0 bg-gradient-to-br ${cfg.gradient}`} />
             <div className="relative z-10 p-6 flex flex-col justify-end h-full">
-              <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-1">BirceRank · Turnuva</p>
+              <p className="text-white/50 text-xs font-bold tracking-widest mb-1">
+                BIRCERANK · <span className="uppercase">{t('quiz.pageTitle')}</span>
+              </p>
               <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.05em' }}>
-                {selectedCat.label_tr}
+                {catLabel}
               </h2>
               <p className="text-white/50 text-sm mt-1">
-                {selectedFilter?.description ?? ''}
+                {getFilterDescription(selectedFilter)}
               </p>
               <div className="flex items-center gap-3 mt-4 text-white/60 text-xs">
                 <span>{t('quiz.itemsCount', { count: selectedFilter?.bracket_size ?? '?' })}</span>
@@ -270,14 +281,14 @@ export function QuizPage() {
                   disabled={starting}
                   className="px-4 py-2 rounded-lg bg-orange-500 text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-50"
                 >
-                  {starting ? '...' : 'Devam Et'}
+                  {starting ? '...' : t('quiz.resume')}
                 </button>
               </div>
             )}
 
             {/* Filter presets */}
             <div>
-              <p className="text-[var(--color-text-dim)] text-xs font-semibold uppercase tracking-widest mb-3">Filtre</p>
+              <p className="text-[var(--color-text-dim)] text-xs font-semibold uppercase tracking-widest mb-3">{t('filters.title')}</p>
               <div className="grid grid-cols-2 gap-2">
                 {filters.map((f) => (
                   <button
@@ -352,6 +363,8 @@ export function QuizPage() {
           {categories.map((cat) => {
             const cfg = CAT_CFG[cat.id] ?? { gradient: 'from-gray-900 to-black', accent: '#888', img: '' }
             const active = cat.active_session
+            const isTr = i18n.language?.startsWith('tr')
+            const catLabel = isTr ? cat.label_tr : cat.label_en
             return (
               <button
                 key={cat.id}
@@ -365,14 +378,14 @@ export function QuizPage() {
                 <div className="relative z-10 p-6 flex flex-col gap-3 h-full justify-end">
                   <div>
                     <h3 className="text-3xl sm:text-4xl font-black text-white leading-tight" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.04em' }}>
-                      {cat.label_tr}
+                      {catLabel}
                     </h3>
                     <p className="text-white/60 text-sm mt-1">{t('quiz.selectFromItems', { count: cat.max_items })}</p>
                   </div>
                   {active && (
                     <div className="inline-flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/15 px-2.5 py-1 rounded-full border border-orange-500/30 w-fit">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                      Devam eden tur {active.current_round}
+                      {t('quiz.resumeBadge', { round: active.current_round })}
                     </div>
                   )}
                   <div className="flex items-center gap-1.5 text-white font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">

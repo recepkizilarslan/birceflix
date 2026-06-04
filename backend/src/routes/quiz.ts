@@ -276,7 +276,7 @@ export async function quizRoutes(app: FastifyInstance) {
       .values({
         userId,
         category: cat.id,
-        categoryLabel: cat.labelTr,
+        categoryLabel: body.ui_language.startsWith('tr') ? cat.labelTr : cat.labelEn,
         totalItems: bracketSize,
         currentRound: 1,
         remaining,

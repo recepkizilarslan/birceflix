@@ -8,7 +8,7 @@
     "watched": "Watched",
     "lists": "Lists",
     "menu": "Menu",
-    "import": "İçe / Dışa aktar",
+    "import": "Import / Export",
     "quiz": "BirceRank"
   },
   "auth": {
@@ -349,6 +349,17 @@
     "completedMatches": "{{done}}/{{total}} completed",
     "fullRanking": "Full Ranking",
     "itemsSub": "items",
-    "roundSub": "round"
+    "roundSub": "round",
+    "filterNetflixMovies": "Netflix movies",
+    "filterPrimeMovies": "Amazon Prime movies",
+    "filterDisneyMovies": "Disney+ movies",
+    "filterNetflixTv": "Netflix TV series",
+    "filterPrimeTv": "Amazon Prime TV series",
+    "filterNetflixDocs": "Netflix documentaries",
+    "categories": "Categories",
+    "category_top_movies": "Top Movies",
+    "category_top_tv": "Top TV",
+    "category_top_docs": "Top Documentaries",
+    "loadError": "Failed to load tournament session."
   }
 }

@@ -32,13 +32,13 @@ export function QuizResult({ session, itemMap, onPlayAgain }: QuizResultProps) {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 mb-4">
           <Crown size={14} className="text-yellow-400" />
-          <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">BirceRank</span>
+          <span className="text-yellow-400 text-xs font-bold tracking-widest">BIRCERANK</span>
         </div>
         <h1 className="text-5xl sm:text-6xl font-black text-[var(--color-text)] mb-1" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.06em' }}>
           {t('quiz.resultTitle')}
         </h1>
         <p className="text-[var(--color-text-dim)] text-sm">
-          {session.categoryLabel} · {t('quiz.itemsCount', { count: session.totalItems })} · {session.currentRound} {t('quiz.roundSub')}
+          {t('quiz.category_' + session.category, { defaultValue: session.categoryLabel })} · {t('quiz.itemsCount', { count: session.totalItems })} · {session.currentRound} {t('quiz.roundSub')}
         </p>
       </div>
 

@@ -349,6 +349,17 @@
     "completedMatches": "{{done}}/{{total}} tamamlandı",
     "fullRanking": "Tam Sıralama",
     "itemsSub": "içerik",
-    "roundSub": "tur"
+    "roundSub": "tur",
+    "filterNetflixMovies": "Netflix filmleri",
+    "filterPrimeMovies": "Amazon Prime filmleri",
+    "filterDisneyMovies": "Disney+ filmleri",
+    "filterNetflixTv": "Netflix dizileri",
+    "filterPrimeTv": "Amazon Prime dizileri",
+    "filterNetflixDocs": "Netflix belgeselleri",
+    "categories": "Kategoriler",
+    "category_top_movies": "En İyi Filmler",
+    "category_top_tv": "En İyi Diziler",
+    "category_top_docs": "En İyi Belgeseller",
+    "loadError": "Turnuva oturumu yüklenemedi."
   }
 }
