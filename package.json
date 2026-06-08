@@ -28,9 +28,12 @@
     "prod:up": "docker compose up -d --build",
     "prod:down": "docker compose down",
     "prod:logs": "docker compose logs -f",
-    "prod:restart": "docker compose restart api frontend"
+    "prod:restart": "docker compose restart api caddy"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
+  },
+  "overrides": {
+    "esbuild": ">=0.25.0"
   }
 }
