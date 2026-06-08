@@ -31,6 +31,6 @@
     "prod:restart": "docker compose restart api frontend"
   },
   "devDependencies": {
-    "concurrently": "^10.0.1"
+    "concurrently": "^10.0.3"
   }
 }
