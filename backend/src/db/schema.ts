@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, smallint, boolean, jsonb, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, smallint, boolean, jsonb, primaryKey, index, uniqueIndex, check, pgEnum } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // ---------------------------------------------------------------------------
@@ -196,8 +196,105 @@ export const savedFilters = pgTable(
   }),
 )
 
+// ---------------------------------------------------------------------------
+// Quiz Tournament System
+// ---------------------------------------------------------------------------
+
+/**
+ * quiz_sessions — one row per tournament run.
+ * `remaining` is the ordered bracket: items at even indices face the item at
+ * odd index+1 in the current round. After each vote the loser is moved to
+ * `eliminated`. When remaining.length === 1 the tournament is complete.
+ */
+export const quizSessions = pgTable(
+  'quiz_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** 'top_movies' | 'top_tv' | 'top_docs' */
+    category: text('category').notNull(),
+    /** Label shown in the UI header, e.g. "En İyi Filmler (50)" */
+    categoryLabel: text('category_label').notNull(),
+    /** Total number of items the tournament started with (16 | 32 | 64 | 128) */
+    totalItems: integer('total_items').notNull(),
+    /** Current round number, starts at 1. */
+    currentRound: integer('current_round').notNull().default(1),
+    /** Ordered list of tmdbIds still in the bracket. */
+    remaining: jsonb('remaining').$type<number[]>().notNull(),
+    /** Eliminated tmdbIds, most recently eliminated first. */
+    eliminated: jsonb('eliminated').$type<number[]>().notNull().default([]),
+    /** tmdbId of the champion — set when remaining.length === 1. */
+    winnerId: integer('winner_id'),
+    winnerTitle: text('winner_title'),
+    winnerPosterPath: text('winner_poster_path'),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index('quiz_sessions_user_idx').on(t.userId, t.createdAt),
+    userActiveIdx: index('quiz_sessions_user_active_idx').on(t.userId, t.category),
+  }),
+)
+
+/**
+ * quiz_votes — one row per 1v1 choice within a session.
+ * Keeps an audit trail so we can recompute stats or replay sessions.
+ */
+export const quizVotes = pgTable(
+  'quiz_votes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => quizSessions.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Tournament round this vote belongs to. */
+    round: integer('round').notNull(),
+    /** TMDB id of the left/right candidate. */
+    candidateA: integer('candidate_a').notNull(),
+    candidateB: integer('candidate_b').notNull(),
+    /** TMDB id of the item the user chose. Must equal candidateA or candidateB. */
+    winner: integer('winner').notNull(),
+    votedAt: timestamp('voted_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    sessionIdx: index('quiz_votes_session_idx').on(t.sessionId, t.round),
+    userIdx: index('quiz_votes_user_idx').on(t.userId, t.votedAt),
+  }),
+)
+
+/**
+ * quiz_global_stats — aggregate win counts per ordered (candidateA, candidateB) pair.
+ * Convention: candidateA < candidateB (numerically) so each matchup has exactly
+ * one row regardless of which side was "left" or "right" in any given session.
+ * `winsA` = wins for the item whose TMDB id equals candidateA, etc.
+ */
+export const quizGlobalStats = pgTable(
+  'quiz_global_stats',
+  {
+    candidateA: integer('candidate_a').notNull(),
+    candidateB: integer('candidate_b').notNull(),
+    /** 'movie' | 'tv' | 'doc' — keeps matchups from different categories separate. */
+    mediaType: text('media_type').notNull(),
+    winsA: integer('wins_a').notNull().default(0),
+    winsB: integer('wins_b').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.candidateA, t.candidateB, t.mediaType] }),
+  }),
+)
+
 export type User = typeof users.$inferSelect
 export type Session = typeof sessions.$inferSelect
 export type WatchedMovie = typeof watchedMovies.$inferSelect
 export type WatchlistItem = typeof watchlist.$inferSelect
 export type SavedFilter = typeof savedFilters.$inferSelect
+export type QuizSession = typeof quizSessions.$inferSelect
+export type QuizVote = typeof quizVotes.$inferSelect
+export type QuizGlobalStats = typeof quizGlobalStats.$inferSelect

@@ -23,6 +23,7 @@ import { listsRoutes } from './routes/lists.js'
 import { savedFiltersRoutes } from './routes/savedFilters.js'
 import { calendarRoutes } from './routes/calendar.js'
 import { topRoutes } from './routes/top.js'
+import { quizRoutes } from './routes/quiz.js'
 import { startTopRefresh } from './lib/topCache.js'
 import { purgeExpired } from './auth/session.js'
 
@@ -77,6 +78,7 @@ async function build() {
   await app.register(savedFiltersRoutes)
   await app.register(calendarRoutes)
   await app.register(topRoutes)
+  await app.register(quizRoutes)
 
   app.get('/api/health', async () => ({ ok: true, env: env.NODE_ENV }))
 

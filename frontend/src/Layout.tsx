@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Compass, Calendar, Bookmark, CheckSquare, List, Menu, X } from 'lucide-react'
+import { Compass, Calendar, Bookmark, CheckSquare, List, ArrowLeftRight, Menu, X, Swords } from 'lucide-react'
 import { AuthButton } from './components/AuthButton'
 import { PreferencesMenu } from './components/PreferencesMenu'
 import { ThemeToggle } from './components/ThemeToggle'
@@ -33,7 +33,7 @@ export interface LayoutContext {
 }
 
 export function Layout() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [watchedKeys, setWatchedKeys] = useState<Set<string>>(new Set())
@@ -41,6 +41,12 @@ export function Layout() {
   const [watchlistKeys, setWatchlistKeys] = useState<Set<string>>(new Set())
   const [watchlistRows, setWatchlistRows] = useState<WatchlistRow[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (i18n.language) {
+      document.documentElement.lang = i18n.language.split('-')[0]
+    }
+  }, [i18n.language])
 
   const refreshWatched = useCallback(async () => {
     if (!user) { setWatchedKeys(new Set()); setWatchedRows([]); return }
@@ -146,6 +152,8 @@ export function Layout() {
               <TabLink to="/watchlist">{t('nav.watchlist')}{watchlistSuffix}</TabLink>
               <TabLink to="/watched">{t('nav.watched')}{watchedSuffix}</TabLink>
               <TabLink to="/lists">{t('nav.lists')}</TabLink>
+              <TabLink to="/import">{t('nav.import')}</TabLink>
+              <TabLink to="/quiz">{t('nav.quiz')}</TabLink>
             </nav>
           )}
 
@@ -193,6 +201,8 @@ export function Layout() {
               <DrawerLink to="/watchlist" onSelect={() => setMenuOpen(false)} icon={<Bookmark size={18} />} badge={watchlistCount}>{t('nav.watchlist')}</DrawerLink>
               <DrawerLink to="/watched"   onSelect={() => setMenuOpen(false)} icon={<CheckSquare size={18} />}  badge={watchedCount}>{t('nav.watched')}</DrawerLink>
               <DrawerLink to="/lists"     onSelect={() => setMenuOpen(false)} icon={<List size={18} />}>{t('nav.lists')}</DrawerLink>
+              <DrawerLink to="/import"    onSelect={() => setMenuOpen(false)} icon={<ArrowLeftRight size={18} />}>{t('nav.import')}</DrawerLink>
+              <DrawerLink to="/quiz"      onSelect={() => setMenuOpen(false)} icon={<Swords size={18} />}>{t('nav.quiz')}</DrawerLink>
             </nav>
             <div className="p-3 border-t border-[var(--color-border)] pb-safe text-[11px] text-[var(--color-text-dim)] text-center">
               Birceflix
@@ -217,7 +227,7 @@ export function Layout() {
             <BottomTab to="/calendar"  label={t('nav.calendar')}  icon={Calendar} />
             <BottomTab to="/watchlist" label={t('nav.watchlist')} icon={Bookmark} badge={watchlistCount} />
             <BottomTab to="/watched"   label={t('nav.watched')}   icon={CheckSquare}    badge={watchedCount} />
-            <BottomTab to="/lists"     label={t('nav.lists')}     icon={List} />
+            <BottomTab to="/quiz"      label={t('nav.quiz')}      icon={Swords} />
           </div>
         </nav>
       )}
