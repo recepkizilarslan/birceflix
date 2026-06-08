@@ -1,8 +1,13 @@
 name: birceflix
 
 services:
+  # Caddy is the only web tier: it serves the Vite build (baked into the
+  # image at /srv, see caddy/Dockerfile) and reverse-proxies /api to the
+  # backend. The Caddyfile is bind-mounted so it can differ per env.
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: caddy/Dockerfile
     restart: unless-stopped
     ports:
       - "80:80"
@@ -16,15 +21,6 @@ services:
       - caddy_config:/config
     depends_on:
       - api
-      - frontend
-    networks: [edge]
-
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-    restart: unless-stopped
-    expose: ["80"]
     networks: [edge]
 
   api:

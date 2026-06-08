@@ -7,63 +7,20 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // The PWA service worker was removed: precaching the app shell
+    // (index.html + hashed assets) left users stranded on whichever build
+    // their SW had cached, so the site "looked different for everyone"
+    // until a hard refresh. Caching is now governed entirely by Caddy
+    // (immutable hashed assets, no-store index.html; see the Caddyfile).
+    //
+    // `selfDestroying` still emits a service worker, but one that
+    // unregisters itself and purges every Cache Storage entry on
+    // activation. Keeping it (plus the registration in
+    // ServiceWorkerCleanup) is how already-affected clients pick up the
+    // cleanup. Once visitors have all loaded a post-removal build, this
+    // plugin and that component can be deleted outright.
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon.svg'],
-      manifest: {
-        name: 'Birceflix',
-        short_name: 'Birceflix',
-        description: 'Film & dizi keşfet, filtrele, izlediklerini takip et.',
-        lang: 'tr',
-        start_url: '/',
-        scope: '/',
-        display: 'standalone',
-        background_color: '#0b0b10',
-        theme_color: '#E50914',
-        orientation: 'portrait-primary',
-        icons: [
-          { src: '/icon.svg', sizes: '192x192 512x512', type: 'image/svg+xml', purpose: 'any maskable' },
-          { src: '/favicon.svg', sizes: '48x48', type: 'image/svg+xml', purpose: 'any' },
-        ],
-        categories: ['entertainment', 'lifestyle'],
-      },
-      workbox: {
-        // Precache all build outputs except very large maps
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        // Never let the SW intercept the backend API
-        navigateFallbackDenylist: [/^\/api/],
-        runtimeCaching: [
-          {
-            // TMDB poster + backdrop images — long-lived, cache aggressively
-            urlPattern: ({ url }) => url.hostname === 'image.tmdb.org',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'tmdb-images',
-              expiration: {
-                maxEntries: 500,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Google Fonts (stylesheet)
-            urlPattern: ({ url }) => url.hostname === 'fonts.googleapis.com',
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts-css' },
-          },
-          {
-            // Google Fonts files
-            urlPattern: ({ url }) => url.hostname === 'fonts.gstatic.com',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-files',
-              expiration: { maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
-      },
+      selfDestroying: true,
       // In dev we don't want the SW to interfere with HMR
       devOptions: { enabled: false },
     }),

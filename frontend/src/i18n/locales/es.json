@@ -301,10 +301,6 @@
     "emptyForRegion": "No hay entradas para esta región.",
     "unknownDate": "Fecha desconocida"
   },
-  "pwa": {
-    "offlineReady": "Listo para usar sin conexión.",
-    "dismiss": "Cerrar"
-  },
   "search": {
     "placeholder": "Buscar películas…",
     "placeholderMovie": "Buscar películas…",

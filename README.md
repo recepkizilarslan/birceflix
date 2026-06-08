@@ -36,7 +36,7 @@ If any of this resonates with you, the docs below explain how to run your own co
 
 ## At a glance
 
-- **Frontend**: Vite, React 19, TypeScript, Tailwind v4, served by nginx.
+- **Frontend**: Vite, React 19, TypeScript, Tailwind v4, served by Caddy.
 - **Backend**: Node 20, Fastify, TypeScript, REST API on `/api/*`.
 - **Database**: PostgreSQL 16.
 - **Auth**: Google OAuth (via [Arctic](https://github.com/pilcrowonpaper/arctic)) and email/password, both backed by server-side sessions.
@@ -50,7 +50,7 @@ If any of this resonates with you, the docs below explain how to run your own co
 - Movie and TV detail pages with synopsis, cast, awards, streaming availability.
 - Mark watched, build a watchlist, keep custom lists (private or public-shareable).
 - Personal ratings and notes on watched items.
-- TR / EN UI, dark theme, mobile-first responsive layout, installable as a PWA.
+- TR / EN UI, dark theme, mobile-first responsive layout.
 - Optional Trakt sync (history import + ongoing sync) and Plex/Jellyfin scrobble webhook.
 - Letterboxd-compatible CSV import and full JSON export.
 

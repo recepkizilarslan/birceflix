@@ -77,8 +77,6 @@ frontend/                        Vite + React 19 + Tailwind v4
     components/                  Presentational components
     pages/                       Discover, Watched, MovieDetailPage, ...
     Layout.tsx                   Header + nav + auth gate
-  nginx.conf                     Serves the Vite dist in production
-  Dockerfile
 
 backend/                         Fastify + Drizzle + Postgres
   src/
@@ -109,10 +107,12 @@ backend/                         Fastify + Drizzle + Postgres
         0000_initial.sql
 
 shared/                          API contract types (pure types, no runtime)
-docker-compose.yml               Production stack (Caddy + frontend + api + db + migrate)
+caddy/
+  Dockerfile                     Builds the Vite frontend, bakes it into a Caddy image
+docker-compose.yml               Production stack (Caddy + api + db + migrate)
 docker-compose.dev.yml           Dev stack (Postgres + Adminer only)
 docker-compose.prod.yml          Prod overrides applied on top of docker-compose.yml
-Caddyfile                        TLS + reverse proxy config
+Caddyfile                        TLS + static serving + reverse proxy config
 Makefile                         Convenience targets (mirrors npm scripts)
 package.json                     npm workspaces root
 ```

@@ -14,7 +14,7 @@ If you're running the app on your own box without GitHub Actions, [INSTALL.md](I
   |  build-and-push job  |
   |  -------------------- |
   |  build & push:         |
-  |    birceflix-frontend  |
+  |    birceflix-caddy     |
   |    birceflix-backend   |
   |  to ghcr.io            |
   +----------------------+
@@ -57,8 +57,8 @@ Even if a collaborator gets added later, they can dispatch the workflow but the 
 Images are pushed to GHCR under the repo owner's namespace, with two tags each:
 
 ```
-ghcr.io/recepkizilarslan/birceflix-frontend:sha-<short>
-ghcr.io/recepkizilarslan/birceflix-frontend:latest
+ghcr.io/recepkizilarslan/birceflix-caddy:sha-<short>
+ghcr.io/recepkizilarslan/birceflix-caddy:latest
 
 ghcr.io/recepkizilarslan/birceflix-backend:sha-<short>
 ghcr.io/recepkizilarslan/birceflix-backend:latest
@@ -130,7 +130,7 @@ This is the same as the [INSTALL.md](INSTALL.md) path. The CI-built images aren'
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `ci.yml` | push to `main`, PR | Lint, typecheck, build both workspaces |
-| `build.yml` | push to `main`, PR | Vite + nginx + Fastify + Docker build verification |
+| `build.yml` | push to `main`, PR | Vite + Caddy + Fastify + Docker build verification |
 | `codeql.yml` | push to `main`, PR, weekly | Static analysis (security-extended query suite) |
 | `deploy.yml` | `workflow_dispatch` only | Build, push to GHCR, SSH, rollout |
 | `dependabot-auto-merge.yml` | `pull_request_target` | Auto-approve + enable auto-merge for Dependabot patch PRs |

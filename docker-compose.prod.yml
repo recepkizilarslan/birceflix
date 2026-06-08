@@ -10,8 +10,8 @@
 # docker-compose.yml -f docker-compose.prod.yml up -d`.
 
 services:
-  frontend:
-    image: ghcr.io/${GHCR_OWNER}/birceflix-frontend:${IMAGE_TAG:-latest}
+  caddy:
+    image: ghcr.io/${GHCR_OWNER}/birceflix-caddy:${IMAGE_TAG:-latest}
     pull_policy: always
 
   api:

@@ -2,7 +2,7 @@
 
 Goal: get Birceflix running on your laptop in about five minutes. You'll have the Vite dev server on `:5173`, the Fastify API on `:3000`, and a containerised Postgres on `:5432`.
 
-If you want the full production-shaped stack instead (Caddy + nginx + everything in containers), skip to [INSTALL.md](INSTALL.md). If you want the deeper walkthrough with debugging tips, project layout, and migration workflow, go to [DEVELOPMENT.md](DEVELOPMENT.md) after you've finished this page.
+If you want the full production-shaped stack instead (Caddy + api + db in containers), skip to [INSTALL.md](INSTALL.md). If you want the deeper walkthrough with debugging tips, project layout, and migration workflow, go to [DEVELOPMENT.md](DEVELOPMENT.md) after you've finished this page.
 
 ## Prerequisites
 

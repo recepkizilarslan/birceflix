@@ -39,7 +39,7 @@ dev: db-up migrate
 # Production (full container stack behind Caddy)
 # -----------------------------------------------------------------------------
 
-## prod-up            Build + start the full prod stack (Caddy + frontend + api + db).
+## prod-up            Build + start the full prod stack (Caddy + api + db).
 prod-up:
 	docker compose up -d --build
 
@@ -51,9 +51,9 @@ prod-down:
 prod-logs:
 	docker compose logs -f
 
-## prod-restart       Restart api + frontend (keeps db running).
+## prod-restart       Restart api + caddy (keeps db running).
 prod-restart:
-	docker compose restart api frontend
+	docker compose restart api caddy
 
 # -----------------------------------------------------------------------------
 # Misc

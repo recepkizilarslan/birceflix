@@ -301,10 +301,6 @@
     "emptyForRegion": "Brak wpisów dla tego regionu.",
     "unknownDate": "Nieznana data"
   },
-  "pwa": {
-    "offlineReady": "Gotowe do użycia offline.",
-    "dismiss": "Zamknij"
-  },
   "search": {
     "placeholder": "Szukaj filmów…",
     "placeholderMovie": "Szukaj filmów…",

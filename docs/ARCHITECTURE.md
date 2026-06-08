@@ -11,26 +11,24 @@ High-level shape of Birceflix and the rationale behind the load-bearing decision
          |
          v
 +----------------+
-|     Caddy      |   TLS termination, reverse proxy
+|     Caddy      |   TLS, serves the static frontend, reverse-proxies /api
++--------+-------+
+         | /api/*
+         v
++----------------+
+|      api       |
 +--------+-------+
          |
-   /-----+-----\
-   |           |
-   v           v
-+-----+   +--------+
-| api |   |frontend|
-+--+--+   +--------+
-   |
-   v
-+------+
-|  db  |   Postgres 16
-+------+
+         v
++----------------+
+|       db       |   Postgres 16
++----------------+
 ```
 
-- **frontend**: Vite + React 19 + TypeScript + Tailwind v4, built to static assets, served by nginx.
+- **frontend**: Vite + React 19 + TypeScript + Tailwind v4, built to static assets. The build is baked into the Caddy image and served directly by Caddy, so there is no separate web container.
 - **api**: Fastify + TypeScript on Node 20, REST endpoints under `/api/*`.
 - **db**: Postgres 16, only reachable from the api container on a private docker network.
-- **Caddy**: TLS via Let's Encrypt, reverse-proxies `/api/*` to the api and everything else to the frontend.
+- **Caddy**: the only web tier. TLS via Let's Encrypt, serves the static frontend build from `/srv`, and reverse-proxies `/api/*` to the api.
 - **migrate**: one-shot container that runs pending SQL migrations before the api boots, then exits.
 
 ## Request flow
@@ -198,7 +196,7 @@ The TMDB and OMDb clients are small fetch wrappers in `backend/src/lib/`. They c
 | TMDB as the primary source | One canonical id space (TMDB ids) for movies and TV. OMDb is enrichment-only, on the detail page. |
 | Tailwind v4, no design system lib | Project is small enough that a class-name vocabulary plus a few CSS variables is enough. |
 | Plain React state, no global store | The shared state is auth + watched/watchlist keys. Both live in `Layout`. A global store would be overkill. |
-| Caddy over nginx for the reverse proxy | Let's Encrypt cert provisioning is built-in, config is one short file, and the security headers (CSP, HSTS, COOP/CORP, etc.) live next to the proxy that fronts everything. |
+| Caddy as the only web tier (no nginx) | Let's Encrypt cert provisioning is built-in, config is one short file, and Caddy serves the static build itself, so there is no separate nginx container to run, configure, or keep in sync. The security headers (CSP, HSTS, COOP/CORP, etc.) live next to the proxy that fronts everything. |
 
 ## Security headers
 
@@ -210,12 +208,15 @@ Set in the `Caddyfile`, single source of truth:
 - `Permissions-Policy`: deny every device feature the app never asks for.
 - `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`.
 
-The frontend nginx is configured to not redefine any of these so the policy stays in one place.
+Caddy is the only tier serving HTTP, so these headers are defined in exactly one place.
 
-## PWA / service worker
+## Caching (no service worker)
 
-`vite-plugin-pwa` generates a service worker that precaches all build outputs (`**/*.{js,css,html,svg,woff2}`) and applies runtime caching to TMDB images and Google Fonts.
+There is no PWA service worker. Birceflix used to ship one (`vite-plugin-pwa` precaching `**/*.{js,css,html,svg,woff2}`), but precaching the app shell meant the SW served whatever build it had cached: users were stranded on mismatched builds and the site "looked different for everyone" until a hard refresh. No amount of `autoUpdate` / manual `updateServiceWorker(true)` / hourly `update()` polling closed the window reliably.
 
-`registerType: 'autoUpdate'` plus an explicit `updateServiceWorker(true)` call in `PWAUpdateToast` activates the waiting SW immediately on detection and reloads. Without that explicit activation, login / logout hard reloads (`window.location.href = '/'`) would land on the cached old shell from the previous deploy.
+Caching is now governed entirely by Caddy (`Caddyfile`), which serves the static build directly:
 
-The SW also `update()`s itself every hour via `setInterval` in `onRegisteredSW`, so a tab left open across a deploy picks up the new version automatically.
+- Hashed assets (`/assets/*`: `*.js`, `*.css`, fonts, images) → `Cache-Control: public, max-age=31536000, immutable`. Safe because the content hash is in the filename.
+- Everything else, including `index.html`, the SPA fallback, and `sw.js` → `Cache-Control: no-store`, so every visit fetches the current shell, which references the current asset hashes.
+
+The plugin is kept only in `selfDestroying` mode (`vite.config.ts`): it emits a service worker that unregisters itself and purges all Cache Storage on activation, registered via `ServiceWorkerCleanup`. This cleans up clients that still have the old SW installed. Once enough time has passed that visitors have all loaded a post-removal build, the plugin and `ServiceWorkerCleanup` can be deleted outright.

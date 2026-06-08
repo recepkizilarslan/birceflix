@@ -48,17 +48,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & push frontend
+      - name: Build & push caddy (web tier — serves the Vite build + proxies /api)
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
           context: .
-          file: frontend/Dockerfile
+          file: caddy/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-frontend:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-frontend:latest
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,scope=frontend,mode=max
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-caddy:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/birceflix-caddy:latest
+          cache-from: type=gha,scope=caddy
+          cache-to: type=gha,scope=caddy,mode=max
 
       - name: Build & push backend
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7

@@ -11,7 +11,7 @@ import { ListsPage } from './pages/Lists'
 import { ListDetailPage } from './pages/ListDetail'
 import { PublicListPage } from './pages/PublicList'
 import { CalendarPage } from './pages/Calendar'
-import { PWAUpdateToast } from './components/PWAUpdateToast'
+import { ServiceWorkerCleanup } from './components/ServiceWorkerCleanup'
 import { RequireAuth } from './components/RequireAuth'
 import { SignInScreen } from './components/SignInScreen'
 
@@ -51,7 +51,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      <PWAUpdateToast />
+      <ServiceWorkerCleanup />
     </BrowserRouter>
   )
 }

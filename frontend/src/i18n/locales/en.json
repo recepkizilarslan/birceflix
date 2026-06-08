@@ -301,10 +301,6 @@
     "emptyForRegion": "No entries for this region.",
     "unknownDate": "Unknown date"
   },
-  "pwa": {
-    "offlineReady": "Ready to use offline.",
-    "dismiss": "Dismiss"
-  },
   "search": {
     "placeholder": "Search movies…",
     "placeholderMovie": "Search movies…",

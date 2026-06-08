@@ -301,10 +301,6 @@
     "emptyForRegion": "Nessuna voce per questa regione.",
     "unknownDate": "Data sconosciuta"
   },
-  "pwa": {
-    "offlineReady": "Pronto per l'uso offline.",
-    "dismiss": "Chiudi"
-  },
   "search": {
     "placeholder": "Cerca film…",
     "placeholderMovie": "Cerca film…",

@@ -11,14 +11,29 @@
     reverse_proxy api:3000
   }
 
-  # Everything else → frontend (nginx serving Vite build)
+  # SPA. Caddy serves the Vite build directly (baked into the image at
+  # /srv, see caddy/Dockerfile). No separate nginx layer. Unknown paths
+  # fall back to index.html so React Router can resolve them.
   handle {
-    reverse_proxy frontend:80
+    root * /srv
+
+    # Cache policy lives here so there is a single answer to "why does the
+    # site look different for different people": hashed asset filenames are
+    # content-addressed, so they are immutable and cached for a year, while
+    # index.html (and everything else, including sw.js) is never stored.
+    # Every visit re-fetches the current shell, which references the
+    # current asset hashes, so there is no stale-shell skew across users.
+    @assets path /assets/*
+    @notassets not path /assets/*
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+    header @notassets Cache-Control "no-store"
+
+    try_files {path} /index.html
+    file_server
   }
 
-  # Security headers. CSP is set here so the policy lives next to the
-  # reverse proxy that fronts both /api and the SPA — single source of
-  # truth. The frontend nginx must not redefine these.
+  # Security headers. Caddy is the single web tier that fronts both /api
+  # and the SPA, so the policy lives here as the single source of truth.
   #
   # CSP origins:
   #   image.tmdb.org              — poster/backdrop/logo CDN

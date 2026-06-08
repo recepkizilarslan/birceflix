@@ -13,12 +13,10 @@ A single `docker compose up -d --build` brings up the full stack:
                   |                    |
                   |                    +-- [Postgres :5432]
                   |
-                  +-- /        -> [nginx frontend :80]
-                                       |
-                                       +-- Vite-built static dist
+                  +-- /        -> Vite-built static dist (served from /srv)
 ```
 
-Caddy terminates TLS, reverse-proxies `/api/*` to the API container and everything else to the frontend container. Postgres lives on a private Docker network and isn't exposed to the host. A one-shot `migrate` container runs pending SQL migrations before the API boots.
+Caddy terminates TLS, serves the Vite-built static frontend itself (baked into its image at `/srv`), and reverse-proxies `/api/*` to the API container. Postgres lives on a private Docker network and isn't exposed to the host. A one-shot `migrate` container runs pending SQL migrations before the API boots.
 
 ## Prerequisites
 

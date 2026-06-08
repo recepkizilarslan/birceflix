@@ -301,10 +301,6 @@
     "emptyForRegion": "Bu bölge için kayıt yok.",
     "unknownDate": "Tarih bilinmiyor"
   },
-  "pwa": {
-    "offlineReady": "Çevrimdışı kullanıma hazır.",
-    "dismiss": "Kapat"
-  },
   "search": {
     "placeholder": "Film ara…",
     "placeholderMovie": "Film ara…",
