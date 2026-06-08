@@ -52,7 +52,6 @@ If any of this resonates with you, the docs below explain how to run your own co
 - Personal ratings and notes on watched items.
 - TR / EN UI, dark theme, mobile-first responsive layout.
 - Optional Trakt sync (history import + ongoing sync) and Plex/Jellyfin scrobble webhook.
-- Letterboxd-compatible CSV import and full JSON export.
 
 ## Attribution
 
