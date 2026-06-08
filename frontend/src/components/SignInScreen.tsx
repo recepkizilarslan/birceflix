@@ -311,11 +311,11 @@ function StarIcon() {
 }
 
 /**
- * Single combined marquee of every brand the app speaks to — TMDB watch
- * providers (Netflix, Disney+, ...) and our data/scrobble integrations
- * (IMDb, Trakt, Letterboxd, Plex, Jellyfin, ...) all share one strip.
- * Visually consistent: every brand is a fixed-width column with a tile
- * on top and the brand name below. Tile size shrinks on mobile.
+ * Single combined marquee of every brand the app speaks to: TMDB watch
+ * providers (Netflix, Disney+, ...) plus the data sources we read from
+ * (TMDB, IMDb) all share one strip. Visually consistent: every brand is
+ * a fixed-width column with a tile on top and the brand name below. Tile
+ * size shrinks on mobile.
  */
 function BrandMarquee({ providers }: { providers: ProviderListItem[] }) {
   const tiles: { key: string; node: React.ReactNode; name: string }[] = [
@@ -388,8 +388,8 @@ function Marquee({ children, duration = 28 }: { children: React.ReactNode; durat
 }
 
 /**
- * Brand chips for the data/scrobble integrations the app speaks to.
- * Pure CSS — each chip mimics the brand's wordmark/logo in its native
+ * Brand chips for the data sources the app reads from (TMDB, IMDb).
+ * Pure CSS: each chip mimics the brand's wordmark/logo in its native
  * colors so the row reads at a glance even at small sizes.
  */
 function integrationBrands(): { key: string; name: string; node: React.ReactNode }[] {
@@ -410,44 +410,6 @@ function integrationBrands(): { key: string; name: string; node: React.ReactNode
       node: (
         <div className={tile} style={{ background: '#F5C518' }}>
           <span className="font-black italic text-[13px] sm:text-[17px] text-black tracking-tight">IMDb</span>
-        </div>
-      ),
-    },
-    {
-      key: 'i-trakt',
-      name: 'Trakt',
-      node: (
-        <div className={`${tile} bg-black border border-[#ED1C24]/40`}>
-          <span className="font-bold text-[11px] sm:text-[14px]" style={{ color: '#ED1C24' }}>trakt</span>
-        </div>
-      ),
-    },
-    {
-      key: 'i-letterboxd',
-      name: 'Letterboxd',
-      node: (
-        <div className={`${tile} gap-1 bg-[#202830]`}>
-          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: '#FF8000' }} />
-          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: '#00E054' }} />
-          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: '#40BCF4' }} />
-        </div>
-      ),
-    },
-    {
-      key: 'i-plex',
-      name: 'Plex',
-      node: (
-        <div className={`${tile} bg-black`}>
-          <span className="font-black text-[11px] sm:text-[14px] tracking-tight" style={{ color: '#E5A00D' }}>PLEX</span>
-        </div>
-      ),
-    },
-    {
-      key: 'i-jellyfin',
-      name: 'Jellyfin',
-      node: (
-        <div className={tile} style={{ background: 'linear-gradient(135deg, #AA5CC3 0%, #00A4DC 100%)' }}>
-          <span className="font-bold text-[9px] sm:text-[11px] text-white tracking-wide">Jellyfin</span>
         </div>
       ),
     },

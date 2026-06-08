@@ -28,7 +28,7 @@ If any of this resonates with you, the docs below explain how to run your own co
 1. [**Quick start**](docs/QUICKSTART.md). Run Birceflix on your laptop in about five minutes. Prereqs, env files, `npm start`, common gotchas.
 2. [**Development**](docs/DEVELOPMENT.md). The deep walkthrough: two dev flows (HMR vs production-shaped), the project layout, code style, the migration workflow, debugging.
 3. [**Self-hosting**](docs/INSTALL.md). Bring the stack up on your own server with a real domain and a real Let's Encrypt cert. DNS, env config, backups, upgrade procedure, troubleshooting.
-4. [**Configuration**](docs/CONFIGURATION.md). Every environment variable with its example value and effect. Step-by-step setup for Google OAuth, TMDB, OMDb, and the optional Trakt integration.
+4. [**Configuration**](docs/CONFIGURATION.md). Every environment variable with its example value and effect. Step-by-step setup for Google OAuth, TMDB, and OMDb.
 5. [**Deployment**](docs/DEPLOYMENT.md). The GitHub Actions CI/CD pipeline: who can deploy, how the rollout works on the server, the GHCR image layout, the secrets it needs, and how to roll back.
 6. [**Architecture**](docs/ARCHITECTURE.md). Stack and request flow, the authentication and session model (and why it's sessions instead of JWTs), the database schema at a glance, the key design decisions.
 7. [**Contributing**](CONTRIBUTING.md). Branch naming, commit style, code style summary, the PR process, the visual-identity ground rules, the migration contract.
@@ -51,7 +51,6 @@ If any of this resonates with you, the docs below explain how to run your own co
 - Mark watched, build a watchlist, keep custom lists (private or public-shareable).
 - Personal ratings and notes on watched items.
 - TR / EN UI, dark theme, mobile-first responsive layout.
-- Optional Trakt sync (history import + ongoing sync) and Plex/Jellyfin scrobble webhook.
 
 ## Attribution
 

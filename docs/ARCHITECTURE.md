@@ -120,11 +120,6 @@ watchlist
 
 lists, list_items
   user lists with sharing (private + public-shareable)
-
-trakt_links
-  user_id -> users.id
-  access_token, refresh_token (encrypted at rest)
-  username, expires_at
 ```
 
 The full Drizzle schema is in `backend/src/db/schema.ts`. Hand-written migrations live in `backend/src/db/migrations/`. See [DEVELOPMENT.md](DEVELOPMENT.md#database-migrations) for the migrator's contract.
@@ -135,7 +130,6 @@ The full Drizzle schema is in `backend/src/db/schema.ts`. Hand-written migration
 |---|---|---|
 | TMDB | Search, discover, movie/tv detail, watch providers, reviews | Every Discover and detail-page request |
 | OMDb | IMDB rating, awards summary | Only on movie detail (1000/day limit) |
-| Trakt | History import, sync (optional) | When the user links a Trakt account |
 | Google OAuth | Sign-in | On `/api/auth/google` and callback |
 
 All third-party calls are server-side. Keys are read from env on backend boot. The Vite bundle never sees them.

@@ -44,14 +44,6 @@ If you change a value while containers are running, `docker compose up -d --forc
 | `DOMAIN` | `birceflix.example.com` | Hostname Caddy serves. `localhost` for the prod-shaped local stack. |
 | `DB_PASSWORD` | (strong random) | Used by the compose stack to build `DATABASE_URL` and to provision the Postgres role. |
 
-### Optional integrations
-
-| Variable | Example | What it does |
-|---|---|---|
-| `TRAKT_CLIENT_ID` | (opaque) | Trakt OAuth client. Leave blank to disable Trakt sync entirely. |
-| `TRAKT_CLIENT_SECRET` | (opaque) | Trakt OAuth client secret. |
-| `TRAKT_REDIRECT_URI` | `https://birceflix.example.com/api/integrations/trakt/callback` | Trakt OAuth callback. Matches the one registered at trakt.tv. |
-
 ## Generating secrets
 
 ```bash
@@ -109,14 +101,6 @@ A new key sometimes takes a few minutes before requests start succeeding. Wait i
 3. The key arrives by email after you click the activation link.
 
 Birceflix only hits OMDb on the movie detail page, so 1000/day is plenty for personal use.
-
-## Trakt (optional)
-
-Skip this if you don't use Trakt. Leave the three `TRAKT_*` vars blank and the app silently disables the integration.
-
-1. [Trakt API applications](https://trakt.tv/oauth/applications/new) > **New application**.
-2. Set the redirect URI to whatever you'll put in `TRAKT_REDIRECT_URI`.
-3. Copy the client id and secret.
 
 ## Domain and TLS
 
