@@ -410,7 +410,7 @@ export async function quizRoutes(app: FastifyInstance) {
             : {}),
           updatedAt: new Date(),
         })
-        .where(eq(quizSessions.id, id))
+        .where(and(eq(quizSessions.id, id), eq(quizSessions.userId, userId)))
         .returning()
 
       return res

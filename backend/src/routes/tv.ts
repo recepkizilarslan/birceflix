@@ -49,7 +49,8 @@ const discoverQuery = z.object({
   episodes_from: z.coerce.number().int().min(0).optional(),
   episodes_to: z.coerce.number().int().min(0).optional(),
   sort_by: z.string().default('popularity.desc'),
-  page: z.coerce.number().int().min(1).default(1),
+  // TMDB hard-caps pagination at 500; mirror it so bogus pages 400 here.
+  page: z.coerce.number().int().min(1).max(500).default(1),
   ui_language: uiLanguageSchema,
   /** Mirrors the movie discover endpoint — see routes/discover.ts for the
    *  full rationale on why this lives server-side. */
@@ -76,7 +77,7 @@ const detailQuery = z.object({
 // Default falls back to the env's DEFAULT_WATCH_REGION for ad-hoc API users.
 const tvDetailQuery = z.object({
   region: z.string().length(2).default(env.DEFAULT_WATCH_REGION),
-  ui_language: z.string().default('en-US'),
+  ui_language: uiLanguageSchema,
 })
 
 interface ProviderRow {
