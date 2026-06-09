@@ -25,7 +25,8 @@ const querySchema = z.object({
    *  comma-separated values). */
   with_people: z.string().optional(),
   sort_by: z.string().default('popularity.desc'),
-  page: z.coerce.number().int().min(1).default(1),
+  // TMDB hard-caps pagination at 500; mirror it so bogus pages 400 here.
+  page: z.coerce.number().int().min(1).max(500).default(1),
   ui_language: uiLanguageSchema,
   /** Client-side filter against the user's watched set. Server-side now
    *  because intersecting TMDB results with the watched table in the

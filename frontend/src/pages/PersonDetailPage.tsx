@@ -9,6 +9,7 @@ import {
   type PersonTvCrewCredit,
 } from '../lib/api'
 import { fmtDate } from '../lib/intl'
+import { safeExternalUrl } from '../lib/url'
 
 const PROFILE_BASE = 'https://image.tmdb.org/t/p/h632'
 
@@ -118,17 +119,17 @@ export function PersonDetailPage() {
               <a
                 href={`https://www.imdb.com/name/${p.imdb_id}`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-9 px-3 inline-flex items-center text-sm text-[var(--color-accent)] hover:underline"
               >
                 {t('person.imdbProfile')}
               </a>
             )}
-            {p.homepage && (
+            {safeExternalUrl(p.homepage) && (
               <a
-                href={p.homepage}
+                href={safeExternalUrl(p.homepage)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-9 px-3 inline-flex items-center text-sm text-[var(--color-accent)] hover:underline"
               >
                 {t('person.homepage')}

@@ -35,7 +35,11 @@ services:
       HOST: 0.0.0.0
       DATABASE_URL: postgres://birceflix:${DB_PASSWORD}@db:5432/birceflix
       SESSION_SECRET: ${SESSION_SECRET}
-      SESSION_COOKIE_NAME: birceflix_session
+      # __Host- prefix: browser only accepts the cookie when it's Secure,
+      # host-locked and path=/ — blocks subdomain cookie-tossing. Matches
+      # the backend default (env.ts). Renaming drops existing sessions once
+      # (users just sign in again).
+      SESSION_COOKIE_NAME: __Host-birceflix_session
       SESSION_TTL_DAYS: "30"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}

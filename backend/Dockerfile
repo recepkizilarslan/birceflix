@@ -32,6 +32,11 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 
 WORKDIR /app/backend
+
+# Run unprivileged. The app only listens on 3000 and never writes to disk,
+# so the stock non-root `node` user is enough.
+USER node
+
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -q --spider http://localhost:3000/api/health || exit 1
