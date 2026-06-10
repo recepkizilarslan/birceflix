@@ -5,7 +5,7 @@ import { uiLanguageSchema } from '../lib/locale.js'
 
 const searchQuery = z.object({
   q: z.string().min(1).max(120),
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().int().min(1).max(500).default(1),
   ui_language: uiLanguageSchema,
 })
 

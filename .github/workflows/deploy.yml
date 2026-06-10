@@ -31,8 +31,12 @@ jobs:
 
       - name: Compute image tag
         id: meta
+        # Pass the dispatch input through env instead of interpolating it
+        # into the script, so a crafted tag can't inject shell commands.
+        env:
+          INPUT_IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
-          TAG="${{ inputs.image_tag }}"
+          TAG="$INPUT_IMAGE_TAG"
           if [ -z "$TAG" ]; then TAG="sha-${GITHUB_SHA::12}"; fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 

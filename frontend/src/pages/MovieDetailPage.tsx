@@ -7,6 +7,7 @@ import { mediaKey } from '../lib/watched'
 import { useRegion } from '../lib/preferences'
 import { PersonalNote } from '../components/PersonalNote'
 import { AddToListMenu } from '../components/AddToListMenu'
+import { safeExternalUrl } from '../lib/url'
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -89,7 +90,7 @@ export function MovieDetailPage() {
           )}
           {d.imdb_id && (
             <div>
-              <a href={`https://www.imdb.com/title/${d.imdb_id}`} target="_blank" rel="noreferrer" className="text-sm text-[var(--color-accent)] hover:underline">
+              <a href={`https://www.imdb.com/title/${d.imdb_id}`} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-accent)] hover:underline">
                 {t('movie.imdbPage')}
               </a>
             </div>
@@ -170,7 +171,7 @@ export function MovieDetailPage() {
                       {r.author_details?.rating != null && <span>★ {r.author_details.rating}/10</span>}
                     </div>
                     <p className="text-sm leading-relaxed line-clamp-6 whitespace-pre-line">{r.content}</p>
-                    <a href={r.url} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
+                    <a href={safeExternalUrl(r.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
                       {t('movie.reviewFull')}
                     </a>
                   </div>
@@ -191,7 +192,7 @@ export function MovieDetailPage() {
             <Section title={t('movie.awards')}>
               <p className="text-sm leading-relaxed">{d.awards}</p>
               {d.imdb_id && (
-                <a href={`https://www.imdb.com/title/${d.imdb_id}/awards`} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
+                <a href={`https://www.imdb.com/title/${d.imdb_id}/awards`} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-accent)] hover:underline mt-2 inline-block">
                   {t('movie.awardsLink')}
                 </a>
               )}
@@ -205,8 +206,8 @@ export function MovieDetailPage() {
                 <ProviderRow label={t('movie.providerSubscription')} items={d.watch_providers.flatrate} />
                 <ProviderRow label={t('movie.providerRent')} items={d.watch_providers.rent} />
                 <ProviderRow label={t('movie.providerBuy')} items={d.watch_providers.buy} />
-                {d.watch_providers.link && (
-                  <a href={d.watch_providers.link} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">{t('movie.justwatchLink')}</a>
+                {safeExternalUrl(d.watch_providers.link) && (
+                  <a href={safeExternalUrl(d.watch_providers.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">{t('movie.justwatchLink')}</a>
                 )}
               </div>
             )}
