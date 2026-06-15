@@ -7,11 +7,9 @@ import { sql } from 'drizzle-orm'
 // ---------------------------------------------------------------------------
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  /** Null when the user only registered with email+password. */
+  /** Null only for legacy rows awaiting their owner's first Google sign-in. */
   googleSub: text('google_sub').unique(),
   email: text('email').notNull().unique(),
-  /** scrypt-derived hash. Format: "<hex-salt>:<hex-derived>". Null for Google-only accounts. */
-  passwordHash: text('password_hash'),
   /** Denormalised full name. Kept in sync as `${firstName} ${lastName}`. */
   name: text('name'),
   firstName: text('first_name'),

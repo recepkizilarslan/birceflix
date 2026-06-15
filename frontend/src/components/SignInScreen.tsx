@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { listProviders, type ProviderListItem } from '../lib/api'
 import { getRegion } from '../lib/preferences'
-import { AuthError, loginWithPassword, registerWithPassword } from '../lib/auth'
 
 /**
  * The unauthenticated landing screen. Mounted at `/login` and reached
@@ -12,10 +11,10 @@ import { AuthError, loginWithPassword, registerWithPassword } from '../lib/auth'
  * (set by RequireAuth) preserves the URL the user was originally trying
  * to reach so we can drop them back there once they sign in.
  *
- * The OAuth start endpoint (/api/auth/google) is a full-page navigation
- * away from the SPA, so it bypasses the SPA-level gate entirely.
+ * Authentication is Google-only: the OAuth start endpoint
+ * (/api/auth/google) is a full-page navigation away from the SPA, so it
+ * bypasses the SPA-level gate entirely.
  */
-type Mode = 'login' | 'register'
 
 /**
  * Reject anything that isn't a same-origin pathname. Without this an
@@ -56,35 +55,6 @@ export function SignInScreen() {
       window.location.href = next
     }
   }, [authLoading, user, next])
-
-  const [mode, setMode] = useState<Mode>('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [showPw, setShowPw] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [errCode, setErrCode] = useState<string | null>(null)
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrCode(null)
-    setBusy(true)
-    try {
-      if (mode === 'login') {
-        await loginWithPassword({ email, password })
-      } else {
-        await registerWithPassword({ email, password, name: name.trim() || undefined })
-      }
-      // Hard reload so every useAuth() instance re-probes /api/auth/me
-      // and renders the authed app. `next` lands the user back where
-      // they were originally trying to go.
-      window.location.href = next
-    } catch (e) {
-      const code = e instanceof AuthError ? e.code : 'request_failed'
-      setErrCode(code)
-      setBusy(false)
-    }
-  }
 
   useEffect(() => {
     // Best-effort — if the request fails (offline, gate misconfigured)
@@ -127,108 +97,12 @@ export function SignInScreen() {
             </p>
           </div>
 
-          {/* Mode tabs — Login | Register */}
-          <div className="mt-7 flex border-b border-[var(--color-border)]">
-            {(['login', 'register'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => { setMode(m); setErrCode(null) }}
-                className={`relative flex-1 pb-3 text-[15px] font-medium transition-all duration-200 ${
-                  mode === m
-                    ? 'text-[var(--color-text)]'
-                    : 'text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
-                }`}
-              >
-                {m === 'login' ? t('auth.login') : t('auth.register')}
-                {mode === m && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-md bg-[var(--color-brand)] shadow-[0_0_8px_var(--color-brand)]" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={submit} className="mt-4 space-y-2.5 text-left">
-            {mode === 'register' && (
-              <input
-                type="text"
-                placeholder={t('auth.namePlaceholder')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-                disabled={busy}
-                className={inputCls}
-              />
-            )}
-            <input
-              type="email"
-              required
-              inputMode="email"
-              placeholder={t('auth.emailPlaceholder')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              disabled={busy}
-              className={inputCls}
-            />
-            <div className="relative">
-              <input
-                type={showPw ? 'text' : 'password'}
-                required
-                minLength={mode === 'register' ? 10 : 1}
-                placeholder={t('auth.passwordPlaceholder')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                disabled={busy}
-                className={`${inputCls} pr-12`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
-              >
-                {showPw ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-            {mode === 'register' && password.length > 0 && !isStrongEnough(password) && (
-              <div className="text-[11px] text-[var(--color-text-dim)] pt-0.5">
-                {t('auth.errors.weak_password')}
-              </div>
-            )}
-
-            {errCode && (
-              <div className="text-xs text-red-400 text-center pt-1">
-                {t(`auth.errors.${errCode}`, { defaultValue: t('auth.errors.request_failed') })}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={busy || !email || !password}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 h-12 rounded-xl bg-[var(--color-accent)] text-black font-semibold text-[15px] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition active:scale-[0.99]"
-            >
-              {busy ? t('common.loading') : (mode === 'login' ? t('auth.login') : t('auth.register'))}
-            </button>
-          </form>
-
-          {/* "veya" divider */}
-          <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
-            <div className="flex-1 h-px bg-[var(--color-border)]" />
-            <span>{t('auth.or')}</span>
-            <div className="flex-1 h-px bg-[var(--color-border)]" />
-          </div>
-
           <button
             onClick={() => signInWithGoogle(next)}
-            className="w-full inline-flex items-center justify-center gap-2.5 px-5 h-12 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium text-[15px] transition active:scale-[0.99]"
+            className="mt-7 w-full inline-flex items-center justify-center gap-2.5 px-5 h-12 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-dim)] text-[var(--color-text)] font-medium text-[15px] transition active:scale-[0.99]"
           >
             <GoogleIcon />
-            {mode === 'login' ? t('auth.signInWithGoogle') : t('auth.signUpWithGoogle')}
+            {t('auth.signInWithGoogle')}
           </button>
 
           <p className="mt-5 text-[11px] text-center text-[var(--color-text-dim)] leading-relaxed px-2">
@@ -416,25 +290,6 @@ function integrationBrands(): { key: string; name: string; node: React.ReactNode
   ]
 }
 
-// 12px on mobile to avoid iOS zoom is handled in index.css; padding gives
-// the larger touch height (~44px) that mobile platforms expect.
-const inputCls = 'w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 h-12 text-[var(--color-text)] placeholder-[var(--color-text-dim)] focus:outline-none focus:border-[var(--color-text-dim)] disabled:opacity-60'
-
-/**
- * Client-side mirror of backend/src/auth/passwordPolicy.ts — kept simple
- * so the strength hint can update on every keystroke. The server is the
- * source of truth; this is only for instant UX feedback.
- */
-function isStrongEnough(pw: string): boolean {
-  if (pw.length < 10) return false
-  const classes =
-    (/[a-z0-9]/.test(pw) ? 1 : 0) +
-    (/[A-Z]/.test(pw) ? 1 : 0) +
-    (/[0-9]/.test(pw) ? 1 : 0) +
-    (/[^A-Za-z0-9]/.test(pw) ? 1 : 0)
-  return classes >= 3
-}
-
 /** Inline Google "G" logo so we don't pull in another asset. */
 function GoogleIcon() {
   return (
@@ -447,21 +302,3 @@ function GoogleIcon() {
   )
 }
 
-function EyeIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  )
-}
-function EyeOffIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <path d="M14.12 14.12A3 3 0 1 1 9.88 9.88" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  )
-}
