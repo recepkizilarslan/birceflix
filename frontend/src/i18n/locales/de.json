@@ -15,28 +15,9 @@
     "signOut": "Abmelden",
     "tagline": "Verfolge, was du schaust. Entdecke, was als Nächstes kommt.",
     "signInToContinue": "Melde dich an, um fortzufahren",
-    "login": "Anmelden",
-    "register": "Registrieren",
-    "or": "oder",
     "signInWithGoogle": "Mit Google anmelden",
-    "signUpWithGoogle": "Mit Google registrieren",
-    "emailPlaceholder": "E-Mail",
-    "passwordPlaceholder": "Passwort",
-    "namePlaceholder": "Vor- und Nachname (optional)",
-    "noAccount": "Noch kein Konto?",
-    "haveAccount": "Bereits ein Konto?",
-    "showPassword": "Passwort anzeigen",
-    "hidePassword": "Passwort verbergen",
     "legalHint": "Mit Fortfahren stimmst du unseren Bedingungen zu.",
-    "integrations": "Integrationen",
-    "errors": {
-      "email_taken": "Diese E-Mail ist bereits registriert.",
-      "invalid_credentials": "Falsche E-Mail oder Passwort.",
-      "invalid_input": "Ungültige Eingabe. Das Passwort muss mindestens 10 Zeichen lang sein.",
-      "weak_password": "Das Passwort ist zu schwach. Verwende mindestens 10 Zeichen und mische drei aus: Kleinbuchstaben, Großbuchstaben, Ziffer, Symbol.",
-      "rate_limited": "Zu viele Versuche. Bitte versuche es in ein paar Minuten erneut.",
-      "request_failed": "Etwas ist schiefgelaufen, bitte versuche es erneut."
-    }
+    "integrations": "Integrationen"
   },
   "common": {
     "loading": "Wird geladen…",

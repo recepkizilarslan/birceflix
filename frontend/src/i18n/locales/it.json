@@ -15,28 +15,9 @@
     "signOut": "Esci",
     "tagline": "Tieni traccia di cosa guardi. Scopri cosa vedere dopo.",
     "signInToContinue": "Accedi per continuare",
-    "login": "Accedi",
-    "register": "Registrati",
-    "or": "oppure",
     "signInWithGoogle": "Accedi con Google",
-    "signUpWithGoogle": "Registrati con Google",
-    "emailPlaceholder": "E-mail",
-    "passwordPlaceholder": "Password",
-    "namePlaceholder": "Nome e cognome (facoltativo)",
-    "noAccount": "Non hai un account?",
-    "haveAccount": "Hai già un account?",
-    "showPassword": "Mostra password",
-    "hidePassword": "Nascondi password",
     "legalHint": "Continuando accetti i nostri termini.",
-    "integrations": "Integrazioni",
-    "errors": {
-      "email_taken": "Questa e-mail è già registrata.",
-      "invalid_credentials": "E-mail o password errate.",
-      "invalid_input": "Dati non validi. La password deve contenere almeno 10 caratteri.",
-      "weak_password": "Password troppo debole. Usa almeno 10 caratteri e includi tre tra: minuscole, maiuscole, cifre, simboli.",
-      "rate_limited": "Troppi tentativi. Riprova fra qualche minuto.",
-      "request_failed": "Qualcosa è andato storto, riprova."
-    }
+    "integrations": "Integrazioni"
   },
   "common": {
     "loading": "Caricamento…",

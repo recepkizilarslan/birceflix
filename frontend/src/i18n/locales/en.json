@@ -15,28 +15,9 @@
     "signOut": "Sign out",
     "tagline": "Track what you watch. Discover what's next.",
     "signInToContinue": "Sign in to continue",
-    "login": "Sign in",
-    "register": "Sign up",
-    "or": "or",
     "signInWithGoogle": "Sign in with Google",
-    "signUpWithGoogle": "Sign up with Google",
-    "emailPlaceholder": "Email",
-    "passwordPlaceholder": "Password",
-    "namePlaceholder": "Full name (optional)",
-    "noAccount": "Don't have an account?",
-    "haveAccount": "Already have an account?",
-    "showPassword": "Show password",
-    "hidePassword": "Hide password",
     "legalHint": "By continuing you agree to our terms.",
-    "integrations": "Integrations",
-    "errors": {
-      "email_taken": "That email is already registered.",
-      "invalid_credentials": "Wrong email or password.",
-      "invalid_input": "Invalid input. Password must be at least 10 characters.",
-      "weak_password": "Password is too weak. Use at least 10 characters and mix three of: lowercase, uppercase, digit, symbol.",
-      "rate_limited": "Too many attempts. Please try again in a few minutes.",
-      "request_failed": "Something went wrong, please try again."
-    }
+    "integrations": "Integrations"
   },
   "common": {
     "loading": "Loading…",

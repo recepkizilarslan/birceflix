@@ -15,28 +15,9 @@
     "signOut": "Cerrar sesión",
     "tagline": "Lleva el control de lo que ves. Descubre qué ver después.",
     "signInToContinue": "Inicia sesión para continuar",
-    "login": "Iniciar sesión",
-    "register": "Registrarse",
-    "or": "o",
     "signInWithGoogle": "Iniciar sesión con Google",
-    "signUpWithGoogle": "Registrarse con Google",
-    "emailPlaceholder": "Correo electrónico",
-    "passwordPlaceholder": "Contraseña",
-    "namePlaceholder": "Nombre y apellidos (opcional)",
-    "noAccount": "¿No tienes cuenta?",
-    "haveAccount": "¿Ya tienes cuenta?",
-    "showPassword": "Mostrar contraseña",
-    "hidePassword": "Ocultar contraseña",
     "legalHint": "Al continuar aceptas nuestros términos.",
-    "integrations": "Integraciones",
-    "errors": {
-      "email_taken": "Ese correo ya está registrado.",
-      "invalid_credentials": "Correo o contraseña incorrectos.",
-      "invalid_input": "Datos no válidos. La contraseña debe tener al menos 10 caracteres.",
-      "weak_password": "La contraseña es muy débil. Usa al menos 10 caracteres y combina tres de: minúsculas, mayúsculas, dígitos, símbolos.",
-      "rate_limited": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
-      "request_failed": "Algo ha ido mal, inténtalo de nuevo."
-    }
+    "integrations": "Integraciones"
   },
   "common": {
     "loading": "Cargando…",

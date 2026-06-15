@@ -15,28 +15,9 @@
     "signOut": "Wyloguj",
     "tagline": "Śledź, co oglądasz. Odkrywaj, co obejrzeć dalej.",
     "signInToContinue": "Zaloguj się, aby kontynuować",
-    "login": "Zaloguj",
-    "register": "Zarejestruj",
-    "or": "lub",
     "signInWithGoogle": "Zaloguj się przez Google",
-    "signUpWithGoogle": "Zarejestruj się przez Google",
-    "emailPlaceholder": "E-mail",
-    "passwordPlaceholder": "Hasło",
-    "namePlaceholder": "Imię i nazwisko (opcjonalnie)",
-    "noAccount": "Nie masz konta?",
-    "haveAccount": "Masz już konto?",
-    "showPassword": "Pokaż hasło",
-    "hidePassword": "Ukryj hasło",
     "legalHint": "Kontynuując akceptujesz nasze warunki.",
-    "integrations": "Integracje",
-    "errors": {
-      "email_taken": "Ten adres e-mail jest już zarejestrowany.",
-      "invalid_credentials": "Nieprawidłowy e-mail lub hasło.",
-      "invalid_input": "Nieprawidłowe dane. Hasło musi mieć co najmniej 10 znaków.",
-      "weak_password": "Hasło jest zbyt słabe. Użyj co najmniej 10 znaków i połącz trzy z: małe litery, wielkie litery, cyfry, symbole.",
-      "rate_limited": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
-      "request_failed": "Coś poszło nie tak, spróbuj ponownie."
-    }
+    "integrations": "Integracje"
   },
   "common": {
     "loading": "Ładowanie…",
