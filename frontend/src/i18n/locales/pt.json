@@ -15,28 +15,9 @@
     "signOut": "Sair",
     "tagline": "Acompanhe o que você assiste. Descubra o que ver a seguir.",
     "signInToContinue": "Entre para continuar",
-    "login": "Entrar",
-    "register": "Cadastrar",
-    "or": "ou",
     "signInWithGoogle": "Entrar com o Google",
-    "signUpWithGoogle": "Cadastrar com o Google",
-    "emailPlaceholder": "E-mail",
-    "passwordPlaceholder": "Senha",
-    "namePlaceholder": "Nome completo (opcional)",
-    "noAccount": "Não tem uma conta?",
-    "haveAccount": "Já tem uma conta?",
-    "showPassword": "Mostrar senha",
-    "hidePassword": "Ocultar senha",
     "legalHint": "Ao continuar você concorda com nossos termos.",
-    "integrations": "Integrações",
-    "errors": {
-      "email_taken": "Este e-mail já está cadastrado.",
-      "invalid_credentials": "E-mail ou senha incorretos.",
-      "invalid_input": "Dados inválidos. A senha deve ter pelo menos 10 caracteres.",
-      "weak_password": "Senha muito fraca. Use ao menos 10 caracteres e combine três entre: minúsculas, maiúsculas, números, símbolos.",
-      "rate_limited": "Muitas tentativas. Tente de novo em alguns minutos.",
-      "request_failed": "Algo deu errado, tente novamente."
-    }
+    "integrations": "Integrações"
   },
   "common": {
     "loading": "Carregando…",
