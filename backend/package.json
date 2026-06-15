@@ -18,7 +18,7 @@
     "@fastify/rate-limit": "^11.0.0",
     "@fastify/sensible": "^6.0.3",
     "arctic": "^3.7.0",
-    "csv-parse": "^6.2.1",
+    "csv-parse": "^7.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.3.2",
