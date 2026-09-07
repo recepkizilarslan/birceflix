@@ -31,7 +31,7 @@
     "prod:restart": "docker compose restart api caddy"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "concurrently": "^10.0.5"
   },
   "overrides": {
     "esbuild": ">=0.25.0"
